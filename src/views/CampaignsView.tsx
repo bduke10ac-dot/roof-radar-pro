@@ -1,15 +1,33 @@
 import { useState } from "react";
-import { Mail, MessageSquare, Save, Send, Download, Lock, AlertTriangle } from "lucide-react";
+import { Mail, MessageSquare, Save, Send, Download, Lock, AlertTriangle, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useLeads } from "@/hooks/useLeads";
+import { useMarkets } from "@/contexts/MarketContext";
 import { toast } from "sonner";
+
+type Segment = "all" | "state" | "region" | "county" | "city" | "zip" | "geofence" | "market" | "storm";
+const SEGMENTS: { value: Segment; label: string }[] = [
+  { value: "all", label: "Entire database" },
+  { value: "state", label: "By state" },
+  { value: "region", label: "By region" },
+  { value: "county", label: "By county" },
+  { value: "city", label: "By city" },
+  { value: "zip", label: "ZIP group" },
+  { value: "geofence", label: "Custom geofence" },
+  { value: "market", label: "Saved market" },
+  { value: "storm", label: "Storm event area" },
+];
 
 export function CampaignsView() {
   const { leads } = useLeads();
+  const { markets, activeMarket } = useMarkets();
+  const [segment, setSegment] = useState<Segment>(activeMarket ? "market" : "all");
+  const [marketId, setMarketId] = useState<string>(activeMarket?.id ?? markets[0]?.id ?? "");
   const [emailSubj, setEmailSubj] = useState("Free roof inspection after the April 22 storm");
   const [emailBody, setEmailBody] = useState(
     "Hi {{first_name}},\n\nWe noticed your neighborhood was hit by 1.75\" hail on 4/22. We'd be glad to provide a free, no-obligation roof inspection.\n\n— RoofRadar Team\n\nUnsubscribe: {{unsubscribe_link}}"
@@ -18,12 +36,24 @@ export function CampaignsView() {
     "RoofRadar: Hi {{first_name}}, free post-storm roof inspection in your area. Reply YES to schedule. Reply STOP to opt out."
   );
 
-  // SMS-eligible: explicit sms_consent AND not on DNC list
-  const smsEligible = leads.filter(l => l.smsConsent && !l.dncStatus);
-  const emailEligible = leads.filter(l => l.consent !== "opted_out");
-  const smsBlocked = leads.length - smsEligible.length;
+  const segmentLeads = (() => {
+    if (segment === "market") {
+      const m = markets.find(x => x.id === marketId);
+      if (!m || m.zips.length === 0) return leads;
+      return leads.filter(l => m.zips.includes(l.zip));
+    }
+    return leads;
+  })();
+
+  // SMS-eligible: explicit sms_consent AND not on DNC list, within selected segment
+  const smsEligible = segmentLeads.filter(l => l.smsConsent && !l.dncStatus);
+  const emailEligible = segmentLeads.filter(l => l.consent !== "opted_out");
+  const coldExportable = segmentLeads.filter(l => !l.dncStatus); // direct mail / door knock
+  const smsBlocked = segmentLeads.length - smsEligible.length;
   const hasStop = smsBody.toUpperCase().includes("STOP");
+  const hasUnsub = emailBody.toLowerCase().includes("unsubscribe");
   const canSendSms = smsEligible.length > 0 && hasStop;
+  const canSendEmail = emailEligible.length > 0 && hasUnsub;
 
   return (
     <div className="space-y-5">
@@ -31,6 +61,32 @@ export function CampaignsView() {
         <h1 className="text-2xl font-bold tracking-tight">Campaign builder</h1>
         <p className="text-sm text-muted-foreground">Reach the right homeowners through compliant channels.</p>
       </header>
+
+      <div className="bg-card rounded-xl p-4 shadow-card border border-border/60 grid sm:grid-cols-[1fr_1fr_auto] gap-3 items-end">
+        <div>
+          <Label className="text-xs text-muted-foreground flex items-center gap-1.5"><Target className="w-3.5 h-3.5" />Segment</Label>
+          <Select value={segment} onValueChange={(v) => setSegment(v as Segment)}>
+            <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {SEGMENTS.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        {segment === "market" && (
+          <div>
+            <Label className="text-xs text-muted-foreground">Saved market</Label>
+            <Select value={marketId} onValueChange={setMarketId}>
+              <SelectTrigger className="mt-1.5"><SelectValue placeholder="Select market" /></SelectTrigger>
+              <SelectContent>
+                {markets.map(m => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        <div className="text-xs text-muted-foreground sm:text-right">
+          <span className="font-semibold text-foreground">{segmentLeads.length}</span> contacts in segment
+        </div>
+      </div>
 
       <Tabs defaultValue="email">
         <TabsList>
