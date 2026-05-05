@@ -1,16 +1,17 @@
 import { AlertTriangle, ShieldCheck } from "lucide-react";
 import { ConsentBadge } from "@/components/StormScoreBadge";
-import { mockLeads } from "@/lib/mockData";
+import { useLeads } from "@/hooks/useLeads";
 
 const sources = ["Web form", "Door knock card", "Phone (recorded)", "Imported list"];
 
 export function ComplianceView() {
-  const logs = mockLeads.map((l, i) => ({
+  const { leads } = useLeads();
+  const logs = leads.map((l, i) => ({
     ...l,
     source: l.consent === "opted_in" ? sources[i % sources.length] : l.consent === "opted_out" ? "Reply STOP" : "—",
     optOutDate: l.consent === "opted_out" ? "2026-04-25" : "—",
-    dnc: l.consent === "opted_out",
-    smsEligible: l.consent === "opted_in",
+    dnc: !!l.dncStatus || l.consent === "opted_out",
+    smsEligible: !!l.smsConsent && !l.dncStatus,
     emailEligible: l.consent !== "opted_out",
   }));
 

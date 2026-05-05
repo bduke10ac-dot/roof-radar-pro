@@ -5,27 +5,29 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { StatusBadge, StormScoreBadge, ConsentBadge } from "@/components/StormScoreBadge";
-import { mockLeads, type Lead } from "@/lib/mockData";
+import { type Lead } from "@/lib/mockData";
+import { useLeads } from "@/hooks/useLeads";
 
 export function LeadsView() {
+  const { leads } = useLeads();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
   const [consent, setConsent] = useState("all");
   const [selected, setSelected] = useState<Lead | null>(null);
 
-  const filtered = useMemo(() => mockLeads.filter(l => {
+  const filtered = useMemo(() => leads.filter(l => {
     if (status !== "all" && l.status !== status) return false;
     if (consent !== "all" && l.consent !== consent) return false;
     if (q && !`${l.ownerName} ${l.propertyAddress} ${l.zip}`.toLowerCase().includes(q.toLowerCase())) return false;
     return true;
-  }), [q, status, consent]);
+  }), [q, status, consent, leads]);
 
   return (
     <div className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Lead database</h1>
-          <p className="text-sm text-muted-foreground">{filtered.length} of {mockLeads.length} property owners</p>
+          <p className="text-sm text-muted-foreground">{filtered.length} of {leads.length} property owners</p>
         </div>
         <Button variant="outline" size="sm"><Download className="w-4 h-4 mr-2" />Export CSV</Button>
       </header>

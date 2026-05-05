@@ -21,6 +21,8 @@ export interface Lead {
   lat: number;
   lng: number;
   zip: string;
+  smsConsent?: boolean;
+  dncStatus?: boolean;
 }
 
 export const mockLeads: Lead[] = [

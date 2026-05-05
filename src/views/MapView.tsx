@@ -5,21 +5,22 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { StormScoreBadge } from "@/components/StormScoreBadge";
-import { mockLeads } from "@/lib/mockData";
+import { useLeads } from "@/hooks/useLeads";
 import { toast } from "sonner";
 
 export function MapView() {
+  const { leads } = useLeads();
   const [minScore, setMinScore] = useState([60]);
   const [zip, setZip] = useState("all");
   const [showSwath, setShowSwath] = useState(true);
   const [radius, setRadius] = useState([35]);
 
-  const visible = mockLeads.filter(l => l.stormScore >= minScore[0] && (zip === "all" || l.zip === zip));
-  const zips = Array.from(new Set(mockLeads.map(l => l.zip)));
+  const visible = leads.filter(l => l.stormScore >= minScore[0] && (zip === "all" || l.zip === zip));
+  const zips = Array.from(new Set(leads.map(l => l.zip)));
 
   // Project lat/lng to a 0-100% box
-  const lats = mockLeads.map(l => l.lat);
-  const lngs = mockLeads.map(l => l.lng);
+  const lats = leads.map(l => l.lat);
+  const lngs = leads.map(l => l.lng);
   const minLat = Math.min(...lats), maxLat = Math.max(...lats);
   const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
   const project = (lat: number, lng: number) => ({
