@@ -136,7 +136,7 @@ export function CampaignsView() {
             <div className="text-sm">
               <div className="font-semibold text-warning">SMS sending is locked: requires sms_consent = true and dnc_status = false</div>
               <div className="text-foreground/80 mt-1">
-                {smsEligible.length} of {leads.length} contacts are SMS-eligible. {smsBlocked} blocked (no consent or DNC). Cold SMS violates TCPA.
+                {smsEligible.length} of {segmentLeads.length} contacts in segment are SMS-eligible. {smsBlocked} blocked (no consent or DNC). Cold SMS violates TCPA.
               </div>
             </div>
           </div>
