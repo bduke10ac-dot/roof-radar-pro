@@ -71,9 +71,9 @@ export function CampaignsView() {
           <div className="rounded-xl p-4 border border-warning/40 bg-warning/10 flex gap-3 mb-5">
             <Lock className="w-5 h-5 shrink-0 text-warning mt-0.5" />
             <div className="text-sm">
-              <div className="font-semibold text-warning">SMS sending is locked to opted-in contacts only</div>
+              <div className="font-semibold text-warning">SMS sending is locked: requires sms_consent = true and dnc_status = false</div>
               <div className="text-foreground/80 mt-1">
-                {optedIn.length} of {leads.length} contacts have documented opt-in. Cold SMS marketing violates TCPA.
+                {smsEligible.length} of {leads.length} contacts are SMS-eligible. {smsBlocked} blocked (no consent or DNC). Cold SMS violates TCPA.
               </div>
             </div>
           </div>
@@ -90,15 +90,24 @@ export function CampaignsView() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button onClick={() => toast.success("Test SMS sent via Twilio")}><Send className="w-4 h-4 mr-2" />Send test</Button>
+                <Button
+                  disabled={!canSendSms}
+                  onClick={() => {
+                    if (!canSendSms) return;
+                    toast.success(`Test SMS queued for ${smsEligible.length} eligible contacts`);
+                  }}
+                >
+                  {canSendSms ? <Send className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
+                  {canSendSms ? "Send test" : "SMS locked"}
+                </Button>
                 <Button variant="outline" onClick={() => toast.success("Template saved")}><Save className="w-4 h-4 mr-2" />Save template</Button>
-                <Button variant="outline" onClick={() => toast.success("CSV exported")}><Download className="w-4 h-4 mr-2" />Export CSV</Button>
+                <Button variant="outline" onClick={() => toast.success(`CSV exported (${smsEligible.length} eligible)`)}><Download className="w-4 h-4 mr-2" />Export CSV</Button>
               </div>
             </div>
             <div className="bg-card rounded-xl p-5 shadow-card border border-border/60 h-fit space-y-3 text-sm">
               <div className="font-semibold">SMS-eligible audience</div>
-              <Stat label="Opted-in contacts" value={optedIn.length} />
-              <Stat label="Locked (no consent)" value={leads.length - optedIn.length} />
+              <Stat label="SMS-eligible (consent + no DNC)" value={smsEligible.length} />
+              <Stat label="Locked (no consent or DNC)" value={smsBlocked} />
               <div className="pt-3 border-t border-border/60 text-xs text-muted-foreground">
                 TCPA: prior express written consent required. Always include opt-out instructions.
               </div>
