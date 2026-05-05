@@ -1,21 +1,32 @@
 import { useState } from "react";
-import { Route, Layers, MapPin } from "lucide-react";
+import { Route, Layers, MapPin, Target, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { StormScoreBadge } from "@/components/StormScoreBadge";
 import { useLeads } from "@/hooks/useLeads";
+import { useMarkets } from "@/contexts/MarketContext";
 import { toast } from "sonner";
 
 export function MapView() {
   const { leads } = useLeads();
+  const { activeMarket } = useMarkets();
   const [minScore, setMinScore] = useState([60]);
   const [zip, setZip] = useState("all");
   const [showSwath, setShowSwath] = useState(true);
+  const [showHeatmap, setShowHeatmap] = useState(true);
   const [radius, setRadius] = useState([35]);
 
-  const visible = leads.filter(l => l.stormScore >= minScore[0] && (zip === "all" || l.zip === zip));
+  const matchesMarket = (zipCode: string) => {
+    if (!activeMarket || activeMarket.zips.length === 0) return true;
+    return activeMarket.zips.includes(zipCode);
+  };
+  const visible = leads.filter(l =>
+    l.stormScore >= minScore[0] &&
+    (zip === "all" || l.zip === zip) &&
+    matchesMarket(l.zip)
+  );
   const zips = Array.from(new Set(leads.map(l => l.zip)));
 
   // Project lat/lng to a 0-100% box
@@ -66,6 +77,24 @@ export function MapView() {
             </div>
             <Switch checked={showSwath} onCheckedChange={setShowSwath} />
           </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm">
+              <Flame className="w-4 h-4 text-warning" /> Lead density heatmap
+            </div>
+            <Switch checked={showHeatmap} onCheckedChange={setShowHeatmap} />
+          </div>
+          {activeMarket && (
+            <div className="rounded-md p-3 bg-storm/10 border border-storm/30 text-xs">
+              <div className="flex items-center gap-1.5 text-storm font-semibold mb-1">
+                <Target className="w-3.5 h-3.5" /> Active market
+              </div>
+              <div className="font-medium text-foreground">{activeMarket.name}</div>
+              <div className="text-muted-foreground mt-0.5">
+                {[...activeMarket.states, ...activeMarket.counties, ...activeMarket.cities].slice(0, 3).join(" · ") || "No geography set"}
+                {activeMarket.zips.length > 0 && ` · ${activeMarket.zips.length} ZIPs`}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="relative rounded-xl overflow-hidden shadow-elevated border border-border/60 aspect-[4/3] lg:aspect-auto lg:min-h-[560px] bg-[hsl(210_40%_92%)]">
@@ -99,6 +128,25 @@ export function MapView() {
               style={{ width: `${radius[0] * 4}px`, height: `${radius[0] * 4}px` }}
             />
           </div>
+
+          {/* Active market boundary */}
+          {activeMarket && (
+            <div className="absolute pointer-events-none border-2 border-dashed border-storm rounded-2xl"
+              style={{ left: "10%", top: "8%", right: "8%", bottom: "12%" }}>
+              <div className="absolute -top-3 left-3 px-2 py-0.5 bg-storm text-storm-foreground text-[10px] font-bold rounded uppercase tracking-wider">
+                {activeMarket.name}
+              </div>
+            </div>
+          )}
+
+          {/* Heatmap blobs */}
+          {showHeatmap && visible.filter(l => l.stormScore >= 80).map(l => {
+            const pos = project(l.lat, l.lng);
+            return (
+              <div key={`h-${l.id}`} className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
+                style={{ ...pos, width: 120, height: 120, background: "hsl(var(--warning) / 0.45)" }} />
+            );
+          })}
 
           {/* Pins */}
           {visible.map(l => {
