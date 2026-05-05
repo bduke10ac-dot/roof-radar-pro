@@ -1,12 +1,13 @@
-import { LayoutDashboard, Users, Map, Send, ShieldCheck, Plug, CloudLightning } from "lucide-react";
+import { LayoutDashboard, Users, Map, Send, ShieldCheck, Plug, CloudLightning, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type View = "dashboard" | "leads" | "map" | "campaigns" | "compliance" | "integrations";
+export type View = "dashboard" | "leads" | "map" | "markets" | "campaigns" | "compliance" | "integrations";
 
 const items: { id: View; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "leads", label: "Leads", icon: Users },
   { id: "map", label: "Map", icon: Map },
+  { id: "markets", label: "Market Targeting", icon: Target },
   { id: "campaigns", label: "Campaigns", icon: Send },
   { id: "compliance", label: "Compliance", icon: ShieldCheck },
   { id: "integrations", label: "Integrations", icon: Plug },
