@@ -1,14 +1,17 @@
 import { Home, AlertTriangle, MailCheck, CalendarCheck, CloudRain } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge, StormScoreBadge } from "@/components/StormScoreBadge";
-import { mockLeads, stormEvents, type LeadStatus } from "@/lib/mockData";
+import { type LeadStatus } from "@/lib/mockData";
+import { useLeads, useStormEvents } from "@/hooks/useLeads";
 
 const pipelineStages: LeadStatus[] = ["new", "contacted", "inspection", "quoted", "won"];
 
 export function DashboardView() {
-  const highScore = mockLeads.filter(l => l.stormScore >= 85).length;
-  const optedIn = mockLeads.filter(l => l.consent === "opted_in").length;
-  const inspections = mockLeads.filter(l => l.status === "inspection").length;
+  const { leads } = useLeads();
+  const stormEvents = useStormEvents();
+  const highScore = leads.filter(l => l.stormScore >= 85).length;
+  const optedIn = leads.filter(l => l.consent === "opted_in").length;
+  const inspections = leads.filter(l => l.status === "inspection").length;
 
   return (
     <div className="space-y-6">
