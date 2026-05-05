@@ -77,6 +77,24 @@ export function MapView() {
             </div>
             <Switch checked={showSwath} onCheckedChange={setShowSwath} />
           </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm">
+              <Flame className="w-4 h-4 text-warning" /> Lead density heatmap
+            </div>
+            <Switch checked={showHeatmap} onCheckedChange={setShowHeatmap} />
+          </div>
+          {activeMarket && (
+            <div className="rounded-md p-3 bg-storm/10 border border-storm/30 text-xs">
+              <div className="flex items-center gap-1.5 text-storm font-semibold mb-1">
+                <Target className="w-3.5 h-3.5" /> Active market
+              </div>
+              <div className="font-medium text-foreground">{activeMarket.name}</div>
+              <div className="text-muted-foreground mt-0.5">
+                {[...activeMarket.states, ...activeMarket.counties, ...activeMarket.cities].slice(0, 3).join(" · ") || "No geography set"}
+                {activeMarket.zips.length > 0 && ` · ${activeMarket.zips.length} ZIPs`}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="relative rounded-xl overflow-hidden shadow-elevated border border-border/60 aspect-[4/3] lg:aspect-auto lg:min-h-[560px] bg-[hsl(210_40%_92%)]">
