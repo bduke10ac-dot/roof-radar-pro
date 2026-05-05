@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
-import { leads } from "@/lib/mockData";
+import { useLeads } from "@/hooks/useLeads";
 import { toast } from "sonner";
 
 export function CampaignsView() {
+  const { leads } = useLeads();
   const [emailSubj, setEmailSubj] = useState("Free roof inspection after the April 22 storm");
   const [emailBody, setEmailBody] = useState(
     "Hi {{first_name}},\n\nWe noticed your neighborhood was hit by 1.75\" hail on 4/22. We'd be glad to provide a free, no-obligation roof inspection.\n\n— RoofRadar Team\n\nUnsubscribe: {{unsubscribe_link}}"
@@ -17,8 +18,12 @@ export function CampaignsView() {
     "RoofRadar: Hi {{first_name}}, free post-storm roof inspection in your area. Reply YES to schedule. Reply STOP to opt out."
   );
 
-  const optedIn = leads.filter(l => l.consent === "opted_in");
+  // SMS-eligible: explicit sms_consent AND not on DNC list
+  const smsEligible = leads.filter(l => l.smsConsent && !l.dncStatus);
   const emailEligible = leads.filter(l => l.consent !== "opted_out");
+  const smsBlocked = leads.length - smsEligible.length;
+  const hasStop = smsBody.toUpperCase().includes("STOP");
+  const canSendSms = smsEligible.length > 0 && hasStop;
 
   return (
     <div className="space-y-5">

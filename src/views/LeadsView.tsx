@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { StatusBadge, StormScoreBadge, ConsentBadge } from "@/components/StormScoreBadge";
-import { leads, type Lead } from "@/lib/mockData";
+import { type Lead } from "@/lib/mockData";
+import { useLeads } from "@/hooks/useLeads";
 
 export function LeadsView() {
+  const { leads } = useLeads();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
   const [consent, setConsent] = useState("all");
@@ -18,7 +20,7 @@ export function LeadsView() {
     if (consent !== "all" && l.consent !== consent) return false;
     if (q && !`${l.ownerName} ${l.propertyAddress} ${l.zip}`.toLowerCase().includes(q.toLowerCase())) return false;
     return true;
-  }), [q, status, consent]);
+  }), [q, status, consent, leads]);
 
   return (
     <div className="space-y-5">

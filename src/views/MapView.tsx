@@ -5,10 +5,11 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { StormScoreBadge } from "@/components/StormScoreBadge";
-import { leads } from "@/lib/mockData";
+import { useLeads } from "@/hooks/useLeads";
 import { toast } from "sonner";
 
 export function MapView() {
+  const { leads } = useLeads();
   const [minScore, setMinScore] = useState([60]);
   const [zip, setZip] = useState("all");
   const [showSwath, setShowSwath] = useState(true);
