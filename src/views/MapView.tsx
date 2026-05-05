@@ -129,6 +129,25 @@ export function MapView() {
             />
           </div>
 
+          {/* Active market boundary */}
+          {activeMarket && (
+            <div className="absolute pointer-events-none border-2 border-dashed border-storm rounded-2xl"
+              style={{ left: "10%", top: "8%", right: "8%", bottom: "12%" }}>
+              <div className="absolute -top-3 left-3 px-2 py-0.5 bg-storm text-storm-foreground text-[10px] font-bold rounded uppercase tracking-wider">
+                {activeMarket.name}
+              </div>
+            </div>
+          )}
+
+          {/* Heatmap blobs */}
+          {showHeatmap && visible.filter(l => l.stormScore >= 80).map(l => {
+            const pos = project(l.lat, l.lng);
+            return (
+              <div key={`h-${l.id}`} className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
+                style={{ ...pos, width: 120, height: 120, background: "hsl(var(--warning) / 0.45)" }} />
+            );
+          })}
+
           {/* Pins */}
           {visible.map(l => {
             const pos = project(l.lat, l.lng);
