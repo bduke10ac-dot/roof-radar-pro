@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      campaign_targets: {
+        Row: {
+          campaign_id: string | null
+          city: string | null
+          county: string | null
+          created_at: string
+          geofence_geojson: Json | null
+          id: string
+          market_id: string | null
+          region: string | null
+          state: string | null
+          target_type: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          city?: string | null
+          county?: string | null
+          created_at?: string
+          geofence_geojson?: Json | null
+          id?: string
+          market_id?: string | null
+          region?: string | null
+          state?: string | null
+          target_type?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          city?: string | null
+          county?: string | null
+          created_at?: string
+          geofence_geojson?: Json | null
+          id?: string
+          market_id?: string | null
+          region?: string | null
+          state?: string | null
+          target_type?: string | null
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_targets_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_targets_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "markets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaigns: {
         Row: {
           channel: string | null
@@ -168,6 +225,111 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      market_storm_scores: {
+        Row: {
+          affected_home_count: number | null
+          average_home_value: number | null
+          average_roof_age: number | null
+          claim_likelihood_score: number | null
+          competition_score: number | null
+          created_at: string
+          distance_from_office: number | null
+          hail_size: number | null
+          id: string
+          market_id: string | null
+          storm_event_id: string | null
+          total_opportunity_score: number | null
+          wind_speed: number | null
+        }
+        Insert: {
+          affected_home_count?: number | null
+          average_home_value?: number | null
+          average_roof_age?: number | null
+          claim_likelihood_score?: number | null
+          competition_score?: number | null
+          created_at?: string
+          distance_from_office?: number | null
+          hail_size?: number | null
+          id?: string
+          market_id?: string | null
+          storm_event_id?: string | null
+          total_opportunity_score?: number | null
+          wind_speed?: number | null
+        }
+        Update: {
+          affected_home_count?: number | null
+          average_home_value?: number | null
+          average_roof_age?: number | null
+          claim_likelihood_score?: number | null
+          competition_score?: number | null
+          created_at?: string
+          distance_from_office?: number | null
+          hail_size?: number | null
+          id?: string
+          market_id?: string | null
+          storm_event_id?: string | null
+          total_opportunity_score?: number | null
+          wind_speed?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_storm_scores_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "markets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_storm_scores_storm_event_id_fkey"
+            columns: ["storm_event_id"]
+            isOneToOne: false
+            referencedRelation: "storm_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      markets: {
+        Row: {
+          cities: string[] | null
+          counties: string[] | null
+          created_at: string
+          id: string
+          market_name: string
+          market_type: string | null
+          notes: string | null
+          opportunity_score: number | null
+          region: string | null
+          state: string | null
+          zip_codes: string[] | null
+        }
+        Insert: {
+          cities?: string[] | null
+          counties?: string[] | null
+          created_at?: string
+          id?: string
+          market_name: string
+          market_type?: string | null
+          notes?: string | null
+          opportunity_score?: number | null
+          region?: string | null
+          state?: string | null
+          zip_codes?: string[] | null
+        }
+        Update: {
+          cities?: string[] | null
+          counties?: string[] | null
+          created_at?: string
+          id?: string
+          market_name?: string
+          market_type?: string | null
+          notes?: string | null
+          opportunity_score?: number | null
+          region?: string | null
+          state?: string | null
+          zip_codes?: string[] | null
+        }
+        Relationships: []
       }
       properties: {
         Row: {
