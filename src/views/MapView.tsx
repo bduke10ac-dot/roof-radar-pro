@@ -1,21 +1,32 @@
 import { useState } from "react";
-import { Route, Layers, MapPin } from "lucide-react";
+import { Route, Layers, MapPin, Target, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { StormScoreBadge } from "@/components/StormScoreBadge";
 import { useLeads } from "@/hooks/useLeads";
+import { useMarkets } from "@/contexts/MarketContext";
 import { toast } from "sonner";
 
 export function MapView() {
   const { leads } = useLeads();
+  const { activeMarket } = useMarkets();
   const [minScore, setMinScore] = useState([60]);
   const [zip, setZip] = useState("all");
   const [showSwath, setShowSwath] = useState(true);
+  const [showHeatmap, setShowHeatmap] = useState(true);
   const [radius, setRadius] = useState([35]);
 
-  const visible = leads.filter(l => l.stormScore >= minScore[0] && (zip === "all" || l.zip === zip));
+  const matchesMarket = (zipCode: string) => {
+    if (!activeMarket || activeMarket.zips.length === 0) return true;
+    return activeMarket.zips.includes(zipCode);
+  };
+  const visible = leads.filter(l =>
+    l.stormScore >= minScore[0] &&
+    (zip === "all" || l.zip === zip) &&
+    matchesMarket(l.zip)
+  );
   const zips = Array.from(new Set(leads.map(l => l.zip)));
 
   // Project lat/lng to a 0-100% box
