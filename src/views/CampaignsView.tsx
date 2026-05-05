@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
-import { mockLeads } from "@/lib/mockData";
+import { leads } from "@/lib/mockData";
 import { toast } from "sonner";
 
 export function CampaignsView() {
@@ -17,8 +17,8 @@ export function CampaignsView() {
     "RoofRadar: Hi {{first_name}}, free post-storm roof inspection in your area. Reply YES to schedule. Reply STOP to opt out."
   );
 
-  const optedIn = mockLeads.filter(l => l.consent === "opted_in");
-  const emailEligible = mockLeads.filter(l => l.consent !== "opted_out");
+  const optedIn = leads.filter(l => l.consent === "opted_in");
+  const emailEligible = leads.filter(l => l.consent !== "opted_out");
 
   return (
     <div className="space-y-5">
@@ -54,7 +54,7 @@ export function CampaignsView() {
             <div className="bg-card rounded-xl p-5 shadow-card border border-border/60 h-fit space-y-3 text-sm">
               <div className="font-semibold">Audience</div>
               <Stat label="Email-eligible contacts" value={emailEligible.length} />
-              <Stat label="Excluded (opted out)" value={mockLeads.length - emailEligible.length} />
+              <Stat label="Excluded (opted out)" value={leads.length - emailEligible.length} />
               <div className="pt-3 border-t border-border/60 text-xs text-muted-foreground">
                 CAN-SPAM: physical address & one-click unsubscribe required.
               </div>
@@ -68,7 +68,7 @@ export function CampaignsView() {
             <div className="text-sm">
               <div className="font-semibold text-warning">SMS sending is locked to opted-in contacts only</div>
               <div className="text-foreground/80 mt-1">
-                {optedIn.length} of {mockLeads.length} contacts have documented opt-in. Cold SMS marketing violates TCPA.
+                {optedIn.length} of {leads.length} contacts have documented opt-in. Cold SMS marketing violates TCPA.
               </div>
             </div>
           </div>
@@ -93,7 +93,7 @@ export function CampaignsView() {
             <div className="bg-card rounded-xl p-5 shadow-card border border-border/60 h-fit space-y-3 text-sm">
               <div className="font-semibold">SMS-eligible audience</div>
               <Stat label="Opted-in contacts" value={optedIn.length} />
-              <Stat label="Locked (no consent)" value={mockLeads.length - optedIn.length} />
+              <Stat label="Locked (no consent)" value={leads.length - optedIn.length} />
               <div className="pt-3 border-t border-border/60 text-xs text-muted-foreground">
                 TCPA: prior express written consent required. Always include opt-out instructions.
               </div>

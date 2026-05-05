@@ -32,11 +32,11 @@ export function DashboardView() {
         <div className="lg:col-span-2 bg-card rounded-xl p-5 shadow-card border border-border/60">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold">Lead pipeline</h2>
-            <span className="text-xs text-muted-foreground">{mockLeads.length} active</span>
+            <span className="text-xs text-muted-foreground">{leads.length} active</span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {pipelineStages.map(stage => {
-              const count = mockLeads.filter(l => l.status === stage).length;
+              const count = leads.filter(l => l.status === stage).length;
               return (
                 <div key={stage} className="rounded-lg border border-border/60 p-3 bg-background">
                   <div className="flex items-center justify-between mb-2">
@@ -44,7 +44,7 @@ export function DashboardView() {
                     <span className="text-lg font-bold">{count}</span>
                   </div>
                   <div className="space-y-1.5">
-                    {mockLeads.filter(l => l.status === stage).slice(0, 2).map(l => (
+                    {leads.filter(l => l.status === stage).slice(0, 2).map(l => (
                       <div key={l.id} className="text-xs p-2 rounded bg-card border border-border/50">
                         <div className="font-medium truncate">{l.ownerName}</div>
                         <div className="text-muted-foreground truncate">{l.propertyAddress}</div>
@@ -83,7 +83,7 @@ export function DashboardView() {
       <div className="bg-card rounded-xl p-5 shadow-card border border-border/60">
         <h2 className="font-semibold mb-4">Top opportunity leads</h2>
         <div className="space-y-2">
-          {[...mockLeads].sort((a,b) => b.stormScore - a.stormScore).slice(0, 5).map(l => (
+          {[...leads].sort((a,b) => b.stormScore - a.stormScore).slice(0, 5).map(l => (
             <div key={l.id} className="flex items-center justify-between p-3 rounded-lg bg-background border border-border/50">
               <div>
                 <div className="font-medium text-sm">{l.ownerName}</div>
