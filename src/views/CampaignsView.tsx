@@ -107,17 +107,24 @@ export function CampaignsView() {
                 <p className="text-xs text-muted-foreground mt-2">Must include an unsubscribe link. Use <code>{`{{unsubscribe_link}}`}</code>.</p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button onClick={() => toast.success("Test email sent")}><Send className="w-4 h-4 mr-2" />Send test</Button>
+                <Button disabled={!canSendEmail} onClick={() => toast.success(`Test email queued for ${emailEligible.length} contacts`)}>
+                  {canSendEmail ? <Send className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
+                  {canSendEmail ? "Send test" : "Add unsubscribe link"}
+                </Button>
                 <Button variant="outline" onClick={() => toast.success("Template saved")}><Save className="w-4 h-4 mr-2" />Save template</Button>
-                <Button variant="outline" onClick={() => toast.success("CSV exported")}><Download className="w-4 h-4 mr-2" />Export CSV</Button>
+                <Button variant="outline" onClick={() => toast.success(`CSV exported (${emailEligible.length} contacts)`)}><Download className="w-4 h-4 mr-2" />Export CSV</Button>
+                <Button variant="outline" onClick={() => toast.success(`Direct mail / door-knock list: ${coldExportable.length} addresses`)}>
+                  <Download className="w-4 h-4 mr-2" />Cold outreach (mail/door)
+                </Button>
               </div>
             </div>
             <div className="bg-card rounded-xl p-5 shadow-card border border-border/60 h-fit space-y-3 text-sm">
               <div className="font-semibold">Audience</div>
-              <Stat label="Email-eligible contacts" value={emailEligible.length} />
-              <Stat label="Excluded (opted out)" value={leads.length - emailEligible.length} />
+              <Stat label="Email-eligible (in segment)" value={emailEligible.length} />
+              <Stat label="Excluded (opted out)" value={segmentLeads.length - emailEligible.length} />
+              <Stat label="Cold-outreach exportable" value={coldExportable.length} />
               <div className="pt-3 border-t border-border/60 text-xs text-muted-foreground">
-                CAN-SPAM: physical address & one-click unsubscribe required.
+                CAN-SPAM: physical address & one-click unsubscribe required. Cold mail/door-knock is permitted for non-DNC contacts.
               </div>
             </div>
           </div>
