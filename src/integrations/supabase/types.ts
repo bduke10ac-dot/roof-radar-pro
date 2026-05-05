@@ -14,7 +14,239 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      campaigns: {
+        Row: {
+          channel: string | null
+          created_at: string
+          id: string
+          message: string | null
+          name: string | null
+          opt_out_count: number
+          sent_count: number
+        }
+        Insert: {
+          channel?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          name?: string | null
+          opt_out_count?: number
+          sent_count?: number
+        }
+        Update: {
+          channel?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          name?: string | null
+          opt_out_count?: number
+          sent_count?: number
+        }
+        Relationships: []
+      }
+      contact_methods: {
+        Row: {
+          consent_source: string | null
+          created_at: string
+          dnc_status: boolean
+          email: string | null
+          email_consent: boolean
+          id: string
+          lead_id: string | null
+          opt_in_date: string | null
+          opt_out_date: string | null
+          phone: string | null
+          sms_consent: boolean
+        }
+        Insert: {
+          consent_source?: string | null
+          created_at?: string
+          dnc_status?: boolean
+          email?: string | null
+          email_consent?: boolean
+          id?: string
+          lead_id?: string | null
+          opt_in_date?: string | null
+          opt_out_date?: string | null
+          phone?: string | null
+          sms_consent?: boolean
+        }
+        Update: {
+          consent_source?: string | null
+          created_at?: string
+          dnc_status?: boolean
+          email?: string | null
+          email_consent?: boolean
+          id?: string
+          lead_id?: string | null
+          opt_in_date?: string | null
+          opt_out_date?: string | null
+          phone?: string | null
+          sms_consent?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_methods_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_zones: {
+        Row: {
+          active_status: boolean
+          created_at: string
+          id: string
+          job_address: string | null
+          polygon_geojson: Json | null
+          radius_miles: number | null
+        }
+        Insert: {
+          active_status?: boolean
+          created_at?: string
+          id?: string
+          job_address?: string | null
+          polygon_geojson?: Json | null
+          radius_miles?: number | null
+        }
+        Update: {
+          active_status?: boolean
+          created_at?: string
+          id?: string
+          job_address?: string | null
+          polygon_geojson?: Json | null
+          radius_miles?: number | null
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          assigned_rep: string | null
+          created_at: string
+          id: string
+          lead_status: string
+          notes: string | null
+          property_id: string | null
+          storm_event_id: string | null
+          storm_score: number | null
+        }
+        Insert: {
+          assigned_rep?: string | null
+          created_at?: string
+          id?: string
+          lead_status?: string
+          notes?: string | null
+          property_id?: string | null
+          storm_event_id?: string | null
+          storm_score?: number | null
+        }
+        Update: {
+          assigned_rep?: string | null
+          created_at?: string
+          id?: string
+          lead_status?: string
+          notes?: string | null
+          property_id?: string | null
+          storm_event_id?: string | null
+          storm_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_storm_event_id_fkey"
+            columns: ["storm_event_id"]
+            isOneToOne: false
+            referencedRelation: "storm_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      properties: {
+        Row: {
+          created_at: string
+          data_source: string | null
+          estimated_roof_age: number | null
+          home_value: number | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          mailing_address: string | null
+          owner_name: string | null
+          parcel_id: string | null
+          property_address: string | null
+        }
+        Insert: {
+          created_at?: string
+          data_source?: string | null
+          estimated_roof_age?: number | null
+          home_value?: number | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          mailing_address?: string | null
+          owner_name?: string | null
+          parcel_id?: string | null
+          property_address?: string | null
+        }
+        Update: {
+          created_at?: string
+          data_source?: string | null
+          estimated_roof_age?: number | null
+          home_value?: number | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          mailing_address?: string | null
+          owner_name?: string | null
+          parcel_id?: string | null
+          property_address?: string | null
+        }
+        Relationships: []
+      }
+      storm_events: {
+        Row: {
+          area_name: string | null
+          confidence_score: number | null
+          created_at: string
+          data_provider: string | null
+          event_date: string | null
+          hail_size: number | null
+          id: string
+          storm_polygon: Json | null
+          wind_speed: number | null
+        }
+        Insert: {
+          area_name?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          data_provider?: string | null
+          event_date?: string | null
+          hail_size?: number | null
+          id?: string
+          storm_polygon?: Json | null
+          wind_speed?: number | null
+        }
+        Update: {
+          area_name?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          data_provider?: string | null
+          event_date?: string | null
+          hail_size?: number | null
+          id?: string
+          storm_polygon?: Json | null
+          wind_speed?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
