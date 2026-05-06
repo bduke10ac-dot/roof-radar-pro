@@ -3,7 +3,8 @@ import { MarketingLayout } from "@/components/MarketingLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CloudLightning, Map, Zap, ShieldCheck, Target, Radar, Rocket } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { GuestGateDialog } from "@/components/GuestGateDialog";
 
 const features = [
   { icon: Radar, title: "Real-time storm tracking", desc: "Hail, wind and tornado overlays the moment NOAA posts them." },
@@ -16,9 +17,15 @@ const features = [
 
 export default function Landing() {
   const navigate = useNavigate();
+  const [gateOpen, setGateOpen] = useState(false);
   const useNow = () => {
-    localStorage.setItem("rr_guest", "1");
-    navigate("/app");
+    const hasContact = typeof window !== "undefined" && !!localStorage.getItem("rr_guest_contact");
+    if (hasContact) {
+      localStorage.setItem("rr_guest", "1");
+      navigate("/app");
+    } else {
+      setGateOpen(true);
+    }
   };
   useEffect(() => {
     document.title = "RoofRadar — Storm-driven lead generation for roofers";
@@ -80,6 +87,7 @@ export default function Landing() {
           </div>
         </Card>
       </section>
+      <GuestGateDialog open={gateOpen} onOpenChange={setGateOpen} onVerified={() => navigate("/app")} />
     </MarketingLayout>
   );
 }
