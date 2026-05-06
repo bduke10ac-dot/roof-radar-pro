@@ -56,7 +56,8 @@ const Shell = () => {
             <Select value={view} onValueChange={(v) => setView(v as View)}>
               <SelectTrigger className="w-40 h-9"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="dashboard">Dashboard</SelectItem>
+                <SelectItem value="dashboard">Home</SelectItem>
+                <SelectItem value="storm-ops">Storm Operations</SelectItem>
                 <SelectItem value="leads">Leads</SelectItem>
                 <SelectItem value="map">Map</SelectItem>
                 <SelectItem value="markets">Market Targeting</SelectItem>
