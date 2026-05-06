@@ -6,10 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { StatusBadge, StormScoreBadge, ConsentBadge } from "@/components/StormScoreBadge";
 import { type Lead } from "@/lib/mockData";
-import { useLeads } from "@/hooks/useLeads";
+import { useMarketLeads } from "@/hooks/useMarketFilter";
 
 export function LeadsView() {
-  const { leads } = useLeads();
+  const { leads, allLeads, activeMarket } = useMarketLeads();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
   const [consent, setConsent] = useState("all");
