@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Route, Layers, MapPin, Target, Flame, CloudHail, Wind, Tornado, CloudRain, TreeDeciduous, Plus, Minus, Maximize2, Minimize2, Locate } from "lucide-react";
+import { Route, Layers, MapPin, Target, Flame, CloudHail, Wind, Tornado, CloudRain, TreeDeciduous, Plus, Minus, Maximize2, Minimize2, Locate, Ruler, Move } from "lucide-react";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
 import { MapControls, useMapControls, baseMapBackground } from "@/components/MapControls";
 import { useMarkets } from "@/contexts/MarketContext";
 import { Button } from "@/components/ui/button";
@@ -29,10 +30,12 @@ export function MapView() {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [geoCenter, setGeoCenter] = useState({ x: 55, y: 60 });
+  const [editRadiusOpen, setEditRadiusOpen] = useState(false);
   const mapWrapRef = useRef<HTMLDivElement>(null);
   const mapCtl = useMapControls("territory-map");
+  
 
-  // Track real fullscreen state
   useEffect(() => {
     const onFs = () => setIsFullscreen(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", onFs);
@@ -52,7 +55,6 @@ export function MapView() {
   const zoomOut = () => setZoom(z => Math.max(0.5, +(z - 0.25).toFixed(2)));
   const resetView = () => { setZoom(1); setPan({ x: 0, y: 0 }); };
 
-  // Wheel zoom + drag pan
   const dragRef = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
   const onWheel = (e: React.WheelEvent) => {
     e.preventDefault();
@@ -67,6 +69,81 @@ export function MapView() {
     setPan({ x: dragRef.current.px + (e.clientX - dragRef.current.x), y: dragRef.current.py + (e.clientY - dragRef.current.y) });
   };
   const endDrag = () => { dragRef.current = null; };
+
+  // Touch: pinch-zoom + 1-finger pan
+  const touchRef = useRef<{
+    mode: "pan" | "pinch" | null;
+    startX?: number; startY?: number; startPanX?: number; startPanY?: number;
+    startDist?: number; startZoom?: number;
+  }>({ mode: null });
+  const distance = (a: React.Touch, b: React.Touch) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      touchRef.current = { mode: "pinch", startDist: distance(e.touches[0], e.touches[1]), startZoom: zoom };
+    } else if (e.touches.length === 1) {
+      const t = e.touches[0];
+      touchRef.current = { mode: "pan", startX: t.clientX, startY: t.clientY, startPanX: pan.x, startPanY: pan.y };
+    }
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    const ref = touchRef.current;
+    if (ref.mode === "pinch" && e.touches.length >= 2) {
+      e.preventDefault();
+      const d = distance(e.touches[0], e.touches[1]);
+      const ratio = d / (ref.startDist || d);
+      setZoom(Math.max(0.5, Math.min(4, +((ref.startZoom || 1) * ratio).toFixed(2))));
+    } else if (ref.mode === "pan" && e.touches.length === 1) {
+      const t = e.touches[0];
+      setPan({
+        x: (ref.startPanX || 0) + (t.clientX - (ref.startX || 0)),
+        y: (ref.startPanY || 0) + (t.clientY - (ref.startY || 0)),
+      });
+    }
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (e.touches.length === 0) touchRef.current = { mode: null };
+    else if (e.touches.length === 1) {
+      const t = e.touches[0];
+      touchRef.current = { mode: "pan", startX: t.clientX, startY: t.clientY, startPanX: pan.x, startPanY: pan.y };
+    }
+  };
+
+  // Geofence drag (center + radius handle)
+  const geoDragRef = useRef<{ kind: "move" | "resize"; startX: number; startY: number; startCx: number; startCy: number; startR: number } | null>(null);
+  const beginGeoDrag = (kind: "move" | "resize", clientX: number, clientY: number) => {
+    geoDragRef.current = { kind, startX: clientX, startY: clientY, startCx: geoCenter.x, startCy: geoCenter.y, startR: radius[0] };
+    const move = (cx: number, cy: number) => {
+      const ref = geoDragRef.current; const wrap = mapWrapRef.current;
+      if (!ref || !wrap) return;
+      const rect = wrap.getBoundingClientRect();
+      if (ref.kind === "move") {
+        const dxPct = ((cx - ref.startX) / rect.width) * 100;
+        const dyPct = ((cy - ref.startY) / rect.height) * 100;
+        setGeoCenter({
+          x: Math.max(5, Math.min(95, ref.startCx + dxPct)),
+          y: Math.max(5, Math.min(95, ref.startCy + dyPct)),
+        });
+      } else {
+        const dx = cx - ref.startX; const dy = cy - ref.startY;
+        const delta = (Math.abs(dx) > Math.abs(dy) ? dx : dy);
+        const next = Math.max(5, Math.min(100, Math.round(ref.startR + delta / 4)));
+        setRadius([next]);
+      }
+    };
+    const onMM = (ev: MouseEvent) => move(ev.clientX, ev.clientY);
+    const onTM = (ev: TouchEvent) => { if (ev.touches[0]) { ev.preventDefault(); move(ev.touches[0].clientX, ev.touches[0].clientY); } };
+    const end = () => {
+      geoDragRef.current = null;
+      window.removeEventListener("mousemove", onMM);
+      window.removeEventListener("mouseup", end);
+      window.removeEventListener("touchmove", onTM);
+      window.removeEventListener("touchend", end);
+    };
+    window.addEventListener("mousemove", onMM);
+    window.addEventListener("mouseup", end);
+    window.addEventListener("touchmove", onTM, { passive: false });
+    window.addEventListener("touchend", end);
+  };
 
 
   // Sync MapControls layer toggles -> storm overlay state
@@ -249,12 +326,15 @@ export function MapView() {
             "relative rounded-xl overflow-hidden shadow-elevated border border-border/60 select-none",
             isFullscreen ? "min-h-screen" : "min-h-[420px] lg:min-h-[640px]"
           )}
-          style={baseMapBackground(mapCtl.state.base)}
+          style={{ ...baseMapBackground(mapCtl.state.base), touchAction: "none" }}
           onWheel={onWheel}
           onMouseDown={onMouseDown}
           onMouseMove={onMouseMove}
           onMouseUp={endDrag}
           onMouseLeave={endDrag}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
         >
           {/* Transformed scene (zoom + pan) */}
           <div
@@ -367,11 +447,56 @@ export function MapView() {
             </div>
           ))}
 
-          {/* Geofence */}
-          <div className="absolute pointer-events-none" style={{ left: "55%", top: "60%", transform: "translate(-50%, -50%)" }}>
-            <div className="rounded-full border-2 border-storm/60 bg-storm/5"
-              style={{ width: `${radius[0] * 4}px`, height: `${radius[0] * 4}px` }} />
+          {/* Geofence (draggable center + resize handle) */}
+          <div
+            className="absolute"
+            style={{ left: `${geoCenter.x}%`, top: `${geoCenter.y}%`, transform: "translate(-50%, -50%)" }}
+          >
+            <div
+              className="relative rounded-full border-2 border-storm/70 bg-storm/10 shadow-elevated"
+              style={{ width: `${radius[0] * 4}px`, height: `${radius[0] * 4}px` }}
+            >
+              {/* Center handle (move) */}
+              <button
+                type="button"
+                onMouseDown={(e) => { e.stopPropagation(); beginGeoDrag("move", e.clientX, e.clientY); }}
+                onTouchStart={(e) => { e.stopPropagation(); const t = e.touches[0]; beginGeoDrag("move", t.clientX, t.clientY); }}
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-storm text-storm-foreground shadow-elevated flex items-center justify-center ring-4 ring-background/80 active:scale-95 touch-none"
+                title="Drag to move geofence"
+                aria-label="Move geofence"
+              >
+                <Move className="w-4 h-4" />
+              </button>
+              {/* Resize handle (radius) */}
+              <button
+                type="button"
+                onMouseDown={(e) => { e.stopPropagation(); beginGeoDrag("resize", e.clientX, e.clientY); }}
+                onTouchStart={(e) => { e.stopPropagation(); const t = e.touches[0]; beginGeoDrag("resize", t.clientX, t.clientY); }}
+                onClick={(e) => e.stopPropagation()}
+                className="absolute -right-5 -bottom-5 w-11 h-11 rounded-full bg-warning text-background shadow-elevated flex items-center justify-center ring-4 ring-background/80 active:scale-95 touch-none"
+                title="Drag to change radius"
+                aria-label="Resize geofence"
+              >
+                <Ruler className="w-4 h-4" />
+              </button>
+              {/* Radius badge + Edit button */}
+              <div className="absolute left-1/2 -top-3 -translate-x-1/2 -translate-y-full flex items-center gap-1.5">
+                <span className="px-2 py-0.5 rounded-full bg-card/95 backdrop-blur border border-border/60 text-[11px] font-bold tabular-nums shadow-card">
+                  {radius[0]} mi
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setEditRadiusOpen(true); }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  className="px-2 py-0.5 rounded-full bg-storm text-storm-foreground text-[11px] font-semibold shadow-card active:scale-95"
+                >
+                  Edit
+                </button>
+              </div>
+            </div>
           </div>
+
 
           {/* Lead heatmap */}
           {overlays.leadHeatmap && visible.filter(l => l.liveScore >= 80).map(l => (
@@ -506,6 +631,58 @@ export function MapView() {
           ))}
         </div>
       </div>
+
+      {/* Edit radius bottom sheet (mobile-friendly) */}
+      <Drawer open={editRadiusOpen} onOpenChange={setEditRadiusOpen}>
+        <DrawerContent className="px-4">
+          <DrawerHeader className="text-left px-0">
+            <DrawerTitle className="flex items-center gap-2">
+              <Ruler className="w-4 h-4 text-storm" /> Edit geofence radius
+            </DrawerTitle>
+            <DrawerDescription>
+              Adjust the search area around your pin. Tap a preset or fine-tune with the slider.
+            </DrawerDescription>
+          </DrawerHeader>
+
+          <div className="px-0 pb-2 space-y-5">
+            <div className="text-center">
+              <div className="text-5xl font-bold tabular-nums text-storm">{radius[0]}</div>
+              <div className="text-xs uppercase tracking-wider text-muted-foreground mt-1">miles</div>
+            </div>
+
+            <Slider value={radius} onValueChange={setRadius} min={5} max={100} step={1} className="py-2" />
+
+            <div className="grid grid-cols-5 gap-2">
+              {[5, 15, 25, 50, 100].map(v => (
+                <button
+                  key={v}
+                  onClick={() => setRadius([v])}
+                  className={cn(
+                    "h-11 rounded-lg border text-sm font-semibold tabular-nums",
+                    radius[0] === v
+                      ? "bg-storm text-storm-foreground border-storm"
+                      : "bg-background border-border hover:border-storm/50"
+                  )}
+                >
+                  {v}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
+              <span>Properties inside radius</span>
+              <span className="font-bold text-foreground tabular-nums">{visible.length}</span>
+            </div>
+          </div>
+
+          <DrawerFooter className="px-0">
+            <Button onClick={() => setEditRadiusOpen(false)} size="lg">Done</Button>
+            <DrawerClose asChild>
+              <Button variant="ghost" size="sm">Cancel</Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
