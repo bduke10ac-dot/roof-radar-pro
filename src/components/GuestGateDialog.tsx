@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 // Block obviously fake / disposable inputs
 const DISPOSABLE_DOMAINS = [
@@ -62,11 +63,11 @@ type Props = {
 };
 
 export function GuestGateDialog({ open, onOpenChange, onVerified }: Props) {
-  const [form, setForm] = useState({ name: "", company: "", email: "", phone: "", consent: false });
+  const [form, setForm] = useState({ name: "", company: "", email: "", phone: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
-  const update = (k: string, v: string | boolean) => {
+  const update = (k: string, v: string) => {
     setForm((f) => ({ ...f, [k]: v }));
     if (errors[k]) setErrors((e) => { const n = { ...e }; delete n[k]; return n; });
   };
@@ -85,9 +86,15 @@ export function GuestGateDialog({ open, onOpenChange, onVerified }: Props) {
       setSubmitting(false);
       return;
     }
-    const data = { ...parsed.data, captured_at: new Date().toISOString() };
+    const data = { ...parsed.data, consent: true, captured_at: new Date().toISOString() };
     localStorage.setItem("rr_guest_contact", JSON.stringify(data));
     localStorage.setItem("rr_guest", "1");
+    // Forward lead to internal notifications (best-effort, non-blocking)
+    try {
+      await supabase.functions.invoke("notify-guest-signup", { body: data });
+    } catch (err) {
+      console.warn("notify-guest-signup failed", err);
+    }
     toast.success("Thanks! Loading your free preview…");
     setSubmitting(false);
     onOpenChange(false);
@@ -124,11 +131,10 @@ export function GuestGateDialog({ open, onOpenChange, onVerified }: Props) {
             <Input id="g-phone" type="tel" autoComplete="tel" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="(555) 123-4567" />
             {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone}</p>}
           </div>
-          <label className="flex items-start gap-2 text-xs text-muted-foreground">
-            <input type="checkbox" className="mt-0.5" checked={form.consent} onChange={(e) => update("consent", e.target.checked)} />
-            <span>I agree RoofRadar may contact me about my account by email or phone.</span>
-          </label>
-          {errors.consent && <p className="text-xs text-destructive">{errors.consent}</p>}
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            By clicking <span className="font-medium text-foreground">Unlock free preview</span> you agree that
+            RoofRadar may contact you about your account by email, phone, or SMS. You can opt out anytime.
+          </p>
           <Button type="submit" className="w-full h-11" disabled={submitting}>
             {submitting ? "Verifying…" : "Unlock free preview"}
           </Button>
