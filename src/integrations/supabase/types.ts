@@ -28,6 +28,7 @@ export type Database = {
           is_active: boolean | null
           market_id: string | null
           message_template: string | null
+          owner_id: string | null
           rain_threshold: number | null
           require_manual_approval: boolean | null
           rule_name: string
@@ -58,6 +59,7 @@ export type Database = {
           is_active?: boolean | null
           market_id?: string | null
           message_template?: string | null
+          owner_id?: string | null
           rain_threshold?: number | null
           require_manual_approval?: boolean | null
           rule_name: string
@@ -88,6 +90,7 @@ export type Database = {
           is_active?: boolean | null
           market_id?: string | null
           message_template?: string | null
+          owner_id?: string | null
           rain_threshold?: number | null
           require_manual_approval?: boolean | null
           rule_name?: string
@@ -240,6 +243,7 @@ export type Database = {
           message: string | null
           name: string | null
           opt_out_count: number
+          owner_id: string | null
           sent_count: number
         }
         Insert: {
@@ -249,6 +253,7 @@ export type Database = {
           message?: string | null
           name?: string | null
           opt_out_count?: number
+          owner_id?: string | null
           sent_count?: number
         }
         Update: {
@@ -258,6 +263,7 @@ export type Database = {
           message?: string | null
           name?: string | null
           opt_out_count?: number
+          owner_id?: string | null
           sent_count?: number
         }
         Relationships: []
@@ -346,6 +352,7 @@ export type Database = {
           id: string
           lead_status: string
           notes: string | null
+          owner_id: string | null
           property_id: string | null
           storm_event_id: string | null
           storm_score: number | null
@@ -356,6 +363,7 @@ export type Database = {
           id?: string
           lead_status?: string
           notes?: string | null
+          owner_id?: string | null
           property_id?: string | null
           storm_event_id?: string | null
           storm_score?: number | null
@@ -366,6 +374,7 @@ export type Database = {
           id?: string
           lead_status?: string
           notes?: string | null
+          owner_id?: string | null
           property_id?: string | null
           storm_event_id?: string | null
           storm_score?: number | null
@@ -473,6 +482,7 @@ export type Database = {
           hail_size: number | null
           id: string
           market_id: string | null
+          owner_id: string | null
           storm_event_id: string | null
           total_opportunity_score: number | null
           wind_speed: number | null
@@ -488,6 +498,7 @@ export type Database = {
           hail_size?: number | null
           id?: string
           market_id?: string | null
+          owner_id?: string | null
           storm_event_id?: string | null
           total_opportunity_score?: number | null
           wind_speed?: number | null
@@ -503,6 +514,7 @@ export type Database = {
           hail_size?: number | null
           id?: string
           market_id?: string | null
+          owner_id?: string | null
           storm_event_id?: string | null
           total_opportunity_score?: number | null
           wind_speed?: number | null
@@ -534,6 +546,7 @@ export type Database = {
           market_type: string | null
           notes: string | null
           opportunity_score: number | null
+          owner_id: string | null
           region: string | null
           state: string | null
           zip_codes: string[] | null
@@ -547,6 +560,7 @@ export type Database = {
           market_type?: string | null
           notes?: string | null
           opportunity_score?: number | null
+          owner_id?: string | null
           region?: string | null
           state?: string | null
           zip_codes?: string[] | null
@@ -560,6 +574,7 @@ export type Database = {
           market_type?: string | null
           notes?: string | null
           opportunity_score?: number | null
+          owner_id?: string | null
           region?: string | null
           state?: string | null
           zip_codes?: string[] | null
@@ -576,6 +591,7 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           mailing_address: string | null
+          owner_id: string | null
           owner_name: string | null
           parcel_id: string | null
           property_address: string | null
@@ -589,6 +605,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           mailing_address?: string | null
+          owner_id?: string | null
           owner_name?: string | null
           parcel_id?: string | null
           property_address?: string | null
@@ -602,6 +619,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           mailing_address?: string | null
+          owner_id?: string | null
           owner_name?: string | null
           parcel_id?: string | null
           property_address?: string | null
@@ -813,6 +831,7 @@ export type Database = {
           id: string
           market_id: string | null
           message_body: string | null
+          owner_id: string | null
           requires_approval: boolean | null
           sent_at: string | null
           weather_trigger_event_id: string | null
@@ -830,6 +849,7 @@ export type Database = {
           id?: string
           market_id?: string | null
           message_body?: string | null
+          owner_id?: string | null
           requires_approval?: boolean | null
           sent_at?: string | null
           weather_trigger_event_id?: string | null
@@ -847,6 +867,7 @@ export type Database = {
           id?: string
           market_id?: string | null
           message_body?: string | null
+          owner_id?: string | null
           requires_approval?: boolean | null
           sent_at?: string | null
           weather_trigger_event_id?: string | null
