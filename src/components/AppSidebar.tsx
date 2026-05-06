@@ -1,7 +1,9 @@
-import { LayoutDashboard, Users, Map, Send, ShieldCheck, Plug, CloudLightning, Target, Zap } from "lucide-react";
+import { LayoutDashboard, Users, Map, Send, ShieldCheck, Plug, CloudLightning, Target, Zap, CreditCard, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { Button } from "@/components/ui/button";
 
-export type View = "dashboard" | "leads" | "map" | "markets" | "campaigns" | "auto-campaigns" | "compliance" | "integrations";
+export type View = "dashboard" | "leads" | "map" | "markets" | "campaigns" | "auto-campaigns" | "compliance" | "integrations" | "billing";
 
 const items: { id: View; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -12,6 +14,7 @@ const items: { id: View; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "auto-campaigns", label: "Auto Storm Campaigns", icon: Zap },
   { id: "compliance", label: "Compliance", icon: ShieldCheck },
   { id: "integrations", label: "Integrations", icon: Plug },
+  { id: "billing", label: "Billing & Subscription", icon: CreditCard },
 ];
 
 export function AppSidebar({ active, onNavigate }: { active: View; onNavigate: (v: View) => void }) {
@@ -47,10 +50,27 @@ export function AppSidebar({ active, onNavigate }: { active: View; onNavigate: (
           );
         })}
       </nav>
-      <div className="p-3 m-3 rounded-lg bg-sidebar-accent text-sidebar-accent-foreground text-xs">
-        <div className="font-semibold mb-1">Demo mode</div>
-        <div className="opacity-80">Connect Supabase & APIs to go live.</div>
-      </div>
+      <PlanWidget onNavigate={onNavigate} />
     </aside>
+  );
+}
+
+function PlanWidget({ onNavigate }: { onNavigate: (v: View) => void }) {
+  const { plan, status, requestUpgrade } = useSubscription();
+  return (
+    <div className="p-3 m-3 rounded-lg bg-sidebar-accent text-sidebar-accent-foreground text-xs space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="font-semibold">{plan.name} plan</span>
+        <span className="text-[10px] uppercase opacity-70">{status === "trialing" ? "Trial" : status}</span>
+      </div>
+      {plan.id !== "pro" && plan.id !== "enterprise" && (
+        <Button size="sm" className="w-full h-7" onClick={() => requestUpgrade()}>
+          <Sparkles className="w-3 h-3" /> Upgrade
+        </Button>
+      )}
+      <button onClick={() => onNavigate("billing")} className="w-full text-left opacity-80 hover:opacity-100 underline-offset-2 hover:underline">
+        Manage billing →
+      </button>
+    </div>
   );
 }
