@@ -9,7 +9,7 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 font-bold">
             <div className="w-7 h-7 rounded-md bg-gradient-storm flex items-center justify-center">
-              <CloudLightning className="w-4 h-4 text-[hsl(60_100%_60%)] drop-shadow-[0_0_5px_hsl(60_100%_60%/0.8)]" />
+              <BrandLogo className="w-5 h-5" />
             </div>
             RoofRadar
           </Link>
