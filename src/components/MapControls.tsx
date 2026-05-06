@@ -139,7 +139,7 @@ export function MapControls({
   onToggle: (k: MapLayerKey) => void;
   className?: string;
 }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(() => typeof window !== "undefined" && window.innerWidth >= 768);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     "Storm overlays": true, "Road labels": true,
   });
