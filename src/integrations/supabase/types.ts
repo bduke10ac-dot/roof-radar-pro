@@ -14,6 +14,167 @@ export type Database = {
   }
   public: {
     Tables: {
+      auto_campaign_rules: {
+        Row: {
+          allow_crm_task: boolean | null
+          allow_direct_mail_export: boolean | null
+          allow_door_knock_route: boolean | null
+          allow_email: boolean | null
+          allow_rep_push_notification: boolean | null
+          allow_sms: boolean | null
+          created_at: string
+          hail_threshold: number | null
+          id: string
+          is_active: boolean | null
+          market_id: string | null
+          message_template: string | null
+          rain_threshold: number | null
+          require_manual_approval: boolean | null
+          rule_name: string
+          send_timing: string | null
+          severe_alert_type: string | null
+          sustained_wind_threshold: number | null
+          tornado_alert_type: string | null
+          trigger_hail: boolean | null
+          trigger_heavy_rain: boolean | null
+          trigger_lightning: boolean | null
+          trigger_severe_weather: boolean | null
+          trigger_sustained_wind: boolean | null
+          trigger_tornado: boolean | null
+          trigger_wind_gust: boolean | null
+          updated_at: string
+          wind_gust_threshold: number | null
+        }
+        Insert: {
+          allow_crm_task?: boolean | null
+          allow_direct_mail_export?: boolean | null
+          allow_door_knock_route?: boolean | null
+          allow_email?: boolean | null
+          allow_rep_push_notification?: boolean | null
+          allow_sms?: boolean | null
+          created_at?: string
+          hail_threshold?: number | null
+          id?: string
+          is_active?: boolean | null
+          market_id?: string | null
+          message_template?: string | null
+          rain_threshold?: number | null
+          require_manual_approval?: boolean | null
+          rule_name: string
+          send_timing?: string | null
+          severe_alert_type?: string | null
+          sustained_wind_threshold?: number | null
+          tornado_alert_type?: string | null
+          trigger_hail?: boolean | null
+          trigger_heavy_rain?: boolean | null
+          trigger_lightning?: boolean | null
+          trigger_severe_weather?: boolean | null
+          trigger_sustained_wind?: boolean | null
+          trigger_tornado?: boolean | null
+          trigger_wind_gust?: boolean | null
+          updated_at?: string
+          wind_gust_threshold?: number | null
+        }
+        Update: {
+          allow_crm_task?: boolean | null
+          allow_direct_mail_export?: boolean | null
+          allow_door_knock_route?: boolean | null
+          allow_email?: boolean | null
+          allow_rep_push_notification?: boolean | null
+          allow_sms?: boolean | null
+          created_at?: string
+          hail_threshold?: number | null
+          id?: string
+          is_active?: boolean | null
+          market_id?: string | null
+          message_template?: string | null
+          rain_threshold?: number | null
+          require_manual_approval?: boolean | null
+          rule_name?: string
+          send_timing?: string | null
+          severe_alert_type?: string | null
+          sustained_wind_threshold?: number | null
+          tornado_alert_type?: string | null
+          trigger_hail?: boolean | null
+          trigger_heavy_rain?: boolean | null
+          trigger_lightning?: boolean | null
+          trigger_severe_weather?: boolean | null
+          trigger_sustained_wind?: boolean | null
+          trigger_tornado?: boolean | null
+          trigger_wind_gust?: boolean | null
+          updated_at?: string
+          wind_gust_threshold?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auto_campaign_rules_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "markets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_compliance_logs: {
+        Row: {
+          blocked_reason: string | null
+          channel: string | null
+          consent_status: boolean | null
+          created_at: string
+          dnc_status: boolean | null
+          eligible: boolean | null
+          id: string
+          lead_id: string | null
+          message_sent: boolean | null
+          opt_out_status: boolean | null
+          sent_at: string | null
+          triggered_campaign_id: string | null
+        }
+        Insert: {
+          blocked_reason?: string | null
+          channel?: string | null
+          consent_status?: boolean | null
+          created_at?: string
+          dnc_status?: boolean | null
+          eligible?: boolean | null
+          id?: string
+          lead_id?: string | null
+          message_sent?: boolean | null
+          opt_out_status?: boolean | null
+          sent_at?: string | null
+          triggered_campaign_id?: string | null
+        }
+        Update: {
+          blocked_reason?: string | null
+          channel?: string | null
+          consent_status?: boolean | null
+          created_at?: string
+          dnc_status?: boolean | null
+          eligible?: boolean | null
+          id?: string
+          lead_id?: string | null
+          message_sent?: boolean | null
+          opt_out_status?: boolean | null
+          sent_at?: string | null
+          triggered_campaign_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_compliance_logs_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_compliance_logs_triggered_campaign_id_fkey"
+            columns: ["triggered_campaign_id"]
+            isOneToOne: false
+            referencedRelation: "triggered_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_targets: {
         Row: {
           campaign_id: string | null
@@ -548,6 +709,82 @@ export type Database = {
           },
         ]
       }
+      triggered_campaigns: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          blocked_contact_count: number | null
+          campaign_id: string | null
+          campaign_status: string | null
+          channel: string | null
+          compliance_notes: string | null
+          created_at: string
+          eligible_contact_count: number | null
+          id: string
+          market_id: string | null
+          message_body: string | null
+          requires_approval: boolean | null
+          sent_at: string | null
+          weather_trigger_event_id: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          blocked_contact_count?: number | null
+          campaign_id?: string | null
+          campaign_status?: string | null
+          channel?: string | null
+          compliance_notes?: string | null
+          created_at?: string
+          eligible_contact_count?: number | null
+          id?: string
+          market_id?: string | null
+          message_body?: string | null
+          requires_approval?: boolean | null
+          sent_at?: string | null
+          weather_trigger_event_id?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          blocked_contact_count?: number | null
+          campaign_id?: string | null
+          campaign_status?: string | null
+          channel?: string | null
+          compliance_notes?: string | null
+          created_at?: string
+          eligible_contact_count?: number | null
+          id?: string
+          market_id?: string | null
+          message_body?: string | null
+          requires_approval?: boolean | null
+          sent_at?: string | null
+          weather_trigger_event_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "triggered_campaigns_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "triggered_campaigns_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "markets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "triggered_campaigns_weather_trigger_event_id_fkey"
+            columns: ["weather_trigger_event_id"]
+            isOneToOne: false
+            referencedRelation: "weather_trigger_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_map_preferences: {
         Row: {
           claim_opportunity_enabled: boolean | null
@@ -625,6 +862,94 @@ export type Database = {
           wind_layer_enabled?: boolean | null
         }
         Relationships: []
+      }
+      weather_trigger_events: {
+        Row: {
+          affected_property_count: number | null
+          alert_description: string | null
+          alert_title: string | null
+          blocked_sms_count: number | null
+          created_at: string
+          direct_mail_count: number | null
+          eligible_email_count: number | null
+          eligible_sms_count: number | null
+          id: string
+          market_id: string | null
+          recommended_action: string | null
+          rule_id: string | null
+          storm_event_id: string | null
+          storm_path_geojson: Json | null
+          trigger_status: string | null
+          trigger_threshold: number | null
+          trigger_type: string | null
+          trigger_value: number | null
+          weather_source: string | null
+        }
+        Insert: {
+          affected_property_count?: number | null
+          alert_description?: string | null
+          alert_title?: string | null
+          blocked_sms_count?: number | null
+          created_at?: string
+          direct_mail_count?: number | null
+          eligible_email_count?: number | null
+          eligible_sms_count?: number | null
+          id?: string
+          market_id?: string | null
+          recommended_action?: string | null
+          rule_id?: string | null
+          storm_event_id?: string | null
+          storm_path_geojson?: Json | null
+          trigger_status?: string | null
+          trigger_threshold?: number | null
+          trigger_type?: string | null
+          trigger_value?: number | null
+          weather_source?: string | null
+        }
+        Update: {
+          affected_property_count?: number | null
+          alert_description?: string | null
+          alert_title?: string | null
+          blocked_sms_count?: number | null
+          created_at?: string
+          direct_mail_count?: number | null
+          eligible_email_count?: number | null
+          eligible_sms_count?: number | null
+          id?: string
+          market_id?: string | null
+          recommended_action?: string | null
+          rule_id?: string | null
+          storm_event_id?: string | null
+          storm_path_geojson?: Json | null
+          trigger_status?: string | null
+          trigger_threshold?: number | null
+          trigger_type?: string | null
+          trigger_value?: number | null
+          weather_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weather_trigger_events_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "markets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weather_trigger_events_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "auto_campaign_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weather_trigger_events_storm_event_id_fkey"
+            columns: ["storm_event_id"]
+            isOneToOne: false
+            referencedRelation: "storm_events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
