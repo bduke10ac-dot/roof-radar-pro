@@ -1,7 +1,7 @@
-import { LayoutDashboard, Users, Map, Send, ShieldCheck, Plug, CloudLightning, Target } from "lucide-react";
+import { LayoutDashboard, Users, Map, Send, ShieldCheck, Plug, CloudLightning, Target, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type View = "dashboard" | "leads" | "map" | "markets" | "campaigns" | "compliance" | "integrations";
+export type View = "dashboard" | "leads" | "map" | "markets" | "campaigns" | "auto-campaigns" | "compliance" | "integrations";
 
 const items: { id: View; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -9,6 +9,7 @@ const items: { id: View; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "map", label: "Map", icon: Map },
   { id: "markets", label: "Market Targeting", icon: Target },
   { id: "campaigns", label: "Campaigns", icon: Send },
+  { id: "auto-campaigns", label: "Auto Storm Campaigns", icon: Zap },
   { id: "compliance", label: "Compliance", icon: ShieldCheck },
   { id: "integrations", label: "Integrations", icon: Plug },
 ];

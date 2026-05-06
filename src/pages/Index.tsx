@@ -7,6 +7,7 @@ import { MarketTargetingView } from "@/views/MarketTargetingView";
 import { CampaignsView } from "@/views/CampaignsView";
 import { ComplianceView } from "@/views/ComplianceView";
 import { IntegrationsView } from "@/views/IntegrationsView";
+import { AutoStormCampaignsView } from "@/views/AutoStormCampaignsView";
 import { CloudLightning, Bell, Search, Target } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -52,6 +53,7 @@ const Shell = () => {
                 <SelectItem value="map">Map</SelectItem>
                 <SelectItem value="markets">Market Targeting</SelectItem>
                 <SelectItem value="campaigns">Campaigns</SelectItem>
+                <SelectItem value="auto-campaigns">Auto Storm Campaigns</SelectItem>
                 <SelectItem value="compliance">Compliance</SelectItem>
                 <SelectItem value="integrations">Integrations</SelectItem>
               </SelectContent>
@@ -77,6 +79,7 @@ const Shell = () => {
           {view === "map" && <MapView />}
           {view === "markets" && <MarketTargetingView />}
           {view === "campaigns" && <CampaignsView />}
+          {view === "auto-campaigns" && <AutoStormCampaignsView />}
           {view === "compliance" && <ComplianceView />}
           {view === "integrations" && <IntegrationsView />}
         </main>
