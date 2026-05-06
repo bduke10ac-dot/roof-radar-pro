@@ -6,9 +6,11 @@ export type BrandProfile = {
   display_name: string | null;
   company_name: string | null;
   company_logo_url: string | null;
+  website_url: string | null;
+  google_review_url: string | null;
 };
 
-const EMPTY: BrandProfile = { display_name: null, company_name: null, company_logo_url: null };
+const EMPTY: BrandProfile = { display_name: null, company_name: null, company_logo_url: null, website_url: null, google_review_url: null };
 
 export function useBrand() {
   const { user } = useAuth();
@@ -21,7 +23,7 @@ export function useBrand() {
     setLoading(true);
     const { data, error } = await supabase
       .from("profiles")
-      .select("display_name, company_name, company_logo_url")
+      .select("display_name, company_name, company_logo_url, website_url, google_review_url")
       .eq("user_id", user.id)
       .maybeSingle();
     if (!error && data) setBrand(data as BrandProfile);
