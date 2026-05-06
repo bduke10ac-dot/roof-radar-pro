@@ -8,6 +8,7 @@ import { CampaignsView } from "@/views/CampaignsView";
 import { ComplianceView } from "@/views/ComplianceView";
 import { IntegrationsView } from "@/views/IntegrationsView";
 import { AutoStormCampaignsView } from "@/views/AutoStormCampaignsView";
+import { StormPlaybookView } from "@/views/StormPlaybookView";
 import { BillingView } from "@/views/BillingView";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { TrialBanner } from "@/components/TrialBanner";
