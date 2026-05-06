@@ -627,9 +627,11 @@ export type Database = {
           company_name: string | null
           created_at: string
           display_name: string | null
+          google_review_url: string | null
           id: string
           updated_at: string
           user_id: string
+          website_url: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -637,9 +639,11 @@ export type Database = {
           company_name?: string | null
           created_at?: string
           display_name?: string | null
+          google_review_url?: string | null
           id?: string
           updated_at?: string
           user_id: string
+          website_url?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -647,9 +651,11 @@ export type Database = {
           company_name?: string | null
           created_at?: string
           display_name?: string | null
+          google_review_url?: string | null
           id?: string
           updated_at?: string
           user_id?: string
+          website_url?: string | null
         }
         Relationships: []
       }
