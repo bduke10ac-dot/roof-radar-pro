@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
-import { Route, Layers, MapPin, Target, Flame, CloudHail, Wind, Tornado, CloudRain, TreeDeciduous } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Route, Layers, MapPin, Target, Flame, CloudHail, Wind, Tornado, CloudRain, TreeDeciduous, Plus, Minus, Maximize2, Minimize2, Locate } from "lucide-react";
 import { MapControls, useMapControls, baseMapBackground } from "@/components/MapControls";
+import { useMarkets } from "@/contexts/MarketContext";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
