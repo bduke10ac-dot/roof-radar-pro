@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { type StormCell } from "@/lib/mockWeather";
 import { useWeather } from "@/contexts/WeatherContext";
+import { MapControls, useMapControls, baseMapBackground } from "@/components/MapControls";
 
 type LayerKey =
   | "radar" | "hail" | "wind" | "rain" | "lightning"
