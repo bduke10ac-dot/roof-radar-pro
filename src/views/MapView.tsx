@@ -10,24 +10,18 @@ import { useMarkets } from "@/contexts/MarketContext";
 import { toast } from "sonner";
 
 export function MapView() {
-  const { leads } = useLeads();
-  const { activeMarket } = useMarkets();
+  const { leads, allLeads, activeMarket } = useMarketLeads();
   const [minScore, setMinScore] = useState([60]);
   const [zip, setZip] = useState("all");
   const [showSwath, setShowSwath] = useState(true);
   const [showHeatmap, setShowHeatmap] = useState(true);
   const [radius, setRadius] = useState([35]);
 
-  const matchesMarket = (zipCode: string) => {
-    if (!activeMarket || activeMarket.zips.length === 0) return true;
-    return activeMarket.zips.includes(zipCode);
-  };
   const visible = leads.filter(l =>
     l.stormScore >= minScore[0] &&
-    (zip === "all" || l.zip === zip) &&
-    matchesMarket(l.zip)
+    (zip === "all" || l.zip === zip)
   );
-  const zips = Array.from(new Set(leads.map(l => l.zip)));
+  const zips = Array.from(new Set(leads.map(l => l.zip))).filter(Boolean) as string[];
 
   // Project lat/lng to a 0-100% box
   const lats = leads.map(l => l.lat);
