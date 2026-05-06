@@ -13,7 +13,7 @@ import {
   Zap, Plus, CloudLightning, Wind, Tornado, CloudRain, AlertTriangle, Bolt,
   TreeDeciduous, PowerOff, Mail, MessageSquare, FileText, Footprints,
   ClipboardCheck, Send, ShieldCheck, ShieldAlert, Clock, Eye, Pencil, Trash2,
-  CheckCircle2, XCircle, Activity, Megaphone, Target, MapPin, Lock,
+  CheckCircle2, XCircle, Activity, Megaphone, Target, MapPin, Lock, PhoneCall,
 } from "lucide-react";
 import { useMarkets } from "@/contexts/MarketContext";
 import { useWeather } from "@/contexts/WeatherContext";
@@ -27,7 +27,7 @@ type TriggerKey =
   | "severeWarning" | "severeWatch" | "heavyRain" | "lightning"
   | "powerOutage" | "treeDamage";
 
-type ChannelKey = "email" | "sms" | "directMail" | "doorKnock" | "crmTask" | "repPush";
+type ChannelKey = "email" | "sms" | "aiCall" | "directMail" | "doorKnock" | "crmTask" | "repPush";
 
 type Timing =
   | "immediate" | "afterStorm" | "after30m" | "after1h" | "nextMorning"
@@ -88,6 +88,7 @@ const TRIGGER_DEFS: { key: TriggerKey; label: string; icon: any }[] = [
 const CHANNEL_DEFS: { key: ChannelKey; label: string; icon: any }[] = [
   { key: "email",      label: "Email",                    icon: Mail },
   { key: "sms",        label: "SMS (consent required)",   icon: MessageSquare },
+  { key: "aiCall",     label: "AI cold call (book inspection)", icon: PhoneCall },
   { key: "directMail", label: "Direct mail export",       icon: FileText },
   { key: "doorKnock",  label: "Door-knocking route",      icon: Footprints },
   { key: "crmTask",    label: "CRM task",                 icon: ClipboardCheck },
@@ -145,7 +146,7 @@ const DEFAULT_RULE = (): Rule => ({
   },
   thresholds: { hailIn: 1.0, gustMph: 58, sustainedMph: 40, tornado: "warning", severe: "warning" },
   timing: "manualApproval",
-  channels: { email: true, sms: false, directMail: true, doorKnock: true, crmTask: true, repPush: true },
+  channels: { email: true, sms: false, aiCall: false, directMail: true, doorKnock: true, crmTask: true, repPush: true },
   template: "hail",
   manualApproval: true,
   createdAt: new Date().toISOString(),
@@ -163,7 +164,7 @@ const SEED_RULES: Rule[] = [
     triggers: { ...DEFAULT_RULE().triggers, hail: false, windGust: true, windSustained: true },
     thresholds: { hailIn: 1.0, gustMph: 65, sustainedMph: 45, tornado: "warning", severe: "warning" },
     timing: "after1h", template: "wind",
-    channels: { email: true, sms: false, directMail: true, doorKnock: true, crmTask: true, repPush: false },
+    channels: { email: true, sms: false, aiCall: false, directMail: true, doorKnock: true, crmTask: true, repPush: false },
     createdAt: new Date(Date.now() - 86400000 * 5).toISOString() },
   { ...DEFAULT_RULE(), id: "r3", name: "Nashville Severe Weather Follow-Up",
     marketScope: { type: "city", value: "Nashville" }, timing: "nextMorning", template: "severe",
@@ -728,6 +729,11 @@ export function AutoStormCampaignsView() {
               {editing.channels.sms && (
                 <p className="text-[11px] text-warning mt-1.5 flex items-center gap-1">
                   <Lock className="w-3 h-3" /> SMS sends only to consenting contacts (no DNC) and is locked to manual approval.
+                </p>
+              )}
+              {editing.channels.aiCall && (
+                <p className="text-[11px] text-storm mt-1.5 flex items-center gap-1">
+                  <PhoneCall className="w-3 h-3" /> AI voice agent will cold-call non-DNC homeowners to book free roof & exterior inspections. TCPA-safe: skips DNC, respects calling hours, leaves voicemail with opt-out, logs every call.
                 </p>
               )}
             </div>
