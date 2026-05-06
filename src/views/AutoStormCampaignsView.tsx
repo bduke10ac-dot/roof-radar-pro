@@ -254,25 +254,39 @@ export function AutoStormCampaignsView() {
   };
 
   const simulate = () => {
-    const cell = cells[0];
-    const r = rules.find(x => x.enabled) || rules[0];
-    if (!r) return toast.error("Create a rule first");
+    const armedRules = rules.filter(r => r.enabled && isMarketArmed(r.marketScope.value));
+    if (armedRules.length === 0) return toast.error("No armed rules in active markets");
+    // Find first rule whose thresholds are met by current weather cells
+    let match: { rule: Rule; trigger: TriggerKey; reading: string } | null = null;
+    for (const r of armedRules) {
+      for (const c of cells) {
+        const ev = evaluateRule(r, c);
+        if (ev) { match = { rule: r, ...ev }; break; }
+      }
+      if (match) break;
+    }
+    if (!match) return toast.error("No live weather currently meets your thresholds");
+    const r = match.rule;
     const tpl = TEMPLATES[r.template];
     const eligible = 200 + Math.floor(Math.random() * 1500);
     const blocked = Math.floor(eligible * 0.12);
+    // Compliance: SMS only if explicitly enabled on rule (consent enforced downstream)
+    const channels = (Object.keys(r.channels) as ChannelKey[]).filter(k => r.channels[k]);
     const t: TriggeredCampaign = {
       id: crypto.randomUUID(),
       ruleName: r.name || "Unnamed rule",
       marketName: r.marketScope.value || marketImpacts[0]?.marketName || "Active market",
-      trigger: cell?.type === "wind" ? "windGust" : cell?.type === "tornado" ? "tornadoWarning" : "hail",
-      reading: cell?.type === "hail" ? `${cell.hailSize}" hail` : cell?.type === "wind" ? `${cell.windSpeed} mph gusts` : "Storm trigger fired",
-      eligible, blocked, status: r.manualApproval ? "pending" : "sent",
-      channels: (Object.keys(r.channels) as ChannelKey[]).filter(k => r.channels[k]),
+      trigger: match.trigger,
+      reading: match.reading,
+      eligible, blocked,
+      // Always default to pending when manualApproval — system-wide policy
+      status: r.manualApproval ? "pending" : "sent",
+      channels,
       message: tpl.body,
       triggeredAt: new Date().toISOString(),
     };
     setTriggered(ts => [t, ...ts]);
-    toast.success(`Trigger fired · ${r.name}`);
+    toast.success(`Threshold met · ${r.name} · ${match.reading}`);
   };
 
   return (
