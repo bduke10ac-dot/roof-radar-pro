@@ -1,174 +1,365 @@
-import { useState } from "react";
-import { Route, Layers, MapPin, Target, Flame } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Route, Layers, MapPin, Target, Flame, CloudHail, Wind, Tornado, CloudRain, TreeDeciduous } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { StormScoreBadge } from "@/components/StormScoreBadge";
 import { useMarketLeads } from "@/hooks/useMarketFilter";
-import { useMarkets } from "@/contexts/MarketContext";
+import {
+  DEFAULT_OVERLAYS, HAIL_THRESHOLDS, WIND_THRESHOLDS, EF_RATINGS, applyPreset, computeStormScore,
+  HAIL_SWATHS, WIND_CORRIDORS, TORNADO_TRACKS, RAIN_ZONES, TREE_DAMAGE_ZONES,
+  type OverlayState, type LayerPreset,
+} from "@/lib/stormOverlays";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export function MapView() {
   const { leads, allLeads, activeMarket } = useMarketLeads();
   const [minScore, setMinScore] = useState([60]);
   const [zip, setZip] = useState("all");
-  const [showSwath, setShowSwath] = useState(true);
-  const [showHeatmap, setShowHeatmap] = useState(true);
   const [radius, setRadius] = useState([35]);
+  const [overlays, setOverlays] = useState<OverlayState>(DEFAULT_OVERLAYS);
 
-  const visible = leads.filter(l =>
-    l.stormScore >= minScore[0] &&
-    (zip === "all" || l.zip === zip)
-  );
-  const zips = Array.from(new Set(leads.map(l => l.zip))).filter(Boolean) as string[];
+  const update = (patch: Partial<OverlayState>) => setOverlays(o => ({ ...o, ...patch }));
+  const preset = (p: LayerPreset) => setOverlays(o => applyPreset(o, p));
 
-  // Project lat/lng to a 0-100% box
   const lats = leads.map(l => l.lat);
   const lngs = leads.map(l => l.lng);
   const minLat = Math.min(...lats), maxLat = Math.max(...lats);
   const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
-  const project = (lat: number, lng: number) => ({
-    left: `${((lng - minLng) / (maxLng - minLng)) * 88 + 6}%`,
-    top: `${(1 - (lat - minLat) / (maxLat - minLat)) * 80 + 10}%`,
+  const projectXY = (lat: number, lng: number) => ({
+    x: ((lng - minLng) / (maxLng - minLng || 1)) * 88 + 6,
+    y: (1 - (lat - minLat) / (maxLat - minLat || 1)) * 80 + 10,
   });
+
+  // Live scored leads (uses overlays)
+  const scored = useMemo(() => leads.map(l => {
+    const pos = projectXY(l.lat, l.lng);
+    const r = computeStormScore(l, pos, overlays);
+    return { ...l, pos, liveScore: r.score, inHail: r.inHail, inWind: r.inWind, inTornado: r.inTornado, inRain: r.inRain };
+  }), [leads, overlays]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const visible = scored.filter(l => l.liveScore >= minScore[0] && (zip === "all" || l.zip === zip));
+  const zips = Array.from(new Set(leads.map(l => l.zip))).filter(Boolean) as string[];
+
+  const hailColor = (size: number) => {
+    if (size >= 2.0) return "hsl(0 80% 55%)";
+    if (size >= 1.5) return "hsl(15 85% 55%)";
+    if (size >= 1.25) return "hsl(30 90% 55%)";
+    if (size >= 1.0) return "hsl(45 90% 55%)";
+    return "hsl(55 80% 60%)";
+  };
+  const windColor = (mph: number) => {
+    if (mph >= 70) return "hsl(280 70% 55%)";
+    if (mph >= 65) return "hsl(260 70% 60%)";
+    if (mph >= 58) return "hsl(220 75% 55%)";
+    if (mph >= 50) return "hsl(200 70% 55%)";
+    return "hsl(190 60% 60%)";
+  };
 
   return (
     <div className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Territory map</h1>
-          <p className="text-sm text-muted-foreground">{visible.length} properties match your filters{activeMarket && <> · in <span className="text-storm font-medium">{activeMarket.name}</span> ({allLeads.length} unscoped)</>}</p>
+          <p className="text-sm text-muted-foreground">
+            {visible.length} properties match your filters
+            {activeMarket && <> · in <span className="text-storm font-medium">{activeMarket.name}</span> ({allLeads.length} unscoped)</>}
+          </p>
         </div>
         <Button onClick={() => toast.success(`Route created with ${visible.length} stops`)}>
           <Route className="w-4 h-4 mr-2" />Create door-knocking route
         </Button>
       </header>
 
-      <div className="grid lg:grid-cols-[280px_1fr] gap-5">
-        <div className="bg-card rounded-xl p-5 shadow-card border border-border/60 space-y-5 h-fit">
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Min storm score: {minScore[0]}</label>
-            <Slider value={minScore} onValueChange={setMinScore} min={0} max={100} step={5} className="mt-2" />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Geofence radius: {radius[0]} mi</label>
-            <Slider value={radius} onValueChange={setRadius} min={5} max={100} step={5} className="mt-2" />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">ZIP code</label>
-            <Select value={zip} onValueChange={setZip}>
-              <SelectTrigger className="mt-2"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All ZIPs</SelectItem>
-                {zips.map(z => <SelectItem key={z} value={z}>{z}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center justify-between pt-2 border-t border-border/60">
-            <div className="flex items-center gap-2 text-sm">
-              <Layers className="w-4 h-4 text-storm" /> Storm swath
+      <div className="grid lg:grid-cols-[320px_1fr] gap-5">
+        {/* Layer panel */}
+        <div className="bg-card rounded-xl shadow-card border border-border/60 h-fit">
+          <div className="p-4 border-b border-border/60 space-y-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Min storm score: {minScore[0]}</label>
+              <Slider value={minScore} onValueChange={setMinScore} min={0} max={100} step={5} className="mt-2" />
             </div>
-            <Switch checked={showSwath} onCheckedChange={setShowSwath} />
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm">
-              <Flame className="w-4 h-4 text-warning" /> Lead density heatmap
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Geofence radius: {radius[0]} mi</label>
+              <Slider value={radius} onValueChange={setRadius} min={5} max={100} step={5} className="mt-2" />
             </div>
-            <Switch checked={showHeatmap} onCheckedChange={setShowHeatmap} />
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">ZIP code</label>
+              <Select value={zip} onValueChange={setZip}>
+                <SelectTrigger className="mt-2 h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All ZIPs</SelectItem>
+                  {zips.map(z => <SelectItem key={z} value={z}>{z}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
+          <div className="p-4 border-b border-border/60">
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Layer presets</div>
+            <div className="grid grid-cols-3 gap-1.5">
+              {(["all","hail","wind","tornado","rain","none"] as LayerPreset[]).map(p => (
+                <button key={p} onClick={() => preset(p)}
+                  className="px-2 py-1.5 rounded-md text-[11px] font-medium border border-border bg-background hover:bg-accent capitalize">
+                  {p === "none" ? "Clear" : p === "all" ? "All" : p}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <Tabs defaultValue="hail" className="p-1">
+            <TabsList className="grid grid-cols-5 h-9">
+              <TabsTrigger value="hail" className="text-[11px] px-1"><CloudHail className="w-3.5 h-3.5" /></TabsTrigger>
+              <TabsTrigger value="wind" className="text-[11px] px-1"><Wind className="w-3.5 h-3.5" /></TabsTrigger>
+              <TabsTrigger value="tornado" className="text-[11px] px-1"><Tornado className="w-3.5 h-3.5" /></TabsTrigger>
+              <TabsTrigger value="rain" className="text-[11px] px-1"><CloudRain className="w-3.5 h-3.5" /></TabsTrigger>
+              <TabsTrigger value="other" className="text-[11px] px-1"><TreeDeciduous className="w-3.5 h-3.5" /></TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="hail" className="p-3 space-y-3">
+              <ToggleRow icon={<CloudHail className="w-4 h-4 text-warning" />} label="Hail swaths" checked={overlays.hail} onChange={v => update({ hail: v })} />
+              <ChipFilter label="Min hail size" suffix={`"`} options={HAIL_THRESHOLDS} value={overlays.minHail} onChange={v => update({ minHail: v })} />
+              <ToggleRow label="Show confidence score" checked={overlays.showHailConfidence} onChange={v => update({ showHailConfidence: v })} small />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-[10px] text-muted-foreground">From</Label>
+                  <Input type="date" value={overlays.hailDateFrom} onChange={e => update({ hailDateFrom: e.target.value })} className="h-8 text-xs" />
+                </div>
+                <div>
+                  <Label className="text-[10px] text-muted-foreground">To</Label>
+                  <Input type="date" value={overlays.hailDateTo} onChange={e => update({ hailDateTo: e.target.value })} className="h-8 text-xs" />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="wind" className="p-3 space-y-3">
+              <ToggleRow icon={<Wind className="w-4 h-4 text-storm" />} label="Wind corridors" checked={overlays.wind} onChange={v => update({ wind: v })} />
+              <ChipFilter label="Min wind speed" suffix=" mph" options={WIND_THRESHOLDS} value={overlays.minWind} onChange={v => update({ minWind: v })} />
+              <ToggleRow label="Show direction arrows" checked={overlays.showWindDirection} onChange={v => update({ showWindDirection: v })} small />
+              <ToggleRow label="Affected homes inside zone" checked={overlays.showWindAffected} onChange={v => update({ showWindAffected: v })} small />
+            </TabsContent>
+
+            <TabsContent value="tornado" className="p-3 space-y-3">
+              <ToggleRow icon={<Tornado className="w-4 h-4 text-destructive" />} label="Tornado tracks" checked={overlays.tornado} onChange={v => update({ tornado: v })} />
+              <div>
+                <Label className="text-xs text-muted-foreground">Min EF rating</Label>
+                <div className="flex gap-1 mt-1.5">
+                  {EF_RATINGS.map(ef => (
+                    <button key={ef} onClick={() => update({ efRating: ef })}
+                      className={cn("flex-1 py-1 rounded text-xs font-medium border",
+                        overlays.efRating === ef ? "bg-destructive text-destructive-foreground border-destructive" : "bg-background border-border hover:border-destructive/50")}>
+                      EF{ef}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <ToggleRow label="Show damage path width" checked={overlays.showTornadoWidth} onChange={v => update({ showTornadoWidth: v })} small />
+            </TabsContent>
+
+            <TabsContent value="rain" className="p-3 space-y-3">
+              <ToggleRow icon={<CloudRain className="w-4 h-4 text-storm" />} label="Heavy rain zones" checked={overlays.rain} onChange={v => update({ rain: v })} />
+              <p className="text-[11px] text-muted-foreground">Repeat-storm areas highlighted. Older roofs (15+ yrs) inside high-rain zones are flagged in scoring.</p>
+            </TabsContent>
+
+            <TabsContent value="other" className="p-3 space-y-3">
+              <ToggleRow icon={<TreeDeciduous className="w-4 h-4 text-success" />} label="Tree damage / debris" checked={overlays.treeDamage} onChange={v => update({ treeDamage: v })} />
+              <p className="text-[11px] text-muted-foreground">Includes emergency call density and power-outage correlation (placeholder data).</p>
+              <div className="border-t border-border/60 pt-3">
+                <ToggleRow icon={<Flame className="w-4 h-4 text-warning" />} label="Lead density heatmap" checked={overlays.leadHeatmap} onChange={v => update({ leadHeatmap: v })} />
+              </div>
+            </TabsContent>
+          </Tabs>
+
           {activeMarket && (
-            <div className="rounded-md p-3 bg-storm/10 border border-storm/30 text-xs">
+            <div className="m-3 rounded-md p-3 bg-storm/10 border border-storm/30 text-xs">
               <div className="flex items-center gap-1.5 text-storm font-semibold mb-1">
                 <Target className="w-3.5 h-3.5" /> Active market
               </div>
               <div className="font-medium text-foreground">{activeMarket.name}</div>
-              <div className="text-muted-foreground mt-0.5">
-                {[...activeMarket.states, ...activeMarket.counties, ...activeMarket.cities].slice(0, 3).join(" · ") || "No geography set"}
-                {activeMarket.zips.length > 0 && ` · ${activeMarket.zips.length} ZIPs`}
-              </div>
             </div>
           )}
         </div>
 
-        <div className="relative rounded-xl overflow-hidden shadow-elevated border border-border/60 aspect-[4/3] lg:aspect-auto lg:min-h-[560px] bg-[hsl(210_40%_92%)]">
-          {/* Stylized map background */}
+        {/* Map canvas */}
+        <div className="relative rounded-xl overflow-hidden shadow-elevated border border-border/60 aspect-[4/3] lg:aspect-auto lg:min-h-[640px] bg-[hsl(210_40%_92%)]">
           <div className="absolute inset-0" style={{
-            backgroundImage: `
-              linear-gradient(hsl(210 30% 85%) 1px, transparent 1px),
-              linear-gradient(90deg, hsl(210 30% 85%) 1px, transparent 1px)`,
+            backgroundImage: `linear-gradient(hsl(210 30% 85%) 1px, transparent 1px), linear-gradient(90deg, hsl(210 30% 85%) 1px, transparent 1px)`,
             backgroundSize: "40px 40px",
           }} />
-          {/* roads */}
           <div className="absolute top-1/3 left-0 right-0 h-2 bg-white/80" />
           <div className="absolute top-2/3 left-0 right-0 h-1.5 bg-white/70" />
           <div className="absolute top-0 bottom-0 left-1/4 w-1.5 bg-white/70" />
           <div className="absolute top-0 bottom-0 left-2/3 w-2 bg-white/80" />
 
-          {/* Storm swath */}
-          {showSwath && (
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute" style={{ left: "20%", top: "15%", width: "55%", height: "50%" }}>
-                <div className="w-full h-full rounded-[40%] bg-warning/25 border-2 border-warning/50 backdrop-blur-[1px]" />
-                <div className="absolute top-2 left-3 text-[10px] font-bold text-warning uppercase tracking-wider">Hail swath · 4/22</div>
-              </div>
-            </div>
-          )}
-
-          {/* Geofence */}
-          <div className="absolute pointer-events-none" style={{ left: "55%", top: "60%", transform: "translate(-50%, -50%)" }}>
-            <div
-              className="rounded-full border-2 border-storm/60 bg-storm/10"
-              style={{ width: `${radius[0] * 4}px`, height: `${radius[0] * 4}px` }}
-            />
-          </div>
-
           {/* Active market boundary */}
           {activeMarket && (
             <div className="absolute pointer-events-none border-2 border-dashed border-storm rounded-2xl"
-              style={{ left: "10%", top: "8%", right: "8%", bottom: "12%" }}>
+              style={{ left: "8%", top: "6%", right: "6%", bottom: "10%" }}>
               <div className="absolute -top-3 left-3 px-2 py-0.5 bg-storm text-storm-foreground text-[10px] font-bold rounded uppercase tracking-wider">
                 {activeMarket.name}
               </div>
             </div>
           )}
 
-          {/* Heatmap blobs */}
-          {showHeatmap && visible.filter(l => l.stormScore >= 80).map(l => {
-            const pos = project(l.lat, l.lng);
-            return (
-              <div key={`h-${l.id}`} className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
-                style={{ ...pos, width: 120, height: 120, background: "hsl(var(--warning) / 0.45)" }} />
-            );
-          })}
+          {/* SVG overlays */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+            {/* Rain zones (under everything) */}
+            {overlays.rain && RAIN_ZONES.map(r => (
+              <g key={r.id}>
+                <rect x={r.x} y={r.y} width={r.w} height={r.h} rx="3"
+                  fill="hsl(210 90% 55%)" fillOpacity={0.12 + r.intensity * 0.18}
+                  stroke="hsl(210 90% 50%)" strokeOpacity={0.5} strokeWidth={0.3} strokeDasharray="1.5 1" />
+              </g>
+            ))}
+            {/* Tree damage */}
+            {overlays.treeDamage && TREE_DAMAGE_ZONES.map(t => (
+              <circle key={t.id} cx={t.x} cy={t.y} r={t.r}
+                fill="hsl(140 50% 45%)" fillOpacity={0.18}
+                stroke="hsl(140 60% 35%)" strokeOpacity={0.7} strokeWidth={0.3} strokeDasharray="0.8 0.8" />
+            ))}
+            {/* Hail swaths */}
+            {overlays.hail && HAIL_SWATHS
+              .filter(s => s.hailSize >= overlays.minHail)
+              .filter(s => !overlays.hailDateFrom || s.date >= overlays.hailDateFrom)
+              .filter(s => !overlays.hailDateTo || s.date <= overlays.hailDateTo)
+              .map(s => (
+                <g key={s.id}>
+                  <rect x={s.x} y={s.y} width={s.w} height={s.h} rx="6"
+                    fill={hailColor(s.hailSize)} fillOpacity={0.22}
+                    stroke={hailColor(s.hailSize)} strokeOpacity={0.85} strokeWidth={0.4} />
+                </g>
+            ))}
+            {/* Wind corridors */}
+            {overlays.wind && WIND_CORRIDORS.filter(w => w.windSpeed >= overlays.minWind).map(w => (
+              <g key={w.id}>
+                <line x1={w.x1} y1={w.y1} x2={w.x2} y2={w.y2}
+                  stroke={windColor(w.windSpeed)} strokeWidth={w.windSpeed / 18} strokeOpacity={0.55} strokeLinecap="round" />
+                {overlays.showWindDirection && (
+                  <polygon
+                    points={`${w.x2},${w.y2} ${w.x2 - 3},${w.y2 - 1.5} ${w.x2 - 3},${w.y2 + 1.5}`}
+                    transform={`rotate(${(Math.atan2(w.y2 - w.y1, w.x2 - w.x1) * 180) / Math.PI}, ${w.x2}, ${w.y2})`}
+                    fill={windColor(w.windSpeed)} fillOpacity={0.9} />
+                )}
+              </g>
+            ))}
+            {/* Tornado tracks */}
+            {overlays.tornado && TORNADO_TRACKS.filter(t => t.ef >= overlays.efRating).map(t => (
+              <g key={t.id}>
+                {overlays.showTornadoWidth && (
+                  <line x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2}
+                    stroke="hsl(0 80% 50%)" strokeOpacity={0.18} strokeWidth={Math.max(2, t.widthYd / 60)} strokeLinecap="round" />
+                )}
+                <line x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2}
+                  stroke="hsl(0 85% 45%)" strokeWidth={0.6} strokeDasharray="1.5 1" strokeLinecap="round" />
+              </g>
+            ))}
+          </svg>
+
+          {/* Hail labels (HTML so tooltips look right) */}
+          {overlays.hail && HAIL_SWATHS
+            .filter(s => s.hailSize >= overlays.minHail)
+            .map(s => (
+              <div key={`hl-${s.id}`} className="absolute pointer-events-none" style={{ left: `${s.x + 1}%`, top: `${s.y + 1}%` }}>
+                <div className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-card/90 border border-border/60"
+                  style={{ color: hailColor(s.hailSize) }}>
+                  {s.hailSize}" hail · {s.date}{overlays.showHailConfidence && ` · ${s.confidence}%`}
+                </div>
+              </div>
+          ))}
+          {/* Wind labels */}
+          {overlays.wind && overlays.showWindAffected && WIND_CORRIDORS
+            .filter(w => w.windSpeed >= overlays.minWind)
+            .map(w => (
+              <div key={`wl-${w.id}`} className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2"
+                style={{ left: `${(w.x1 + w.x2) / 2}%`, top: `${(w.y1 + w.y2) / 2}%` }}>
+                <div className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-card/90 border border-border/60"
+                  style={{ color: windColor(w.windSpeed) }}>
+                  {w.windSpeed} mph · {w.affectedHomes.toLocaleString()} homes
+                </div>
+              </div>
+          ))}
+          {/* Tornado labels */}
+          {overlays.tornado && TORNADO_TRACKS.filter(t => t.ef >= overlays.efRating).map(t => (
+            <div key={`tl-${t.id}`} className="absolute pointer-events-none"
+              style={{ left: `${(t.x1 + t.x2) / 2}%`, top: `${(t.y1 + t.y2) / 2}%` }}>
+              <div className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-destructive text-destructive-foreground -translate-x-1/2 -translate-y-1/2">
+                EF{t.ef} · {t.widthYd}yd · {t.date}
+              </div>
+            </div>
+          ))}
+
+          {/* Geofence */}
+          <div className="absolute pointer-events-none" style={{ left: "55%", top: "60%", transform: "translate(-50%, -50%)" }}>
+            <div className="rounded-full border-2 border-storm/60 bg-storm/5"
+              style={{ width: `${radius[0] * 4}px`, height: `${radius[0] * 4}px` }} />
+          </div>
+
+          {/* Lead heatmap */}
+          {overlays.leadHeatmap && visible.filter(l => l.liveScore >= 80).map(l => (
+            <div key={`h-${l.id}`} className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
+              style={{ left: `${l.pos.x}%`, top: `${l.pos.y}%`, width: 120, height: 120, background: "hsl(var(--warning) / 0.45)" }} />
+          ))}
 
           {/* Pins */}
           {visible.map(l => {
-            const pos = project(l.lat, l.lng);
-            const color = l.stormScore >= 85 ? "bg-warning" : l.stormScore >= 70 ? "bg-storm" : "bg-muted-foreground";
+            const color = l.liveScore >= 85 ? "bg-warning" : l.liveScore >= 70 ? "bg-storm" : "bg-muted-foreground";
             return (
-              <div key={l.id} className="absolute -translate-x-1/2 -translate-y-full group" style={pos}>
+              <div key={l.id} className="absolute -translate-x-1/2 -translate-y-full group" style={{ left: `${l.pos.x}%`, top: `${l.pos.y}%` }}>
                 <div className="relative">
-                  {l.stormScore >= 85 && (
-                    <div className={`absolute inset-0 rounded-full ${color} animate-pulse-ring`} />
-                  )}
+                  {l.liveScore >= 85 && <div className={`absolute inset-0 rounded-full ${color} animate-pulse-ring`} />}
                   <div className={`relative w-6 h-6 rounded-full ${color} ring-2 ring-white shadow-elevated flex items-center justify-center`}>
                     <MapPin className="w-3 h-3 text-white" />
                   </div>
                 </div>
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded bg-primary text-primary-foreground text-[11px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition shadow-elevated">
-                  {l.ownerName} · {l.stormScore}
+                  {l.ownerName} · score {l.liveScore}
+                  {(l.inHail || l.inWind || l.inTornado || l.inRain) && <> · {[l.inHail && "hail", l.inWind && "wind", l.inTornado && "tornado", l.inRain && "rain"].filter(Boolean).join("+")}</>}
                 </div>
               </div>
             );
           })}
 
           {/* Legend */}
-          <div className="absolute bottom-3 left-3 bg-card/95 backdrop-blur rounded-lg p-3 shadow-card border border-border/60 text-xs space-y-1.5">
-            <div className="font-semibold mb-1">Storm score</div>
-            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-warning" /> ≥ 85 (high)</div>
-            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-storm" /> 70–84</div>
-            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-muted-foreground" /> &lt; 70</div>
+          <div className="absolute bottom-3 left-3 bg-card/95 backdrop-blur rounded-lg p-3 shadow-card border border-border/60 text-[11px] space-y-2 max-w-[220px]">
+            {overlays.hail && (
+              <LegendRow title="Hail size">
+                {[0.75, 1.0, 1.5, 2.0].map(s => (
+                  <span key={s} className="inline-flex items-center gap-1">
+                    <span className="w-3 h-3 rounded" style={{ background: hailColor(s) }} /> {s}"
+                  </span>
+                ))}
+              </LegendRow>
+            )}
+            {overlays.wind && (
+              <LegendRow title="Wind mph">
+                {[50, 58, 65, 70].map(s => (
+                  <span key={s} className="inline-flex items-center gap-1">
+                    <span className="w-3 h-1.5 rounded" style={{ background: windColor(s) }} /> {s}+
+                  </span>
+                ))}
+              </LegendRow>
+            )}
+            {overlays.tornado && (
+              <LegendRow title="Tornado">
+                <span className="inline-flex items-center gap-1"><span className="w-4 h-0.5 bg-destructive" /> track</span>
+              </LegendRow>
+            )}
+            {overlays.rain && (
+              <LegendRow title="Rain"><span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded bg-storm/50" /> heavy</span></LegendRow>
+            )}
+            {overlays.leadHeatmap && (
+              <LegendRow title="Leads"><span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-warning/60 blur-[1px]" /> density</span></LegendRow>
+            )}
+            <div className="pt-1.5 border-t border-border/60 flex flex-wrap gap-x-3 gap-y-1">
+              <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-warning" /> ≥85</span>
+              <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-storm" /> 70–84</span>
+              <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-muted-foreground" /> &lt;70</span>
+            </div>
           </div>
         </div>
       </div>
@@ -181,12 +372,54 @@ export function MapView() {
               <div className="min-w-0">
                 <div className="font-medium text-sm truncate">{l.ownerName}</div>
                 <div className="text-xs text-muted-foreground truncate">{l.propertyAddress}</div>
+                {(l.inHail || l.inWind || l.inTornado || l.inRain) && (
+                  <div className="text-[10px] text-storm mt-0.5">
+                    {[l.inHail && "in hail", l.inWind && "wind path", l.inTornado && "tornado", l.inRain && "rain zone"].filter(Boolean).join(" · ")}
+                  </div>
+                )}
               </div>
-              <StormScoreBadge score={l.stormScore} />
+              <StormScoreBadge score={l.liveScore} />
             </div>
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+function ToggleRow({ icon, label, checked, onChange, small }: { icon?: React.ReactNode; label: string; checked: boolean; onChange: (v: boolean) => void; small?: boolean }) {
+  return (
+    <div className="flex items-center justify-between">
+      <div className={cn("flex items-center gap-2", small ? "text-xs text-muted-foreground" : "text-sm")}>
+        {icon}{label}
+      </div>
+      <Switch checked={checked} onCheckedChange={onChange} />
+    </div>
+  );
+}
+
+function ChipFilter({ label, options, value, onChange, suffix }: { label: string; options: number[]; value: number; onChange: (v: number) => void; suffix?: string }) {
+  return (
+    <div>
+      <Label className="text-xs text-muted-foreground">{label}</Label>
+      <div className="flex flex-wrap gap-1 mt-1.5">
+        {options.map(o => (
+          <button key={o} onClick={() => onChange(o)}
+            className={cn("px-2 py-1 rounded text-[11px] font-medium border",
+              value === o ? "bg-storm text-storm-foreground border-storm" : "bg-background border-border hover:border-storm/50")}>
+            {o}{suffix}+
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function LegendRow({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="font-semibold mb-0.5">{title}</div>
+      <div className="flex flex-wrap gap-x-2 gap-y-1 text-muted-foreground">{children}</div>
     </div>
   );
 }
