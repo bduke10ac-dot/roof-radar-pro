@@ -164,7 +164,7 @@ const SEED_RULES: Rule[] = [
     triggers: { ...DEFAULT_RULE().triggers, hail: false, windGust: true, windSustained: true },
     thresholds: { hailIn: 1.0, gustMph: 65, sustainedMph: 45, tornado: "warning", severe: "warning" },
     timing: "after1h", template: "wind",
-    channels: { email: true, sms: false, directMail: true, doorKnock: true, crmTask: true, repPush: false },
+    channels: { email: true, sms: false, aiCall: false, directMail: true, doorKnock: true, crmTask: true, repPush: false },
     createdAt: new Date(Date.now() - 86400000 * 5).toISOString() },
   { ...DEFAULT_RULE(), id: "r3", name: "Nashville Severe Weather Follow-Up",
     marketScope: { type: "city", value: "Nashville" }, timing: "nextMorning", template: "severe",
