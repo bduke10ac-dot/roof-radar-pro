@@ -24,6 +24,19 @@ export function MapView() {
   const [zip, setZip] = useState("all");
   const [radius, setRadius] = useState([35]);
   const [overlays, setOverlays] = useState<OverlayState>(DEFAULT_OVERLAYS);
+  const mapCtl = useMapControls("territory-map");
+
+  // Sync MapControls layer toggles -> storm overlay state
+  useEffect(() => {
+    setOverlays(o => ({
+      ...o,
+      hail: mapCtl.state.layers.stormHail,
+      wind: mapCtl.state.layers.stormWind,
+      rain: mapCtl.state.layers.stormRain,
+      tornado: mapCtl.state.layers.stormTornado,
+      leadHeatmap: mapCtl.state.layers.leadDensity,
+    }));
+  }, [mapCtl.state.layers.stormHail, mapCtl.state.layers.stormWind, mapCtl.state.layers.stormRain, mapCtl.state.layers.stormTornado, mapCtl.state.layers.leadDensity]);
 
   const update = (patch: Partial<OverlayState>) => setOverlays(o => ({ ...o, ...patch }));
   const preset = (p: LayerPreset) => setOverlays(o => applyPreset(o, p));
