@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, MessageSquare, Save, Send, Download, Lock, AlertTriangle, Target, ImageIcon, Upload } from "lucide-react";
+import { Mail, MessageSquare, Save, Send, Download, Lock, AlertTriangle, Target, ImageIcon, Upload, PhoneCall, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
