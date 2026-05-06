@@ -34,7 +34,10 @@ export function DashboardView() {
       <header className="flex items-end justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Storm Operations Dashboard</h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm font-medium text-storm">
+            Everything you need to be ready for the next storm — and be the first to assist after. Maximize every opportunity.
+          </p>
+          <p className="text-sm text-muted-foreground mt-1">
             {activeMarket
               ? <>Scoped to <span className="text-storm font-medium inline-flex items-center gap-1"><Target className="w-3 h-3" />{activeMarket.name}</span> · {leads.length} of {allLeads.length} leads</>
               : <>Live storm conditions are driving lead scores and market alerts.</>}
