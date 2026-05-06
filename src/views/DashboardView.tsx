@@ -5,6 +5,7 @@ import { type LeadStatus } from "@/lib/mockData";
 import { useMarketLeads, useMarketStormEvents } from "@/hooks/useMarketFilter";
 import { useMarkets } from "@/contexts/MarketContext";
 import { Target } from "lucide-react";
+import { WeatherCommandCenter } from "@/components/WeatherCommandCenter";
 
 const pipelineStages: LeadStatus[] = ["new", "contacted", "inspection", "quoted", "won"];
 
@@ -18,6 +19,7 @@ export function DashboardView() {
 
   return (
     <div className="space-y-6">
+      <WeatherCommandCenter />
       <header className="flex items-end justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Storm Operations Dashboard</h1>
