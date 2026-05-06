@@ -200,7 +200,7 @@ export function MapView() {
         </div>
 
         {/* Map canvas */}
-        <div className="relative rounded-xl overflow-hidden shadow-elevated border border-border/60 aspect-[4/3] lg:aspect-auto lg:min-h-[640px]" style={baseMapBackground(mapCtl.state.base)}>
+        <div className="relative rounded-xl overflow-hidden shadow-elevated border border-border/60 min-h-[420px] lg:min-h-[640px]" style={baseMapBackground(mapCtl.state.base)}>
           <div className="absolute inset-0" style={{
             backgroundImage: `linear-gradient(hsl(210 30% 85%) 1px, transparent 1px), linear-gradient(90deg, hsl(210 30% 85%) 1px, transparent 1px)`,
             backgroundSize: "40px 40px",
