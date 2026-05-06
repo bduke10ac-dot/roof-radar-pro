@@ -24,7 +24,7 @@ export function AppSidebar({ active, onNavigate }: { active: View; onNavigate: (
     <aside className="hidden md:flex w-60 shrink-0 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
       <div className="px-5 py-5 flex items-center gap-2.5 border-b border-sidebar-border">
         <div className="w-9 h-9 rounded-lg bg-gradient-storm flex items-center justify-center shadow-elevated">
-          <CloudLightning className="w-5 h-5 text-white" />
+          <CloudLightning className="w-5 h-5 text-[hsl(60_100%_60%)] drop-shadow-[0_0_6px_hsl(60_100%_60%/0.8)]" />
         </div>
         <div>
           <div className="font-bold text-white tracking-tight">RoofRadar</div>
