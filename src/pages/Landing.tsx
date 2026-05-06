@@ -69,8 +69,11 @@ export default function Landing() {
       <section className="max-w-4xl mx-auto px-4 py-12 md:py-20 text-center">
         <Card className="p-8 md:p-12 bg-gradient-to-br from-storm/15 to-background border-storm/30">
           <h2 className="text-2xl md:text-3xl font-bold">Ready to chase the next storm?</h2>
-          <p className="text-muted-foreground mt-2">Join contractors closing more deals with less guesswork.</p>
-          <Button asChild size="lg" className="mt-6"><Link to="/signup">Create your account</Link></Button>
+          <p className="text-muted-foreground mt-2">Tap below and start in seconds — no account needed.</p>
+          <div className="mt-6 flex flex-col sm:flex-row justify-center gap-3">
+            <Button onClick={useNow} size="lg" className="h-12 text-base"><Rocket className="w-4 h-4" /> Use it now</Button>
+            <Button asChild size="lg" variant="outline" className="h-12 text-base"><Link to="/signup">Create an account</Link></Button>
+          </div>
         </Card>
       </section>
     </MarketingLayout>
