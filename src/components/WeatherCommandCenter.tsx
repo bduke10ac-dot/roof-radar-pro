@@ -214,56 +214,51 @@ export function WeatherCommandCenter() {
         </Card>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-4">
-        <Card className="p-4 lg:col-span-1">
-          <div className="flex items-center gap-2 mb-3">
-            <Megaphone className="w-4 h-4 text-storm" />
-            <h3 className="font-semibold text-sm">Roofer Action Alerts</h3>
+      <div className="grid lg:grid-cols-3 gap-3 md:gap-4">
+        <Card className="p-3 md:p-4 lg:col-span-1 bg-card border-border/60">
+          <div className="flex items-center gap-2 mb-2 md:mb-3">
+            <Megaphone className="w-4 h-4 text-muted-foreground" />
+            <h3 className="font-semibold text-xs md:text-sm">Roofer Action Alerts</h3>
+            <Badge variant="outline" className="ml-auto text-[10px]">{rooferAlerts.length}</Badge>
           </div>
-          <div className="space-y-2">
-            {rooferAlerts.slice(0, 7).map(a => (
-              <div key={a.id} className={`text-xs p-2 rounded-md border ${
-                a.tone === "destructive" ? "bg-destructive/10 border-destructive/40 text-destructive" :
-                a.tone === "warning" ? "bg-warning/10 border-warning/40" :
-                a.tone === "success" ? "bg-success/10 border-success/40" :
-                "bg-storm/10 border-storm/40"
-              }`}>{a.text}</div>
+          <div className="space-y-1.5 md:space-y-2">
+            {rooferAlerts.slice(0, 5).map(a => (
+              <div key={a.id} className="text-[11px] md:text-xs p-2 rounded-md border border-border/60 bg-background text-foreground leading-snug">
+                {a.text}
+              </div>
             ))}
           </div>
         </Card>
 
-        <Card className="p-4 lg:col-span-2">
-          <div className="flex items-center gap-2 mb-3">
-            <MapPin className="w-4 h-4 text-storm" />
-            <h3 className="font-semibold text-sm">Saved Markets — Live Weather Impact</h3>
+        <Card className="p-3 md:p-4 lg:col-span-2 bg-card border-border/60">
+          <div className="flex items-center gap-2 mb-2 md:mb-3">
+            <MapPin className="w-4 h-4 text-muted-foreground" />
+            <h3 className="font-semibold text-xs md:text-sm">Saved Markets — Live Impact</h3>
+            <Badge variant="outline" className="ml-auto text-[10px]">{marketImpacts.length}</Badge>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1.5 md:space-y-2">
             {marketImpacts.length === 0 && (
               <div className="text-xs text-muted-foreground">No saved markets. Build one in Market Targeting.</div>
             )}
             {marketImpacts.map(m => {
               const Icon = CELL_ICON[m.type];
               return (
-                <div key={m.marketId} className="flex items-center justify-between p-2 rounded-md bg-background border border-border/60">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className={`w-7 h-7 rounded-md flex items-center justify-center ${CELL_COLOR[m.type]}`}>
+                <div key={m.marketId} className="flex items-center justify-between gap-2 p-2 rounded-md bg-background border border-border/60">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${CELL_COLOR[m.type]}`}>
                       <Icon className="w-3.5 h-3.5" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-sm font-medium truncate">{m.marketName}</div>
-                      <div className="text-[11px] text-muted-foreground truncate">{m.status} · {m.recommendedAction}</div>
+                      <div className="text-xs md:text-sm font-medium truncate">{m.marketName}</div>
+                      <div className="text-[10px] md:text-[11px] text-muted-foreground truncate">{m.status} · ETA {m.etaMinutes}m · Sev {m.severity}</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Badge variant="outline" className="text-[10px]">Sev {m.severity}</Badge>
-                    <Badge variant="outline" className="text-[10px]">ETA {m.etaMinutes}m</Badge>
-                    <Button size="sm" variant="outline" className="h-7 text-[11px]">Trigger</Button>
-                  </div>
+                  <Button size="sm" variant="outline" className="h-7 text-[11px] px-2 shrink-0">Trigger</Button>
                 </div>
               );
             })}
           </div>
-          <p className="text-[10px] text-muted-foreground mt-3">
+          <p className="hidden md:block text-[10px] text-muted-foreground mt-3">
             Storms passing a saved market create storm events, flag affected properties, boost storm scores, and queue inspection + door-knock campaigns.
           </p>
         </Card>
