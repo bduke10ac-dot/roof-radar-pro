@@ -61,6 +61,12 @@ type TriggeredCampaign = {
   channels: ChannelKey[];
   message: string;
   triggeredAt: string;
+  // SMS compliance breakdown
+  smsEligible?: number;
+  smsBlockedNoConsent?: number;
+  smsBlockedDnc?: number;
+  reroutedToMail?: number;
+  reroutedToDoorKnock?: number;
 };
 
 // =============== Constants ===============
@@ -253,10 +259,33 @@ export function AutoStormCampaignsView() {
     toast(`Campaign rejected`);
   };
 
+  // Compliance gate: never SMS without explicit consent and never to DNC.
+  // Non-eligible contacts are auto-rerouted to direct mail / door-knock.
+  const partitionForCompliance = (totalContacts: number, rule: Rule) => {
+    const consentRate = 0.42; // sms_consent = true (simulated)
+    const dncRate = 0.08;     // dnc_status = true
+    const smsEligible = rule.channels.sms ? Math.floor(totalContacts * (consentRate - dncRate)) : 0;
+    const smsBlockedNoConsent = rule.channels.sms ? Math.floor(totalContacts * (1 - consentRate)) : 0;
+    const smsBlockedDnc = rule.channels.sms ? Math.floor(totalContacts * dncRate) : 0;
+    const blocked = smsBlockedNoConsent + smsBlockedDnc;
+    const fallbacks: ChannelKey[] = [];
+    if (rule.channels.directMail) fallbacks.push("directMail");
+    if (rule.channels.doorKnock) fallbacks.push("doorKnock");
+    let reroutedToMail = 0, reroutedToDoorKnock = 0;
+    if (fallbacks.length === 2) {
+      reroutedToMail = Math.ceil(blocked / 2);
+      reroutedToDoorKnock = Math.floor(blocked / 2);
+    } else if (fallbacks[0] === "directMail") {
+      reroutedToMail = blocked;
+    } else if (fallbacks[0] === "doorKnock") {
+      reroutedToDoorKnock = blocked;
+    }
+    return { smsEligible, smsBlockedNoConsent, smsBlockedDnc, blocked, reroutedToMail, reroutedToDoorKnock };
+  };
+
   const simulate = () => {
     const armedRules = rules.filter(r => r.enabled && isMarketArmed(r.marketScope.value));
     if (armedRules.length === 0) return toast.error("No armed rules in active markets");
-    // Find first rule whose thresholds are met by current weather cells
     let match: { rule: Rule; trigger: TriggerKey; reading: string } | null = null;
     for (const r of armedRules) {
       for (const c of cells) {
@@ -268,9 +297,8 @@ export function AutoStormCampaignsView() {
     if (!match) return toast.error("No live weather currently meets your thresholds");
     const r = match.rule;
     const tpl = TEMPLATES[r.template];
-    const eligible = 200 + Math.floor(Math.random() * 1500);
-    const blocked = Math.floor(eligible * 0.12);
-    // Compliance: SMS only if explicitly enabled on rule (consent enforced downstream)
+    const totalContacts = 200 + Math.floor(Math.random() * 1500);
+    const comp = partitionForCompliance(totalContacts, r);
     const channels = (Object.keys(r.channels) as ChannelKey[]).filter(k => r.channels[k]);
     const t: TriggeredCampaign = {
       id: crypto.randomUUID(),
@@ -278,15 +306,27 @@ export function AutoStormCampaignsView() {
       marketName: r.marketScope.value || marketImpacts[0]?.marketName || "Active market",
       trigger: match.trigger,
       reading: match.reading,
-      eligible, blocked,
-      // Always default to pending when manualApproval — system-wide policy
+      eligible: totalContacts - comp.blocked,
+      blocked: comp.blocked,
       status: r.manualApproval ? "pending" : "sent",
       channels,
       message: tpl.body,
       triggeredAt: new Date().toISOString(),
+      smsEligible: comp.smsEligible,
+      smsBlockedNoConsent: comp.smsBlockedNoConsent,
+      smsBlockedDnc: comp.smsBlockedDnc,
+      reroutedToMail: comp.reroutedToMail,
+      reroutedToDoorKnock: comp.reroutedToDoorKnock,
     };
     setTriggered(ts => [t, ...ts]);
-    toast.success(`Threshold met · ${r.name} · ${match.reading}`);
+    if (r.channels.sms && comp.blocked > 0) {
+      const parts: string[] = [];
+      if (comp.reroutedToMail) parts.push(`${comp.reroutedToMail} → mail`);
+      if (comp.reroutedToDoorKnock) parts.push(`${comp.reroutedToDoorKnock} → door-knock`);
+      toast.success(`${r.name} · ${comp.blocked} non-consenting SMS blocked · ${parts.join(", ") || "no fallback channel"}`);
+    } else {
+      toast.success(`Threshold met · ${r.name} · ${match.reading}`);
+    }
   };
 
   return (
@@ -729,6 +769,24 @@ export function AutoStormCampaignsView() {
                   <Field label="Channels" value={reviewing.channels.join(", ")} />
                   <Field label="Triggered at" value={new Date(reviewing.triggeredAt).toLocaleString()} />
                 </div>
+                {reviewing.channels.includes("sms") && (
+                  <Card className="p-3 bg-warning/5 border-warning/30">
+                    <div className="flex items-center gap-2 mb-2">
+                      <ShieldAlert className="w-4 h-4 text-warning" />
+                      <span className="text-xs font-semibold">SMS compliance breakdown</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-[11px]">
+                      <Field label="SMS eligible (consent ✓, not DNC)" value={(reviewing.smsEligible ?? 0).toLocaleString()} />
+                      <Field label="Blocked — no consent" value={(reviewing.smsBlockedNoConsent ?? 0).toLocaleString()} />
+                      <Field label="Blocked — DNC" value={(reviewing.smsBlockedDnc ?? 0).toLocaleString()} />
+                      <Field label="Rerouted → Direct mail" value={(reviewing.reroutedToMail ?? 0).toLocaleString()} />
+                      <Field label="Rerouted → Door-knock" value={(reviewing.reroutedToDoorKnock ?? 0).toLocaleString()} />
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mt-2">
+                      Non-consenting and DNC contacts are never texted. They are automatically rerouted to direct mail export and door-knock route.
+                    </p>
+                  </Card>
+                )}
                 <div>
                   <Label>Message</Label>
                   <Textarea value={reviewing.message} rows={5}
