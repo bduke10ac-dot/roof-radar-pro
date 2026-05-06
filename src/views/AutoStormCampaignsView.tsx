@@ -676,16 +676,36 @@ export function AutoStormCampaignsView() {
                   <label key={key} className="flex items-center justify-between gap-2 px-2 py-1.5 rounded border border-border bg-background cursor-pointer">
                     <span className="flex items-center gap-1.5 text-xs"><Icon className="w-3.5 h-3.5 text-storm" /> {label}</span>
                     <Switch checked={editing.channels[key]}
-                      onCheckedChange={v => setEditing(r => ({ ...r, channels: { ...r.channels, [key]: v } }))} />
+                      onCheckedChange={v => setEditing(r => ({
+                        ...r,
+                        channels: { ...r.channels, [key]: v },
+                        // SMS always forces manual approval ON for compliance
+                        manualApproval: key === "sms" && v ? true : r.manualApproval,
+                      }))} />
                   </label>
                 ))}
               </div>
               {editing.channels.sms && (
                 <p className="text-[11px] text-warning mt-1.5 flex items-center gap-1">
-                  <ShieldAlert className="w-3 h-3" /> SMS only sends to contacts with consent. Non-consented contacts auto-route to direct mail / door-knock.
+                  <Lock className="w-3 h-3" /> SMS sends only to consenting contacts (no DNC) and is locked to manual approval.
                 </p>
               )}
             </div>
+
+            <label className={cn(
+              "flex items-center justify-between gap-2 px-3 py-2 rounded border cursor-pointer",
+              editing.channels.sms ? "border-warning/50 bg-warning/5" : "border-border bg-background"
+            )}>
+              <span className="text-sm flex items-center gap-2">
+                Require manual approval before any send
+                {editing.channels.sms && <Lock className="w-3.5 h-3.5 text-warning" />}
+              </span>
+              <Switch
+                checked={editing.manualApproval || editing.channels.sms}
+                disabled={editing.channels.sms}
+                onCheckedChange={v => setEditing(r => ({ ...r, manualApproval: v }))}
+              />
+            </label>
 
             <label className="flex items-center justify-between gap-2 px-3 py-2 rounded border border-border bg-background cursor-pointer">
               <span className="text-sm">Require manual approval before any send</span>
