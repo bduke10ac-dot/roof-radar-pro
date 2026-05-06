@@ -769,6 +769,24 @@ export function AutoStormCampaignsView() {
                   <Field label="Channels" value={reviewing.channels.join(", ")} />
                   <Field label="Triggered at" value={new Date(reviewing.triggeredAt).toLocaleString()} />
                 </div>
+                {reviewing.channels.includes("sms") && (
+                  <Card className="p-3 bg-warning/5 border-warning/30">
+                    <div className="flex items-center gap-2 mb-2">
+                      <ShieldAlert className="w-4 h-4 text-warning" />
+                      <span className="text-xs font-semibold">SMS compliance breakdown</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-[11px]">
+                      <Field label="SMS eligible (consent ✓, not DNC)" value={(reviewing.smsEligible ?? 0).toLocaleString()} />
+                      <Field label="Blocked — no consent" value={(reviewing.smsBlockedNoConsent ?? 0).toLocaleString()} />
+                      <Field label="Blocked — DNC" value={(reviewing.smsBlockedDnc ?? 0).toLocaleString()} />
+                      <Field label="Rerouted → Direct mail" value={(reviewing.reroutedToMail ?? 0).toLocaleString()} />
+                      <Field label="Rerouted → Door-knock" value={(reviewing.reroutedToDoorKnock ?? 0).toLocaleString()} />
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mt-2">
+                      Non-consenting and DNC contacts are never texted. They are automatically rerouted to direct mail export and door-knock route.
+                    </p>
+                  </Card>
+                )}
                 <div>
                   <Label>Message</Label>
                   <Textarea value={reviewing.message} rows={5}
