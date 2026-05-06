@@ -78,7 +78,16 @@ export function WeatherCommandCenter() {
       </div>
 
       {/* HERO MAP */}
-      <div className="relative rounded-xl overflow-hidden border border-border/60 shadow-card h-[460px] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="relative rounded-xl overflow-hidden border border-border/60 shadow-card h-[460px]" style={baseMapBackground(mapCtl.state.base)}>
+        <div className="absolute top-3 right-3 z-30">
+          <MapControls
+            state={mapCtl.state}
+            onBase={mapCtl.setBase}
+            onPitch={mapCtl.setPitch}
+            onRotation={mapCtl.setRotation}
+            onToggle={mapCtl.toggle}
+          />
+        </div>
         {layers.radar && (
           <div className="absolute inset-0 opacity-60"
                style={{ backgroundImage: "radial-gradient(circle at 30% 40%, hsl(var(--storm)/0.55), transparent 35%), radial-gradient(circle at 70% 55%, hsl(var(--warning)/0.5), transparent 30%), radial-gradient(circle at 80% 70%, hsl(var(--destructive)/0.5), transparent 25%)" }} />
