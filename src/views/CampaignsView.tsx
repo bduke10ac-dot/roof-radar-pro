@@ -216,6 +216,105 @@ export function CampaignsView() {
             </div>
           </div>
         </TabsContent>
+
+        <TabsContent value="aicall" className="mt-5">
+          <div className="rounded-xl p-4 border border-storm/40 bg-storm/10 flex gap-3 mb-5">
+            <Sparkles className="w-5 h-5 shrink-0 text-storm mt-0.5" />
+            <div className="text-sm">
+              <div className="font-semibold text-storm">AI voice agent — optional cold-call source</div>
+              <div className="text-foreground/80 mt-1">
+                A natural-sounding AI voice agent calls non-DNC homeowners in your segment to book free roof &amp; exterior storm-damage inspections. Skips DNC, respects state calling hours, leaves a voicemail with opt-out, and logs every call.
+              </div>
+            </div>
+          </div>
+
+          <div className="grid lg:grid-cols-[1fr_320px] gap-5">
+            <div className="bg-card rounded-xl p-5 shadow-card border border-border/60 space-y-4">
+              <div className="flex items-center justify-between rounded-lg border border-border/60 p-3">
+                <div>
+                  <div className="font-semibold text-sm">Enable AI cold-call source</div>
+                  <div className="text-xs text-muted-foreground">Off by default. Turn on to start placing calls to {aiCallEligible.length} eligible numbers in segment.</div>
+                </div>
+                <Switch checked={aiCallEnabled} onCheckedChange={setAiCallEnabled} />
+              </div>
+
+              <div className="grid sm:grid-cols-3 gap-3">
+                <div>
+                  <Label className="text-xs">Goal</Label>
+                  <Select value={aiGoal} onValueChange={(v) => setAiGoal(v as typeof aiGoal)}>
+                    <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="book_inspection">Book inspection</SelectItem>
+                      <SelectItem value="qualify_only">Qualify only</SelectItem>
+                      <SelectItem value="voicemail_drop">Voicemail drop</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Voice</Label>
+                  <Select value={aiVoice} onValueChange={(v) => setAiVoice(v as typeof aiVoice)}>
+                    <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="female_warm">Female — warm</SelectItem>
+                      <SelectItem value="female_pro">Female — professional</SelectItem>
+                      <SelectItem value="male_friendly">Male — friendly</SelectItem>
+                      <SelectItem value="male_pro">Male — professional</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Calling window (local)</Label>
+                  <Select value={aiCallWindow} onValueChange={(v) => setAiCallWindow(v as typeof aiCallWindow)}>
+                    <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="9to6">9 AM – 6 PM</SelectItem>
+                      <SelectItem value="10to7">10 AM – 7 PM</SelectItem>
+                      <SelectItem value="11to5">11 AM – 5 PM</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label>Pre-written script</Label>
+                <Textarea value={aiScript} onChange={e => setAiScript(e.target.value)} rows={14} className="mt-1.5 font-mono text-xs" />
+                <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-2">
+                  <span>Merge tags: <code>{`{{first_name}}`}</code> <code>{`{{city}}`}</code> <code>{`{{street_name}}`}</code> <code>{`{{storm_date}}`}</code> <code>{`{{hail_size}}`}</code> <code>{`{{wind_speed}}`}</code> <code>{`{{slot_1}}`}</code> <code>{`{{slot_2}}`}</code> <code>{`{{company_name}}`}</code> <code>{`{{callback_number}}`}</code></span>
+                </div>
+                <div className="flex items-center gap-2 text-xs mt-2">
+                  {hasOptOut
+                    ? <span className="text-success font-medium">✓ Includes opt-out / "not interested" handling</span>
+                    : <span className="text-destructive font-medium flex items-center gap-1"><AlertTriangle className="w-3 h-3" />Script must include opt-out language ("STOP", "opt out", or "not interested")</span>}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  disabled={!canStartAiCalls}
+                  onClick={() => {
+                    if (!canStartAiCalls) return;
+                    toast.success(`AI cold-call campaign queued for ${aiCallEligible.length} numbers (goal: ${aiGoal.replace("_"," ")})`);
+                  }}
+                >
+                  {canStartAiCalls ? <PhoneCall className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
+                  {!aiCallEnabled ? "Enable to start" : !hasOptOut ? "Add opt-out language" : "Start AI calls"}
+                </Button>
+                <Button variant="outline" onClick={() => toast.success("Script template saved")}><Save className="w-4 h-4 mr-2" />Save script</Button>
+                <Button variant="outline" onClick={() => toast.success(`Call list exported (${aiCallEligible.length} numbers)`)}><Download className="w-4 h-4 mr-2" />Export call list</Button>
+              </div>
+            </div>
+
+            <div className="bg-card rounded-xl p-5 shadow-card border border-border/60 h-fit space-y-3 text-sm">
+              <div className="font-semibold">AI call audience</div>
+              <Stat label="Callable (phone + no DNC)" value={aiCallEligible.length} />
+              <Stat label="Excluded (DNC or no phone)" value={segmentLeads.length - aiCallEligible.length} />
+              <div className="pt-3 border-t border-border/60 text-xs text-muted-foreground space-y-1.5">
+                <div><span className="font-semibold text-foreground">TCPA safeguards:</span> federal & state DNC scrubbed before each call, calling-hour limits enforced per recipient time zone, AI discloses it is an automated assistant, and "STOP / not interested" instantly opts the lead out across all channels.</div>
+                <div>Every call is recorded (where lawful), transcribed, and attached to the lead record.</div>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
       </Tabs>
     </div>
   );
