@@ -34,7 +34,7 @@ export function MapView() {
   const [editRadiusOpen, setEditRadiusOpen] = useState(false);
   const mapWrapRef = useRef<HTMLDivElement>(null);
   const mapCtl = useMapControls("territory-map");
-  const isMobile = useIsMobile();
+  
 
   useEffect(() => {
     const onFs = () => setIsFullscreen(!!document.fullscreenElement);
