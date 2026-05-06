@@ -327,12 +327,15 @@ export function MapView() {
             "relative rounded-xl overflow-hidden shadow-elevated border border-border/60 select-none",
             isFullscreen ? "min-h-screen" : "min-h-[420px] lg:min-h-[640px]"
           )}
-          style={baseMapBackground(mapCtl.state.base)}
+          style={{ ...baseMapBackground(mapCtl.state.base), touchAction: "none" }}
           onWheel={onWheel}
           onMouseDown={onMouseDown}
           onMouseMove={onMouseMove}
           onMouseUp={endDrag}
           onMouseLeave={endDrag}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
         >
           {/* Transformed scene (zoom + pan) */}
           <div
