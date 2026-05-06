@@ -706,12 +706,6 @@ export function AutoStormCampaignsView() {
                 onCheckedChange={v => setEditing(r => ({ ...r, manualApproval: v }))}
               />
             </label>
-
-            <label className="flex items-center justify-between gap-2 px-3 py-2 rounded border border-border bg-background cursor-pointer">
-              <span className="text-sm">Require manual approval before any send</span>
-              <Switch checked={editing.manualApproval}
-                onCheckedChange={v => setEditing(r => ({ ...r, manualApproval: v }))} />
-            </label>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditorOpen(false)}>Cancel</Button>
