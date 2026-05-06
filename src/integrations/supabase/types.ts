@@ -548,6 +548,84 @@ export type Database = {
           },
         ]
       }
+      user_map_preferences: {
+        Row: {
+          claim_opportunity_enabled: boolean | null
+          created_at: string
+          default_map_type: string | null
+          hail_layer_enabled: boolean | null
+          hybrid_enabled: boolean | null
+          id: string
+          job_zone_enabled: boolean | null
+          lead_heatmap_enabled: boolean | null
+          lightning_layer_enabled: boolean | null
+          measurement_tools_enabled: boolean | null
+          parcel_layer_enabled: boolean | null
+          rain_layer_enabled: boolean | null
+          roof_age_heatmap_enabled: boolean | null
+          route_layer_enabled: boolean | null
+          satellite_enabled: boolean | null
+          saved_market_boundaries_enabled: boolean | null
+          street_view_enabled: boolean | null
+          terrain_enabled: boolean | null
+          three_d_enabled: boolean | null
+          tornado_layer_enabled: boolean | null
+          updated_at: string
+          user_id: string
+          wind_layer_enabled: boolean | null
+        }
+        Insert: {
+          claim_opportunity_enabled?: boolean | null
+          created_at?: string
+          default_map_type?: string | null
+          hail_layer_enabled?: boolean | null
+          hybrid_enabled?: boolean | null
+          id?: string
+          job_zone_enabled?: boolean | null
+          lead_heatmap_enabled?: boolean | null
+          lightning_layer_enabled?: boolean | null
+          measurement_tools_enabled?: boolean | null
+          parcel_layer_enabled?: boolean | null
+          rain_layer_enabled?: boolean | null
+          roof_age_heatmap_enabled?: boolean | null
+          route_layer_enabled?: boolean | null
+          satellite_enabled?: boolean | null
+          saved_market_boundaries_enabled?: boolean | null
+          street_view_enabled?: boolean | null
+          terrain_enabled?: boolean | null
+          three_d_enabled?: boolean | null
+          tornado_layer_enabled?: boolean | null
+          updated_at?: string
+          user_id: string
+          wind_layer_enabled?: boolean | null
+        }
+        Update: {
+          claim_opportunity_enabled?: boolean | null
+          created_at?: string
+          default_map_type?: string | null
+          hail_layer_enabled?: boolean | null
+          hybrid_enabled?: boolean | null
+          id?: string
+          job_zone_enabled?: boolean | null
+          lead_heatmap_enabled?: boolean | null
+          lightning_layer_enabled?: boolean | null
+          measurement_tools_enabled?: boolean | null
+          parcel_layer_enabled?: boolean | null
+          rain_layer_enabled?: boolean | null
+          roof_age_heatmap_enabled?: boolean | null
+          route_layer_enabled?: boolean | null
+          satellite_enabled?: boolean | null
+          saved_market_boundaries_enabled?: boolean | null
+          street_view_enabled?: boolean | null
+          terrain_enabled?: boolean | null
+          three_d_enabled?: boolean | null
+          tornado_layer_enabled?: boolean | null
+          updated_at?: string
+          user_id?: string
+          wind_layer_enabled?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
