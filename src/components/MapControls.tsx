@@ -146,7 +146,7 @@ export function MapControls({
   const toggleGroup = (t: string) => setOpenGroups(g => ({ ...g, [t]: !g[t] }));
 
   return (
-    <div className={cn("bg-card/95 backdrop-blur rounded-lg border border-border/60 shadow-elevated text-xs w-64", className)}>
+    <div className={cn("bg-card/95 backdrop-blur rounded-lg border border-border/60 shadow-elevated text-xs w-56 md:w-64 max-w-[calc(100vw-1.5rem)]", className)}>
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between px-3 py-2 border-b border-border/60"
