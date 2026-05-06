@@ -53,8 +53,12 @@ export default function Landing() {
       </section>
 
       <section className="max-w-6xl mx-auto px-4 py-12 md:py-16">
-        <h2 className="text-2xl md:text-3xl font-bold text-center">Everything you need after the storm</h2>
-        <p className="text-center text-muted-foreground mt-2 max-w-2xl mx-auto">From radar to roof — track, target, contact, close.</p>
+        <h2 className="text-2xl md:text-3xl font-bold text-center">
+          Everything you need to be ready for the next storm — and be the first to assist after.
+        </h2>
+        <p className="text-center text-muted-foreground mt-2 max-w-2xl mx-auto">
+          Maximize every opportunity. From radar to roof — prepare, track, target, contact, close.
+        </p>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
           {features.map((f) => (
             <Card key={f.title} className="p-5">
@@ -68,8 +72,8 @@ export default function Landing() {
 
       <section className="max-w-4xl mx-auto px-4 py-12 md:py-20 text-center">
         <Card className="p-8 md:p-12 bg-gradient-to-br from-storm/15 to-background border-storm/30">
-          <h2 className="text-2xl md:text-3xl font-bold">Ready to chase the next storm?</h2>
-          <p className="text-muted-foreground mt-2">Tap below and start in seconds — no account needed.</p>
+          <h2 className="text-2xl md:text-3xl font-bold">Be ready before. Be first after.</h2>
+          <p className="text-muted-foreground mt-2">Maximize every opportunity — start in seconds, no account needed.</p>
           <div className="mt-6 flex flex-col sm:flex-row justify-center gap-3">
             <Button onClick={useNow} size="lg" className="h-12 text-base"><Rocket className="w-4 h-4" /> Use it now</Button>
             <Button asChild size="lg" variant="outline" className="h-12 text-base"><Link to="/signup">Create an account</Link></Button>
