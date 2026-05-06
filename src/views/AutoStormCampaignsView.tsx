@@ -146,7 +146,7 @@ const DEFAULT_RULE = (): Rule => ({
   },
   thresholds: { hailIn: 1.0, gustMph: 58, sustainedMph: 40, tornado: "warning", severe: "warning" },
   timing: "manualApproval",
-  channels: { email: true, sms: false, directMail: true, doorKnock: true, crmTask: true, repPush: true },
+  channels: { email: true, sms: false, aiCall: false, directMail: true, doorKnock: true, crmTask: true, repPush: true },
   template: "hail",
   manualApproval: true,
   createdAt: new Date().toISOString(),
