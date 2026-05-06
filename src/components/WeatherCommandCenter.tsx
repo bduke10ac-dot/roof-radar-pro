@@ -214,25 +214,22 @@ export function WeatherCommandCenter() {
         </Card>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-4">
-        <Card className="p-4 lg:col-span-1">
+      <div className="hidden md:grid lg:grid-cols-3 gap-4">
+        <Card className="p-4 lg:col-span-1 bg-card border-border/60">
           <div className="flex items-center gap-2 mb-3">
-            <Megaphone className="w-4 h-4 text-storm" />
+            <Megaphone className="w-4 h-4 text-muted-foreground" />
             <h3 className="font-semibold text-sm">Roofer Action Alerts</h3>
           </div>
           <div className="space-y-2">
             {rooferAlerts.slice(0, 7).map(a => (
-              <div key={a.id} className={`text-xs p-2 rounded-md border ${
-                a.tone === "destructive" ? "bg-destructive/10 border-destructive/40 text-destructive" :
-                a.tone === "warning" ? "bg-warning/10 border-warning/40" :
-                a.tone === "success" ? "bg-success/10 border-success/40" :
-                "bg-storm/10 border-storm/40"
-              }`}>{a.text}</div>
+              <div key={a.id} className="text-xs p-2 rounded-md border border-border/60 bg-background text-foreground">
+                {a.text}
+              </div>
             ))}
           </div>
         </Card>
 
-        <Card className="p-4 lg:col-span-2">
+        <Card className="p-4 lg:col-span-2 bg-card border-border/60">
           <div className="flex items-center gap-2 mb-3">
             <MapPin className="w-4 h-4 text-storm" />
             <h3 className="font-semibold text-sm">Saved Markets — Live Weather Impact</h3>
