@@ -247,7 +247,7 @@ export function AutoStormCampaignsView() {
       ruleName: r.name || "Unnamed rule",
       marketName: r.marketScope.value || marketImpacts[0]?.marketName || "Active market",
       trigger: cell?.type === "wind" ? "windGust" : cell?.type === "tornado" ? "tornadoWarning" : "hail",
-      reading: cell?.type === "hail" ? `${cell.hailSize}" hail` : cell?.type === "wind" ? `${cell.windMph} mph gusts` : "Storm trigger fired",
+      reading: cell?.type === "hail" ? `${cell.hailSize}" hail` : cell?.type === "wind" ? `${cell.windSpeed} mph gusts` : "Storm trigger fired",
       eligible, blocked, status: r.manualApproval ? "pending" : "sent",
       channels: (Object.keys(r.channels) as ChannelKey[]).filter(k => r.channels[k]),
       message: tpl.body,
