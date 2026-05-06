@@ -46,7 +46,7 @@
 
     --radius: 0.75rem;
 
-    --gradient-storm: linear-gradient(135deg, hsl(220 55% 16%) 0%, hsl(210 85% 45%) 40%, hsl(185 85% 50%) 70%, hsl(155 70% 45%) 100%);
+    --gradient-storm: linear-gradient(135deg, hsl(220 55% 16%) 0%, hsl(210 85% 45%) 35%, hsl(180 95% 50%) 65%, hsl(140 95% 50%) 100%);
     --gradient-warning: linear-gradient(135deg, hsl(25 95% 55%), hsl(15 90% 50%));
     --shadow-card: 0 2px 8px -2px hsl(220 40% 12% / 0.08), 0 1px 3px -1px hsl(220 40% 12% / 0.06);
     --shadow-elevated: 0 10px 30px -10px hsl(220 55% 16% / 0.25);
