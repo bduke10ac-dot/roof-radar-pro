@@ -1,9 +1,9 @@
-import { LayoutDashboard, Users, Map, Send, ShieldCheck, Plug, CloudLightning, Target, Zap, CreditCard, Sparkles } from "lucide-react";
+import { LayoutDashboard, Users, Map, Send, ShieldCheck, Plug, CloudLightning, Target, Zap, CreditCard, Sparkles, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Button } from "@/components/ui/button";
 
-export type View = "dashboard" | "leads" | "map" | "markets" | "campaigns" | "auto-campaigns" | "compliance" | "integrations" | "billing";
+export type View = "dashboard" | "leads" | "map" | "markets" | "campaigns" | "auto-campaigns" | "playbook" | "compliance" | "integrations" | "billing";
 
 const items: { id: View; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -12,6 +12,7 @@ const items: { id: View; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "markets", label: "Market Targeting", icon: Target },
   { id: "campaigns", label: "Campaigns", icon: Send },
   { id: "auto-campaigns", label: "Auto Storm Campaigns", icon: Zap },
+  { id: "playbook", label: "Storm Playbook", icon: BookOpen },
   { id: "compliance", label: "Compliance", icon: ShieldCheck },
   { id: "integrations", label: "Integrations", icon: Plug },
   { id: "billing", label: "Billing & Subscription", icon: CreditCard },
