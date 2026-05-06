@@ -13,7 +13,7 @@ import {
   Zap, Plus, CloudLightning, Wind, Tornado, CloudRain, AlertTriangle, Bolt,
   TreeDeciduous, PowerOff, Mail, MessageSquare, FileText, Footprints,
   ClipboardCheck, Send, ShieldCheck, ShieldAlert, Clock, Eye, Pencil, Trash2,
-  CheckCircle2, XCircle, Activity, Megaphone, Target,
+  CheckCircle2, XCircle, Activity, Megaphone, Target, MapPin, Lock,
 } from "lucide-react";
 import { useMarkets } from "@/contexts/MarketContext";
 import { useWeather } from "@/contexts/WeatherContext";
@@ -194,13 +194,31 @@ export function AutoStormCampaignsView() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<Rule>(DEFAULT_RULE());
   const [reviewing, setReviewing] = useState<TriggeredCampaign | null>(null);
+  // Per-market master switch — automation only watches markets that are turned on
+  const [marketAutomation, setMarketAutomation] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(markets.map(m => [m.name, true]))
+  );
 
-  const armed = rules.filter(r => r.enabled).length;
+  const isMarketArmed = (name: string) => marketAutomation[name] !== false;
+
+  const armed = rules.filter(r => r.enabled && isMarketArmed(r.marketScope.value)).length;
   const triggeredToday = triggered.filter(t => Date.now() - new Date(t.triggeredAt).getTime() < 86400000).length;
   const pending = triggered.filter(t => t.status === "pending");
   const sent = triggered.filter(t => t.status === "sent").length;
   const totalBlocked = triggered.reduce((s, t) => s + t.blocked, 0);
   const routesCreated = triggered.filter(t => t.channels.includes("doorKnock")).length;
+
+  // Evaluate a single rule against a live weather cell using user thresholds
+  const evaluateRule = (r: Rule, cell: typeof cells[number]) => {
+    if (!cell) return null;
+    if (r.triggers.hail && cell.type === "hail" && (cell as any).hailSize >= r.thresholds.hailIn)
+      return { trigger: "hail" as TriggerKey, reading: `${(cell as any).hailSize}" hail ≥ ${r.thresholds.hailIn}"` };
+    if (r.triggers.windGust && cell.type === "wind" && (cell as any).windSpeed >= r.thresholds.gustMph)
+      return { trigger: "windGust" as TriggerKey, reading: `${(cell as any).windSpeed} mph gust ≥ ${r.thresholds.gustMph} mph` };
+    if (r.triggers.tornadoWarning && cell.type === "tornado")
+      return { trigger: "tornadoWarning" as TriggerKey, reading: `Tornado ${r.thresholds.tornado}` };
+    return null;
+  };
 
   const openNew = () => { setEditing(DEFAULT_RULE()); setEditorOpen(true); };
   const openEdit = (r: Rule) => { setEditing({ ...r }); setEditorOpen(true); };
@@ -236,25 +254,39 @@ export function AutoStormCampaignsView() {
   };
 
   const simulate = () => {
-    const cell = cells[0];
-    const r = rules.find(x => x.enabled) || rules[0];
-    if (!r) return toast.error("Create a rule first");
+    const armedRules = rules.filter(r => r.enabled && isMarketArmed(r.marketScope.value));
+    if (armedRules.length === 0) return toast.error("No armed rules in active markets");
+    // Find first rule whose thresholds are met by current weather cells
+    let match: { rule: Rule; trigger: TriggerKey; reading: string } | null = null;
+    for (const r of armedRules) {
+      for (const c of cells) {
+        const ev = evaluateRule(r, c);
+        if (ev) { match = { rule: r, ...ev }; break; }
+      }
+      if (match) break;
+    }
+    if (!match) return toast.error("No live weather currently meets your thresholds");
+    const r = match.rule;
     const tpl = TEMPLATES[r.template];
     const eligible = 200 + Math.floor(Math.random() * 1500);
     const blocked = Math.floor(eligible * 0.12);
+    // Compliance: SMS only if explicitly enabled on rule (consent enforced downstream)
+    const channels = (Object.keys(r.channels) as ChannelKey[]).filter(k => r.channels[k]);
     const t: TriggeredCampaign = {
       id: crypto.randomUUID(),
       ruleName: r.name || "Unnamed rule",
       marketName: r.marketScope.value || marketImpacts[0]?.marketName || "Active market",
-      trigger: cell?.type === "wind" ? "windGust" : cell?.type === "tornado" ? "tornadoWarning" : "hail",
-      reading: cell?.type === "hail" ? `${cell.hailSize}" hail` : cell?.type === "wind" ? `${cell.windSpeed} mph gusts` : "Storm trigger fired",
-      eligible, blocked, status: r.manualApproval ? "pending" : "sent",
-      channels: (Object.keys(r.channels) as ChannelKey[]).filter(k => r.channels[k]),
+      trigger: match.trigger,
+      reading: match.reading,
+      eligible, blocked,
+      // Always default to pending when manualApproval — system-wide policy
+      status: r.manualApproval ? "pending" : "sent",
+      channels,
       message: tpl.body,
       triggeredAt: new Date().toISOString(),
     };
     setTriggered(ts => [t, ...ts]);
-    toast.success(`Trigger fired · ${r.name}`);
+    toast.success(`Threshold met · ${r.name} · ${match.reading}`);
   };
 
   return (
@@ -289,6 +321,44 @@ export function AutoStormCampaignsView() {
         <Stat label="Campaigns sent" value={sent} icon={Send} tone="success" />
         <Stat label="Compliance blocked" value={totalBlocked} icon={ShieldAlert} tone="destructive" />
       </div>
+
+      {/* Per-market automation master switches */}
+      <Card className="p-4">
+        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-storm" />
+            <h2 className="font-semibold text-sm">Market automation</h2>
+          </div>
+          <span className="text-[11px] text-muted-foreground">Off = no triggers fire for that market, regardless of rules.</span>
+        </div>
+        {markets.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No saved markets yet.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {markets.map(m => {
+              const on = isMarketArmed(m.name);
+              const ruleCount = rules.filter(r => r.marketScope.value === m.name).length;
+              return (
+                <label key={m.id} className={cn(
+                  "flex items-center justify-between gap-2 px-3 py-2 rounded border cursor-pointer transition-colors",
+                  on ? "border-storm/40 bg-storm/5" : "border-border bg-muted/40"
+                )}>
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium truncate">{m.name}</div>
+                    <div className="text-[11px] text-muted-foreground">
+                      {ruleCount} rule{ruleCount === 1 ? "" : "s"} · {on ? "Watching live weather" : "Paused"}
+                    </div>
+                  </div>
+                  <Switch checked={on} onCheckedChange={v => {
+                    setMarketAutomation(s => ({ ...s, [m.name]: v }));
+                    toast.success(`${m.name} auto-campaigns ${v ? "on" : "off"}`);
+                  }} />
+                </label>
+              );
+            })}
+          </div>
+        )}
+      </Card>
 
       <Tabs defaultValue="rules">
         <TabsList>
@@ -606,21 +676,35 @@ export function AutoStormCampaignsView() {
                   <label key={key} className="flex items-center justify-between gap-2 px-2 py-1.5 rounded border border-border bg-background cursor-pointer">
                     <span className="flex items-center gap-1.5 text-xs"><Icon className="w-3.5 h-3.5 text-storm" /> {label}</span>
                     <Switch checked={editing.channels[key]}
-                      onCheckedChange={v => setEditing(r => ({ ...r, channels: { ...r.channels, [key]: v } }))} />
+                      onCheckedChange={v => setEditing(r => ({
+                        ...r,
+                        channels: { ...r.channels, [key]: v },
+                        // SMS always forces manual approval ON for compliance
+                        manualApproval: key === "sms" && v ? true : r.manualApproval,
+                      }))} />
                   </label>
                 ))}
               </div>
               {editing.channels.sms && (
                 <p className="text-[11px] text-warning mt-1.5 flex items-center gap-1">
-                  <ShieldAlert className="w-3 h-3" /> SMS only sends to contacts with consent. Non-consented contacts auto-route to direct mail / door-knock.
+                  <Lock className="w-3 h-3" /> SMS sends only to consenting contacts (no DNC) and is locked to manual approval.
                 </p>
               )}
             </div>
 
-            <label className="flex items-center justify-between gap-2 px-3 py-2 rounded border border-border bg-background cursor-pointer">
-              <span className="text-sm">Require manual approval before any send</span>
-              <Switch checked={editing.manualApproval}
-                onCheckedChange={v => setEditing(r => ({ ...r, manualApproval: v }))} />
+            <label className={cn(
+              "flex items-center justify-between gap-2 px-3 py-2 rounded border cursor-pointer",
+              editing.channels.sms ? "border-warning/50 bg-warning/5" : "border-border bg-background"
+            )}>
+              <span className="text-sm flex items-center gap-2">
+                Require manual approval before any send
+                {editing.channels.sms && <Lock className="w-3.5 h-3.5 text-warning" />}
+              </span>
+              <Switch
+                checked={editing.manualApproval || editing.channels.sms}
+                disabled={editing.channels.sms}
+                onCheckedChange={v => setEditing(r => ({ ...r, manualApproval: v }))}
+              />
             </label>
           </div>
           <DialogFooter>
