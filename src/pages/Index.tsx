@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AppSidebar, type View } from "@/components/AppSidebar";
 import { DashboardView } from "@/views/DashboardView";
+import { StormOpsView } from "@/views/StormOpsView";
 import { LeadsView } from "@/views/LeadsView";
 import { MapView } from "@/views/MapView";
 import { MarketTargetingView } from "@/views/MarketTargetingView";
