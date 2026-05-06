@@ -382,7 +382,12 @@ export type Database = {
           event_date: string | null
           hail_size: number | null
           id: string
+          overlay_color: string | null
+          overlay_opacity: number | null
+          storm_intensity: number | null
+          storm_path_geojson: Json | null
           storm_polygon: Json | null
+          storm_type: string | null
           wind_speed: number | null
         }
         Insert: {
@@ -393,7 +398,12 @@ export type Database = {
           event_date?: string | null
           hail_size?: number | null
           id?: string
+          overlay_color?: string | null
+          overlay_opacity?: number | null
+          storm_intensity?: number | null
+          storm_path_geojson?: Json | null
           storm_polygon?: Json | null
+          storm_type?: string | null
           wind_speed?: number | null
         }
         Update: {
@@ -404,10 +414,65 @@ export type Database = {
           event_date?: string | null
           hail_size?: number | null
           id?: string
+          overlay_color?: string | null
+          overlay_opacity?: number | null
+          storm_intensity?: number | null
+          storm_path_geojson?: Json | null
           storm_polygon?: Json | null
+          storm_type?: string | null
           wind_speed?: number | null
         }
         Relationships: []
+      }
+      storm_overlay_layers: {
+        Row: {
+          color: string | null
+          created_at: string
+          geojson: Json | null
+          id: string
+          layer_name: string | null
+          layer_type: string | null
+          max_intensity: number | null
+          min_intensity: number | null
+          opacity: number | null
+          storm_event_id: string | null
+          visible_default: boolean | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          geojson?: Json | null
+          id?: string
+          layer_name?: string | null
+          layer_type?: string | null
+          max_intensity?: number | null
+          min_intensity?: number | null
+          opacity?: number | null
+          storm_event_id?: string | null
+          visible_default?: boolean | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          geojson?: Json | null
+          id?: string
+          layer_name?: string | null
+          layer_type?: string | null
+          max_intensity?: number | null
+          min_intensity?: number | null
+          opacity?: number | null
+          storm_event_id?: string | null
+          visible_default?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "storm_overlay_layers_storm_event_id_fkey"
+            columns: ["storm_event_id"]
+            isOneToOne: false
+            referencedRelation: "storm_events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
