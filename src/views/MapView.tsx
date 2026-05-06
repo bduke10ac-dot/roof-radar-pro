@@ -5,29 +5,23 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { StormScoreBadge } from "@/components/StormScoreBadge";
-import { useLeads } from "@/hooks/useLeads";
+import { useMarketLeads } from "@/hooks/useMarketFilter";
 import { useMarkets } from "@/contexts/MarketContext";
 import { toast } from "sonner";
 
 export function MapView() {
-  const { leads } = useLeads();
-  const { activeMarket } = useMarkets();
+  const { leads, allLeads, activeMarket } = useMarketLeads();
   const [minScore, setMinScore] = useState([60]);
   const [zip, setZip] = useState("all");
   const [showSwath, setShowSwath] = useState(true);
   const [showHeatmap, setShowHeatmap] = useState(true);
   const [radius, setRadius] = useState([35]);
 
-  const matchesMarket = (zipCode: string) => {
-    if (!activeMarket || activeMarket.zips.length === 0) return true;
-    return activeMarket.zips.includes(zipCode);
-  };
   const visible = leads.filter(l =>
     l.stormScore >= minScore[0] &&
-    (zip === "all" || l.zip === zip) &&
-    matchesMarket(l.zip)
+    (zip === "all" || l.zip === zip)
   );
-  const zips = Array.from(new Set(leads.map(l => l.zip)));
+  const zips = Array.from(new Set(leads.map(l => l.zip))).filter(Boolean) as string[];
 
   // Project lat/lng to a 0-100% box
   const lats = leads.map(l => l.lat);
@@ -44,7 +38,7 @@ export function MapView() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Territory map</h1>
-          <p className="text-sm text-muted-foreground">{visible.length} properties match your filters</p>
+          <p className="text-sm text-muted-foreground">{visible.length} properties match your filters{activeMarket && <> · in <span className="text-storm font-medium">{activeMarket.name}</span> ({allLeads.length} unscoped)</>}</p>
         </div>
         <Button onClick={() => toast.success(`Route created with ${visible.length} stops`)}>
           <Route className="w-4 h-4 mr-2" />Create door-knocking route

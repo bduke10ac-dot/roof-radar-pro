@@ -6,10 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { StatusBadge, StormScoreBadge, ConsentBadge } from "@/components/StormScoreBadge";
 import { type Lead } from "@/lib/mockData";
-import { useLeads } from "@/hooks/useLeads";
+import { useMarketLeads } from "@/hooks/useMarketFilter";
 
 export function LeadsView() {
-  const { leads } = useLeads();
+  const { leads, allLeads, activeMarket } = useMarketLeads();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
   const [consent, setConsent] = useState("all");
@@ -27,7 +27,10 @@ export function LeadsView() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Lead database</h1>
-          <p className="text-sm text-muted-foreground">{filtered.length} of {leads.length} property owners</p>
+          <p className="text-sm text-muted-foreground">
+            {filtered.length} of {leads.length} property owners
+            {activeMarket && <> · scoped to <span className="text-storm font-medium">{activeMarket.name}</span> ({allLeads.length} total)</>}
+          </p>
         </div>
         <Button variant="outline" size="sm"><Download className="w-4 h-4 mr-2" />Export CSV</Button>
       </header>

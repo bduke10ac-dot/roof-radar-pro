@@ -2,26 +2,35 @@ import { Home, AlertTriangle, MailCheck, CalendarCheck, CloudRain } from "lucide
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge, StormScoreBadge } from "@/components/StormScoreBadge";
 import { type LeadStatus } from "@/lib/mockData";
-import { useLeads, useStormEvents } from "@/hooks/useLeads";
+import { useMarketLeads, useMarketStormEvents } from "@/hooks/useMarketFilter";
+import { useMarkets } from "@/contexts/MarketContext";
+import { Target } from "lucide-react";
 
 const pipelineStages: LeadStatus[] = ["new", "contacted", "inspection", "quoted", "won"];
 
 export function DashboardView() {
-  const { leads } = useLeads();
-  const stormEvents = useStormEvents();
+  const { leads, allLeads } = useMarketLeads();
+  const stormEvents = useMarketStormEvents();
+  const { activeMarket } = useMarkets();
   const highScore = leads.filter(l => l.stormScore >= 85).length;
   const optedIn = leads.filter(l => l.consent === "opted_in").length;
   const inspections = leads.filter(l => l.status === "inspection").length;
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">Storm Operations Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Live overview of your territory and lead pipeline.</p>
+      <header className="flex items-end justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Storm Operations Dashboard</h1>
+          <p className="text-sm text-muted-foreground">
+            {activeMarket
+              ? <>Scoped to <span className="text-storm font-medium inline-flex items-center gap-1"><Target className="w-3 h-3" />{activeMarket.name}</span> · {leads.length} of {allLeads.length} leads</>
+              : <>Live overview of your territory and lead pipeline.</>}
+          </p>
+        </div>
       </header>
 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatCard label="Mapped homes" value="12,847" icon={Home} trend="Across 14 ZIP codes" />
+        <StatCard label="Mapped homes" value={leads.length.toLocaleString()} icon={Home} trend={activeMarket ? `Market: ${activeMarket.name}` : "All territories"} />
         <StatCard label="High storm-score leads" value={highScore} icon={AlertTriangle} tone="warning" trend="Score ≥ 85" />
         <StatCard label="Opted-in contacts" value={optedIn} icon={MailCheck} tone="success" trend="SMS eligible" />
         <StatCard label="Scheduled inspections" value={inspections} icon={CalendarCheck} tone="storm" trend="This week" />

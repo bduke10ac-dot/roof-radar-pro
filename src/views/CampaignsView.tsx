@@ -6,8 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useLeads } from "@/hooks/useLeads";
-import { useMarkets } from "@/contexts/MarketContext";
+import { useMarketLeads } from "@/hooks/useMarketFilter";
+import { useMarkets, type SavedMarket } from "@/contexts/MarketContext";
+import { leadMatchesMarket } from "@/hooks/useMarketFilter";
 import { toast } from "sonner";
 
 type Segment = "all" | "state" | "region" | "county" | "city" | "zip" | "geofence" | "market" | "storm";
@@ -24,7 +25,7 @@ const SEGMENTS: { value: Segment; label: string }[] = [
 ];
 
 export function CampaignsView() {
-  const { leads } = useLeads();
+  const { leads, allLeads } = useMarketLeads();
   const { markets, activeMarket } = useMarkets();
   const [segment, setSegment] = useState<Segment>(activeMarket ? "market" : "all");
   const [marketId, setMarketId] = useState<string>(activeMarket?.id ?? markets[0]?.id ?? "");
@@ -38,10 +39,11 @@ export function CampaignsView() {
 
   const segmentLeads = (() => {
     if (segment === "market") {
-      const m = markets.find(x => x.id === marketId);
-      if (!m || m.zips.length === 0) return leads;
-      return leads.filter(l => m.zips.includes(l.zip));
+      const m: SavedMarket | undefined = markets.find(x => x.id === marketId);
+      if (!m) return leads;
+      return allLeads.filter(l => leadMatchesMarket(l, m));
     }
+    // All other segment types still respect the globally active market
     return leads;
   })();
 
