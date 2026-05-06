@@ -48,6 +48,8 @@ export function BillingView() {
         <p className="text-sm text-muted-foreground">Manage your plan, usage, payment method, and team seats.</p>
       </div>
 
+      <BrandSettings />
+
       {/* Current plan summary */}
       <Card className="p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
