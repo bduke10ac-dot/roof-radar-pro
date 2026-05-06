@@ -6,8 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useLeads } from "@/hooks/useLeads";
-import { useMarkets } from "@/contexts/MarketContext";
+import { useMarketLeads } from "@/hooks/useMarketFilter";
+import { useMarkets, type SavedMarket } from "@/contexts/MarketContext";
+import { leadMatchesMarket } from "@/hooks/useMarketFilter";
 import { toast } from "sonner";
 
 type Segment = "all" | "state" | "region" | "county" | "city" | "zip" | "geofence" | "market" | "storm";
