@@ -53,6 +53,7 @@ const Shell = () => {
                 <SelectItem value="map">Map</SelectItem>
                 <SelectItem value="markets">Market Targeting</SelectItem>
                 <SelectItem value="campaigns">Campaigns</SelectItem>
+                <SelectItem value="auto-campaigns">Auto Storm Campaigns</SelectItem>
                 <SelectItem value="compliance">Compliance</SelectItem>
                 <SelectItem value="integrations">Integrations</SelectItem>
               </SelectContent>
