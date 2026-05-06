@@ -709,6 +709,96 @@ export type Database = {
           },
         ]
       }
+      subscription_plans: {
+        Row: {
+          advanced_weather_enabled: boolean | null
+          ai_scoring_enabled: boolean | null
+          api_access_enabled: boolean | null
+          automation_enabled: boolean | null
+          created_at: string
+          crm_integrations_enabled: boolean | null
+          id: string
+          max_emails_per_month: number | null
+          max_leads_per_month: number | null
+          max_markets: number | null
+          max_sms_per_month: number | null
+          monthly_price: number | null
+          plan_name: string | null
+          sms_enabled: boolean | null
+          team_accounts_enabled: boolean | null
+          white_label_enabled: boolean | null
+          yearly_price: number | null
+        }
+        Insert: {
+          advanced_weather_enabled?: boolean | null
+          ai_scoring_enabled?: boolean | null
+          api_access_enabled?: boolean | null
+          automation_enabled?: boolean | null
+          created_at?: string
+          crm_integrations_enabled?: boolean | null
+          id?: string
+          max_emails_per_month?: number | null
+          max_leads_per_month?: number | null
+          max_markets?: number | null
+          max_sms_per_month?: number | null
+          monthly_price?: number | null
+          plan_name?: string | null
+          sms_enabled?: boolean | null
+          team_accounts_enabled?: boolean | null
+          white_label_enabled?: boolean | null
+          yearly_price?: number | null
+        }
+        Update: {
+          advanced_weather_enabled?: boolean | null
+          ai_scoring_enabled?: boolean | null
+          api_access_enabled?: boolean | null
+          automation_enabled?: boolean | null
+          created_at?: string
+          crm_integrations_enabled?: boolean | null
+          id?: string
+          max_emails_per_month?: number | null
+          max_leads_per_month?: number | null
+          max_markets?: number | null
+          max_sms_per_month?: number | null
+          monthly_price?: number | null
+          plan_name?: string | null
+          sms_enabled?: boolean | null
+          team_accounts_enabled?: boolean | null
+          white_label_enabled?: boolean | null
+          yearly_price?: number | null
+        }
+        Relationships: []
+      }
+      team_accounts: {
+        Row: {
+          created_at: string
+          id: string
+          owner_user_id: string
+          permissions: Json | null
+          role: string | null
+          team_user_id: string
+          territory: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          owner_user_id: string
+          permissions?: Json | null
+          role?: string | null
+          team_user_id: string
+          territory?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          owner_user_id?: string
+          permissions?: Json | null
+          role?: string | null
+          team_user_id?: string
+          territory?: string | null
+        }
+        Relationships: []
+      }
       triggered_campaigns: {
         Row: {
           approved_at: string | null
@@ -784,6 +874,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      usage_tracking: {
+        Row: {
+          api_calls: number | null
+          campaigns_triggered: number | null
+          created_at: string
+          emails_sent: number | null
+          id: string
+          leads_generated: number | null
+          markets_saved: number | null
+          sms_sent: number | null
+          tracking_month: string | null
+          user_id: string
+        }
+        Insert: {
+          api_calls?: number | null
+          campaigns_triggered?: number | null
+          created_at?: string
+          emails_sent?: number | null
+          id?: string
+          leads_generated?: number | null
+          markets_saved?: number | null
+          sms_sent?: number | null
+          tracking_month?: string | null
+          user_id: string
+        }
+        Update: {
+          api_calls?: number | null
+          campaigns_triggered?: number | null
+          created_at?: string
+          emails_sent?: number | null
+          id?: string
+          leads_generated?: number | null
+          markets_saved?: number | null
+          sms_sent?: number | null
+          tracking_month?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_map_preferences: {
         Row: {
@@ -862,6 +991,65 @@ export type Database = {
           wind_layer_enabled?: boolean | null
         }
         Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          auto_renew: boolean | null
+          billing_cycle: string | null
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          plan_id: string | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_status: string | null
+          trial_end: string | null
+          trial_start: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_renew?: boolean | null
+          billing_cycle?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
+          trial_end?: string | null
+          trial_start?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_renew?: boolean | null
+          billing_cycle?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
+          trial_end?: string | null
+          trial_start?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       weather_trigger_events: {
         Row: {
