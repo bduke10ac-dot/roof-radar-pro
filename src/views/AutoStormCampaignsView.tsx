@@ -322,6 +322,44 @@ export function AutoStormCampaignsView() {
         <Stat label="Compliance blocked" value={totalBlocked} icon={ShieldAlert} tone="destructive" />
       </div>
 
+      {/* Per-market automation master switches */}
+      <Card className="p-4">
+        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-storm" />
+            <h2 className="font-semibold text-sm">Market automation</h2>
+          </div>
+          <span className="text-[11px] text-muted-foreground">Off = no triggers fire for that market, regardless of rules.</span>
+        </div>
+        {markets.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No saved markets yet.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {markets.map(m => {
+              const on = isMarketArmed(m.name);
+              const ruleCount = rules.filter(r => r.marketScope.value === m.name).length;
+              return (
+                <label key={m.id} className={cn(
+                  "flex items-center justify-between gap-2 px-3 py-2 rounded border cursor-pointer transition-colors",
+                  on ? "border-storm/40 bg-storm/5" : "border-border bg-muted/40"
+                )}>
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium truncate">{m.name}</div>
+                    <div className="text-[11px] text-muted-foreground">
+                      {ruleCount} rule{ruleCount === 1 ? "" : "s"} · {on ? "Watching live weather" : "Paused"}
+                    </div>
+                  </div>
+                  <Switch checked={on} onCheckedChange={v => {
+                    setMarketAutomation(s => ({ ...s, [m.name]: v }));
+                    toast.success(`${m.name} auto-campaigns ${v ? "on" : "off"}`);
+                  }} />
+                </label>
+              );
+            })}
+          </div>
+        )}
+      </Card>
+
       <Tabs defaultValue="rules">
         <TabsList>
           <TabsTrigger value="rules">Automation rules ({rules.length})</TabsTrigger>
