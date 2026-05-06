@@ -270,52 +270,6 @@ export function MapView() {
           <div className="absolute top-0 bottom-0 left-1/4 w-1.5 bg-white/70" />
           <div className="absolute top-0 bottom-0 left-2/3 w-2 bg-white/80" />
 
-          {/* Floating Map Controls */}
-          <div className="absolute top-3 right-3 z-20" onMouseDown={(e) => e.stopPropagation()} onWheel={(e) => e.stopPropagation()}>
-            <MapControls
-              state={mapCtl.state}
-              onBase={mapCtl.setBase}
-              onPitch={mapCtl.setPitch}
-              onRotation={mapCtl.setRotation}
-              onToggle={mapCtl.toggle}
-            />
-          </div>
-
-          {/* Zoom + fullscreen toolbar */}
-          <div className="absolute top-3 left-3 z-20 flex flex-col gap-1.5" onMouseDown={(e) => e.stopPropagation()} onWheel={(e) => e.stopPropagation()}>
-            <button onClick={zoomIn} title="Zoom in" className="w-9 h-9 rounded-md bg-card/95 backdrop-blur border border-border/60 shadow-card flex items-center justify-center hover:bg-accent">
-              <Plus className="w-4 h-4" />
-            </button>
-            <button onClick={zoomOut} title="Zoom out" className="w-9 h-9 rounded-md bg-card/95 backdrop-blur border border-border/60 shadow-card flex items-center justify-center hover:bg-accent">
-              <Minus className="w-4 h-4" />
-            </button>
-            <button onClick={resetView} title="Reset view" className="w-9 h-9 rounded-md bg-card/95 backdrop-blur border border-border/60 shadow-card flex items-center justify-center hover:bg-accent">
-              <Locate className="w-4 h-4" />
-            </button>
-            <button onClick={toggleFullscreen} title={isFullscreen ? "Exit fullscreen" : "Fullscreen"} className="w-9 h-9 rounded-md bg-card/95 backdrop-blur border border-border/60 shadow-card flex items-center justify-center hover:bg-accent">
-              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-            </button>
-            <div className="px-1.5 py-0.5 rounded bg-card/95 backdrop-blur border border-border/60 text-[10px] text-center font-semibold tabular-nums">
-              {Math.round(zoom * 100)}%
-            </div>
-          </div>
-
-          {/* Market quick-selector */}
-          <div className="absolute bottom-3 right-3 z-20 w-56 max-w-[calc(100vw-1.5rem)]" onMouseDown={(e) => e.stopPropagation()} onWheel={(e) => e.stopPropagation()}>
-            <div className="bg-card/95 backdrop-blur rounded-lg border border-border/60 shadow-elevated p-2">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 px-1 flex items-center gap-1">
-                <Target className="w-3 h-3 text-storm" /> Active market
-              </div>
-              <Select value={activeMarketId ?? "none"} onValueChange={(v) => setActiveMarketId(v === "none" ? null : v)}>
-                <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="No market selected" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">All territories</SelectItem>
-                  {markets.map(m => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
           {/* Active market boundary */}
           {activeMarket && (mapCtl.state.layers.bCustom || mapCtl.state.layers.bCity) && (
             <div className="absolute pointer-events-none border-2 border-dashed border-storm rounded-2xl"
