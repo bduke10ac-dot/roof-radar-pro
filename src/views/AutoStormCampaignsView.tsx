@@ -731,6 +731,11 @@ export function AutoStormCampaignsView() {
                   <Lock className="w-3 h-3" /> SMS sends only to consenting contacts (no DNC) and is locked to manual approval.
                 </p>
               )}
+              {editing.channels.aiCall && (
+                <p className="text-[11px] text-storm mt-1.5 flex items-center gap-1">
+                  <PhoneCall className="w-3 h-3" /> AI voice agent will cold-call non-DNC homeowners to book free roof & exterior inspections. TCPA-safe: skips DNC, respects calling hours, leaves voicemail with opt-out, logs every call.
+                </p>
+              )}
             </div>
 
             <label className={cn(
