@@ -216,27 +216,27 @@ export function WeatherCommandCenter() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-3 md:gap-4">
-        <Card className="p-3 md:p-4 lg:col-span-1 bg-card border-border/60">
-          <div className="flex items-center gap-2 mb-2 md:mb-3">
-            <Megaphone className="w-4 h-4 text-muted-foreground" />
-            <h3 className="font-semibold text-xs md:text-sm">Roofer Action Alerts</h3>
-            <Badge variant="outline" className="ml-auto text-[10px]">{rooferAlerts.length}</Badge>
-          </div>
+        <CollapsiblePanel
+          icon={Megaphone}
+          title="Roofer Action Alerts"
+          count={rooferAlerts.length}
+          className="lg:col-span-1"
+        >
           <div className="space-y-1.5 md:space-y-2">
-            {rooferAlerts.slice(0, 5).map(a => (
+            {rooferAlerts.slice(0, 7).map(a => (
               <div key={a.id} className="text-[11px] md:text-xs p-2 rounded-md border border-border/60 bg-background text-foreground leading-snug">
                 {a.text}
               </div>
             ))}
           </div>
-        </Card>
+        </CollapsiblePanel>
 
-        <Card className="p-3 md:p-4 lg:col-span-2 bg-card border-border/60">
-          <div className="flex items-center gap-2 mb-2 md:mb-3">
-            <MapPin className="w-4 h-4 text-muted-foreground" />
-            <h3 className="font-semibold text-xs md:text-sm">Saved Markets — Live Impact</h3>
-            <Badge variant="outline" className="ml-auto text-[10px]">{marketImpacts.length}</Badge>
-          </div>
+        <CollapsiblePanel
+          icon={MapPin}
+          title="Saved Markets — Live Impact"
+          count={marketImpacts.length}
+          className="lg:col-span-2"
+        >
           <div className="space-y-1.5 md:space-y-2">
             {marketImpacts.length === 0 && (
               <div className="text-xs text-muted-foreground">No saved markets. Build one in Market Targeting.</div>
@@ -259,11 +259,28 @@ export function WeatherCommandCenter() {
               );
             })}
           </div>
-          <p className="hidden md:block text-[10px] text-muted-foreground mt-3">
-            Storms passing a saved market create storm events, flag affected properties, boost storm scores, and queue inspection + door-knock campaigns.
-          </p>
-        </Card>
+        </CollapsiblePanel>
       </div>
     </section>
+  );
+}
+
+function CollapsiblePanel({
+  icon: Icon, title, count, children, className = "",
+}: { icon: any; title: string; count: number; children: React.ReactNode; className?: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Card className={`bg-card border-border/60 overflow-hidden ${className}`}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center gap-2 px-3 md:px-4 py-3 text-left hover:bg-accent/40 transition-colors"
+      >
+        <Icon className="w-4 h-4 text-muted-foreground shrink-0" />
+        <h3 className="font-semibold text-xs md:text-sm flex-1">{title}</h3>
+        <Badge variant="outline" className="text-[10px]">{count}</Badge>
+        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && <div className="px-3 md:px-4 pb-3 md:pb-4">{children}</div>}
+    </Card>
   );
 }
