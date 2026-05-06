@@ -9,7 +9,7 @@ import { ComplianceView } from "@/views/ComplianceView";
 import { IntegrationsView } from "@/views/IntegrationsView";
 import { AutoStormCampaignsView } from "@/views/AutoStormCampaignsView";
 import { BillingView } from "@/views/BillingView";
-import { SubscriptionProvider, useSubscription } from "@/contexts/SubscriptionContext";
+import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { TrialBanner } from "@/components/TrialBanner";
 import { UpgradeDialog } from "@/components/UpgradeDialog";
 import { CloudLightning, Bell, Search, Target } from "lucide-react";
