@@ -38,7 +38,7 @@ export function MapView() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Territory map</h1>
-          <p className="text-sm text-muted-foreground">{visible.length} properties match your filters</p>
+          <p className="text-sm text-muted-foreground">{visible.length} properties match your filters{activeMarket && <> · in <span className="text-storm font-medium">{activeMarket.name}</span> ({allLeads.length} unscoped)</>}</p>
         </div>
         <Button onClick={() => toast.success(`Route created with ${visible.length} stops`)}>
           <Route className="w-4 h-4 mr-2" />Create door-knocking route
