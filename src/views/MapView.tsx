@@ -443,6 +443,8 @@ export function MapView() {
               </div>
             );
           })}
+          </div>
+          {/* End transformed scene */}
 
           {/* Legend */}
           <div className="absolute bottom-3 left-3 bg-card/95 backdrop-blur rounded-lg p-3 shadow-card border border-border/60 text-[11px] space-y-2 max-w-[220px]">
