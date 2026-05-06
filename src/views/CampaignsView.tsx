@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, MessageSquare, Save, Send, Download, Lock, AlertTriangle, Target } from "lucide-react";
+import { Mail, MessageSquare, Save, Send, Download, Lock, AlertTriangle, Target, ImageIcon, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,7 @@ import { useMarketLeads } from "@/hooks/useMarketFilter";
 import { useMarkets, type SavedMarket } from "@/contexts/MarketContext";
 import { leadMatchesMarket } from "@/hooks/useMarketFilter";
 import { toast } from "sonner";
+import { useBrand } from "@/hooks/useBrand";
 
 type Segment = "all" | "state" | "region" | "county" | "city" | "zip" | "geofence" | "market" | "storm";
 const SEGMENTS: { value: Segment; label: string }[] = [
