@@ -21,11 +21,53 @@ import { cn } from "@/lib/utils";
 
 export function MapView() {
   const { leads, allLeads, activeMarket } = useMarketLeads();
+  const { markets, activeMarketId, setActiveMarketId } = useMarkets();
   const [minScore, setMinScore] = useState([60]);
   const [zip, setZip] = useState("all");
   const [radius, setRadius] = useState([35]);
   const [overlays, setOverlays] = useState<OverlayState>(DEFAULT_OVERLAYS);
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const mapWrapRef = useRef<HTMLDivElement>(null);
   const mapCtl = useMapControls("territory-map");
+
+  // Track real fullscreen state
+  useEffect(() => {
+    const onFs = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onFs);
+    return () => document.removeEventListener("fullscreenchange", onFs);
+  }, []);
+
+  const toggleFullscreen = async () => {
+    const el = mapWrapRef.current;
+    if (!el) return;
+    try {
+      if (!document.fullscreenElement) await el.requestFullscreen();
+      else await document.exitFullscreen();
+    } catch {}
+  };
+
+  const zoomIn = () => setZoom(z => Math.min(4, +(z + 0.25).toFixed(2)));
+  const zoomOut = () => setZoom(z => Math.max(0.5, +(z - 0.25).toFixed(2)));
+  const resetView = () => { setZoom(1); setPan({ x: 0, y: 0 }); };
+
+  // Wheel zoom + drag pan
+  const dragRef = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
+  const onWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.15 : 0.15;
+    setZoom(z => Math.max(0.5, Math.min(4, +(z + delta).toFixed(2))));
+  };
+  const onMouseDown = (e: React.MouseEvent) => {
+    dragRef.current = { x: e.clientX, y: e.clientY, px: pan.x, py: pan.y };
+  };
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!dragRef.current) return;
+    setPan({ x: dragRef.current.px + (e.clientX - dragRef.current.x), y: dragRef.current.py + (e.clientY - dragRef.current.y) });
+  };
+  const endDrag = () => { dragRef.current = null; };
+
 
   // Sync MapControls layer toggles -> storm overlay state
   useEffect(() => {
