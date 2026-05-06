@@ -79,6 +79,7 @@ const Shell = () => {
           {view === "map" && <MapView />}
           {view === "markets" && <MarketTargetingView />}
           {view === "campaigns" && <CampaignsView />}
+          {view === "auto-campaigns" && <AutoStormCampaignsView />}
           {view === "compliance" && <ComplianceView />}
           {view === "integrations" && <IntegrationsView />}
         </main>
