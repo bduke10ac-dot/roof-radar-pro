@@ -99,11 +99,13 @@ const Shell = () => {
 import { WeatherProvider } from "@/contexts/WeatherContext";
 
 const Index = () => (
-  <MarketProvider>
-    <WeatherProvider>
-      <Shell />
-    </WeatherProvider>
-  </MarketProvider>
+  <SubscriptionProvider>
+    <MarketProvider>
+      <WeatherProvider>
+        <Shell />
+      </WeatherProvider>
+    </MarketProvider>
+  </SubscriptionProvider>
 );
 
 export default Index;
