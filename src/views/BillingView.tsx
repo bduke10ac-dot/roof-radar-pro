@@ -9,6 +9,7 @@ import { useSubscription, PLANS, PlanId, BillingCycle } from "@/contexts/Subscri
 import { Check, Sparkles, CreditCard, Receipt, Users, Zap, AlertTriangle, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { BrandSettings } from "@/components/BrandSettings";
 
 export function BillingView() {
   const { plan, cycle, status, trialEndsAt, renewsAt, usage, startTrial, changePlan, cancel, setCycle } = useSubscription();
