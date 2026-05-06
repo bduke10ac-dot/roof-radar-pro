@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AppSidebar, type View } from "@/components/AppSidebar";
 import { DashboardView } from "@/views/DashboardView";
+import { StormOpsView } from "@/views/StormOpsView";
 import { LeadsView } from "@/views/LeadsView";
 import { MapView } from "@/views/MapView";
 import { MarketTargetingView } from "@/views/MarketTargetingView";
@@ -55,7 +56,8 @@ const Shell = () => {
             <Select value={view} onValueChange={(v) => setView(v as View)}>
               <SelectTrigger className="w-40 h-9"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="dashboard">Dashboard</SelectItem>
+                <SelectItem value="dashboard">Home</SelectItem>
+                <SelectItem value="storm-ops">Storm Operations</SelectItem>
                 <SelectItem value="leads">Leads</SelectItem>
                 <SelectItem value="map">Map</SelectItem>
                 <SelectItem value="markets">Market Targeting</SelectItem>
@@ -83,7 +85,8 @@ const Shell = () => {
         </header>
 
         <main className="flex-1 p-4 md:p-6 max-w-7xl w-full pb-24 md:pb-6">
-          {view === "dashboard" && <DashboardView />}
+          {view === "dashboard" && <DashboardView onNavigate={setView} />}
+          {view === "storm-ops" && <StormOpsView />}
           {view === "leads" && <LeadsView />}
           {view === "map" && <MapView />}
           {view === "markets" && <MarketTargetingView />}
