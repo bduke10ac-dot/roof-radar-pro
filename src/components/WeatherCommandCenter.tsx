@@ -231,7 +231,7 @@ export function WeatherCommandCenter() {
 
         <Card className="p-4 lg:col-span-2 bg-card border-border/60">
           <div className="flex items-center gap-2 mb-3">
-            <MapPin className="w-4 h-4 text-storm" />
+            <MapPin className="w-4 h-4 text-muted-foreground" />
             <h3 className="font-semibold text-sm">Saved Markets — Live Weather Impact</h3>
           </div>
           <div className="space-y-2">
