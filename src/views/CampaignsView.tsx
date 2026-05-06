@@ -63,11 +63,14 @@ export function CampaignsView() {
   const smsEligible = segmentLeads.filter(l => l.smsConsent && !l.dncStatus);
   const emailEligible = segmentLeads.filter(l => l.consent !== "opted_out");
   const coldExportable = segmentLeads.filter(l => !l.dncStatus); // direct mail / door knock
+  const aiCallEligible = segmentLeads.filter(l => !l.dncStatus && !!l.phone);
   const smsBlocked = segmentLeads.length - smsEligible.length;
   const hasStop = smsBody.toUpperCase().includes("STOP");
   const hasUnsub = emailBody.toLowerCase().includes("unsubscribe");
   const canSendSms = smsEligible.length > 0 && hasStop;
   const canSendEmail = emailEligible.length > 0 && hasUnsub;
+  const hasOptOut = aiScript.toLowerCase().includes("stop") || aiScript.toLowerCase().includes("opt out") || aiScript.toLowerCase().includes("not interested");
+  const canStartAiCalls = aiCallEnabled && aiCallEligible.length > 0 && hasOptOut;
 
   return (
     <div className="space-y-5">
