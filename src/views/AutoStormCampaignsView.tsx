@@ -194,13 +194,31 @@ export function AutoStormCampaignsView() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<Rule>(DEFAULT_RULE());
   const [reviewing, setReviewing] = useState<TriggeredCampaign | null>(null);
+  // Per-market master switch — automation only watches markets that are turned on
+  const [marketAutomation, setMarketAutomation] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(markets.map(m => [m.name, true]))
+  );
 
-  const armed = rules.filter(r => r.enabled).length;
+  const isMarketArmed = (name: string) => marketAutomation[name] !== false;
+
+  const armed = rules.filter(r => r.enabled && isMarketArmed(r.marketScope.value)).length;
   const triggeredToday = triggered.filter(t => Date.now() - new Date(t.triggeredAt).getTime() < 86400000).length;
   const pending = triggered.filter(t => t.status === "pending");
   const sent = triggered.filter(t => t.status === "sent").length;
   const totalBlocked = triggered.reduce((s, t) => s + t.blocked, 0);
   const routesCreated = triggered.filter(t => t.channels.includes("doorKnock")).length;
+
+  // Evaluate a single rule against a live weather cell using user thresholds
+  const evaluateRule = (r: Rule, cell: typeof cells[number]) => {
+    if (!cell) return null;
+    if (r.triggers.hail && cell.type === "hail" && (cell as any).hailSize >= r.thresholds.hailIn)
+      return { trigger: "hail" as TriggerKey, reading: `${(cell as any).hailSize}" hail ≥ ${r.thresholds.hailIn}"` };
+    if (r.triggers.windGust && cell.type === "wind" && (cell as any).windSpeed >= r.thresholds.gustMph)
+      return { trigger: "windGust" as TriggerKey, reading: `${(cell as any).windSpeed} mph gust ≥ ${r.thresholds.gustMph} mph` };
+    if (r.triggers.tornadoWarning && cell.type === "tornado")
+      return { trigger: "tornadoWarning" as TriggerKey, reading: `Tornado ${r.thresholds.tornado}` };
+    return null;
+  };
 
   const openNew = () => { setEditing(DEFAULT_RULE()); setEditorOpen(true); };
   const openEdit = (r: Rule) => { setEditing({ ...r }); setEditorOpen(true); };
