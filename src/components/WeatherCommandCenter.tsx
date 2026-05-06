@@ -42,6 +42,7 @@ const CELL_COLOR: Record<StormCell["type"], string> = {
 
 export function WeatherCommandCenter() {
   const { conditions, cells, alerts, marketImpacts, rooferAlerts, opportunityScore, lastTick } = useWeather();
+  const mapCtl = useMapControls("command-center");
   const [layers, setLayers] = useState<Record<LayerKey, boolean>>({
     radar: true, hail: true, wind: true, rain: false, lightning: true,
     tornado: true, severe: true, watches: false, tracks: true, future: false, satellite: false,
