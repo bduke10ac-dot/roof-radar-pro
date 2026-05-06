@@ -130,6 +130,7 @@ export function CampaignsView() {
         <TabsList>
           <TabsTrigger value="email"><Mail className="w-4 h-4 mr-2" />Email</TabsTrigger>
           <TabsTrigger value="sms"><MessageSquare className="w-4 h-4 mr-2" />SMS</TabsTrigger>
+          <TabsTrigger value="aicall"><PhoneCall className="w-4 h-4 mr-2" />AI cold call</TabsTrigger>
         </TabsList>
 
         <TabsContent value="email" className="mt-5">
