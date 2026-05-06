@@ -27,7 +27,7 @@ type TriggerKey =
   | "severeWarning" | "severeWatch" | "heavyRain" | "lightning"
   | "powerOutage" | "treeDamage";
 
-type ChannelKey = "email" | "sms" | "directMail" | "doorKnock" | "crmTask" | "repPush";
+type ChannelKey = "email" | "sms" | "aiCall" | "directMail" | "doorKnock" | "crmTask" | "repPush";
 
 type Timing =
   | "immediate" | "afterStorm" | "after30m" | "after1h" | "nextMorning"
