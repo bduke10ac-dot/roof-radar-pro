@@ -31,10 +31,12 @@ export function MapView() {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [geoCenter, setGeoCenter] = useState({ x: 55, y: 60 });
+  const [editRadiusOpen, setEditRadiusOpen] = useState(false);
   const mapWrapRef = useRef<HTMLDivElement>(null);
   const mapCtl = useMapControls("territory-map");
+  const isMobile = useIsMobile();
 
-  // Track real fullscreen state
   useEffect(() => {
     const onFs = () => setIsFullscreen(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", onFs);
@@ -54,7 +56,6 @@ export function MapView() {
   const zoomOut = () => setZoom(z => Math.max(0.5, +(z - 0.25).toFixed(2)));
   const resetView = () => { setZoom(1); setPan({ x: 0, y: 0 }); };
 
-  // Wheel zoom + drag pan
   const dragRef = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
   const onWheel = (e: React.WheelEvent) => {
     e.preventDefault();
@@ -69,6 +70,81 @@ export function MapView() {
     setPan({ x: dragRef.current.px + (e.clientX - dragRef.current.x), y: dragRef.current.py + (e.clientY - dragRef.current.y) });
   };
   const endDrag = () => { dragRef.current = null; };
+
+  // Touch: pinch-zoom + 1-finger pan
+  const touchRef = useRef<{
+    mode: "pan" | "pinch" | null;
+    startX?: number; startY?: number; startPanX?: number; startPanY?: number;
+    startDist?: number; startZoom?: number;
+  }>({ mode: null });
+  const distance = (a: React.Touch, b: React.Touch) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      touchRef.current = { mode: "pinch", startDist: distance(e.touches[0], e.touches[1]), startZoom: zoom };
+    } else if (e.touches.length === 1) {
+      const t = e.touches[0];
+      touchRef.current = { mode: "pan", startX: t.clientX, startY: t.clientY, startPanX: pan.x, startPanY: pan.y };
+    }
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    const ref = touchRef.current;
+    if (ref.mode === "pinch" && e.touches.length >= 2) {
+      e.preventDefault();
+      const d = distance(e.touches[0], e.touches[1]);
+      const ratio = d / (ref.startDist || d);
+      setZoom(Math.max(0.5, Math.min(4, +((ref.startZoom || 1) * ratio).toFixed(2))));
+    } else if (ref.mode === "pan" && e.touches.length === 1) {
+      const t = e.touches[0];
+      setPan({
+        x: (ref.startPanX || 0) + (t.clientX - (ref.startX || 0)),
+        y: (ref.startPanY || 0) + (t.clientY - (ref.startY || 0)),
+      });
+    }
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (e.touches.length === 0) touchRef.current = { mode: null };
+    else if (e.touches.length === 1) {
+      const t = e.touches[0];
+      touchRef.current = { mode: "pan", startX: t.clientX, startY: t.clientY, startPanX: pan.x, startPanY: pan.y };
+    }
+  };
+
+  // Geofence drag (center + radius handle)
+  const geoDragRef = useRef<{ kind: "move" | "resize"; startX: number; startY: number; startCx: number; startCy: number; startR: number } | null>(null);
+  const beginGeoDrag = (kind: "move" | "resize", clientX: number, clientY: number) => {
+    geoDragRef.current = { kind, startX: clientX, startY: clientY, startCx: geoCenter.x, startCy: geoCenter.y, startR: radius[0] };
+    const move = (cx: number, cy: number) => {
+      const ref = geoDragRef.current; const wrap = mapWrapRef.current;
+      if (!ref || !wrap) return;
+      const rect = wrap.getBoundingClientRect();
+      if (ref.kind === "move") {
+        const dxPct = ((cx - ref.startX) / rect.width) * 100;
+        const dyPct = ((cy - ref.startY) / rect.height) * 100;
+        setGeoCenter({
+          x: Math.max(5, Math.min(95, ref.startCx + dxPct)),
+          y: Math.max(5, Math.min(95, ref.startCy + dyPct)),
+        });
+      } else {
+        const dx = cx - ref.startX; const dy = cy - ref.startY;
+        const delta = (Math.abs(dx) > Math.abs(dy) ? dx : dy);
+        const next = Math.max(5, Math.min(100, Math.round(ref.startR + delta / 4)));
+        setRadius([next]);
+      }
+    };
+    const onMM = (ev: MouseEvent) => move(ev.clientX, ev.clientY);
+    const onTM = (ev: TouchEvent) => { if (ev.touches[0]) { ev.preventDefault(); move(ev.touches[0].clientX, ev.touches[0].clientY); } };
+    const end = () => {
+      geoDragRef.current = null;
+      window.removeEventListener("mousemove", onMM);
+      window.removeEventListener("mouseup", end);
+      window.removeEventListener("touchmove", onTM);
+      window.removeEventListener("touchend", end);
+    };
+    window.addEventListener("mousemove", onMM);
+    window.addEventListener("mouseup", end);
+    window.addEventListener("touchmove", onTM, { passive: false });
+    window.addEventListener("touchend", end);
+  };
 
 
   // Sync MapControls layer toggles -> storm overlay state
