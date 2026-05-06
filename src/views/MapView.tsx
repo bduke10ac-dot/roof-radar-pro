@@ -269,7 +269,6 @@ export function MapView() {
           <div className="absolute top-2/3 left-0 right-0 h-1.5 bg-white/70" />
           <div className="absolute top-0 bottom-0 left-1/4 w-1.5 bg-white/70" />
           <div className="absolute top-0 bottom-0 left-2/3 w-2 bg-white/80" />
-          {/* (scene children continue below; wrapper closed before Legend) */}
 
           {/* Floating Map Controls */}
           <div className="absolute top-3 right-3 z-20" onMouseDown={(e) => e.stopPropagation()} onWheel={(e) => e.stopPropagation()}>
