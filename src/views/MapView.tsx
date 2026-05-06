@@ -210,8 +210,19 @@ export function MapView() {
           <div className="absolute top-0 bottom-0 left-1/4 w-1.5 bg-white/70" />
           <div className="absolute top-0 bottom-0 left-2/3 w-2 bg-white/80" />
 
+          {/* Floating Map Controls */}
+          <div className="absolute top-3 right-3 z-20">
+            <MapControls
+              state={mapCtl.state}
+              onBase={mapCtl.setBase}
+              onPitch={mapCtl.setPitch}
+              onRotation={mapCtl.setRotation}
+              onToggle={mapCtl.toggle}
+            />
+          </div>
+
           {/* Active market boundary */}
-          {activeMarket && (
+          {activeMarket && (mapCtl.state.layers.bCustom || mapCtl.state.layers.bCity) && (
             <div className="absolute pointer-events-none border-2 border-dashed border-storm rounded-2xl"
               style={{ left: "8%", top: "6%", right: "6%", bottom: "10%" }}>
               <div className="absolute -top-3 left-3 px-2 py-0.5 bg-storm text-storm-foreground text-[10px] font-bold rounded uppercase tracking-wider">
