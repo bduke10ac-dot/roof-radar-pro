@@ -41,6 +41,7 @@ const Shell = () => {
     <div className="min-h-screen flex bg-background">
       <AppSidebar active={view} onNavigate={setView} />
       <div className="flex-1 flex flex-col min-w-0">
+        <TrialBanner onUpgrade={() => setView("billing")} />
         <header className="sticky top-0 z-30 bg-background/85 backdrop-blur border-b border-border flex items-center gap-3 px-4 md:px-6 h-14">
           <div className="md:hidden flex items-center gap-2">
             <div className="w-7 h-7 rounded-md bg-gradient-storm flex items-center justify-center">
@@ -60,6 +61,7 @@ const Shell = () => {
                 <SelectItem value="auto-campaigns">Auto Storm Campaigns</SelectItem>
                 <SelectItem value="compliance">Compliance</SelectItem>
                 <SelectItem value="integrations">Integrations</SelectItem>
+                <SelectItem value="billing">Billing & Subscription</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -86,8 +88,10 @@ const Shell = () => {
           {view === "auto-campaigns" && <AutoStormCampaignsView />}
           {view === "compliance" && <ComplianceView />}
           {view === "integrations" && <IntegrationsView />}
+          {view === "billing" && <BillingView />}
         </main>
       </div>
+      <UpgradeDialog />
     </div>
   );
 };
