@@ -14,7 +14,7 @@ const DISPOSABLE_DOMAINS = [
 ];
 const FAKE_NAME_PATTERNS = [
   /^test\b/i, /^asdf/i, /^qwerty/i, /^john\s*doe$/i, /^jane\s*doe$/i, /^fake/i,
-  /^abc+$/i, /^xxx+$/i, /^[a-z]\1{2,}$/i,
+  /^abc+$/i, /^xxx+$/i, /^([a-z])\1{2,}$/i,
 ];
 const FAKE_COMPANY_PATTERNS = [
   /^test\b/i, /^asdf/i, /^n\/?a$/i, /^none$/i, /^fake/i, /^company$/i, /^xxx+$/i,
