@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MarketProvider, useMarkets } from "@/contexts/MarketContext";
 import { Badge } from "@/components/ui/badge";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 
 function ActiveMarketChip() {
   const { activeMarket, setActiveMarketId } = useMarkets();
@@ -79,7 +80,7 @@ const Shell = () => {
           </div>
         </header>
 
-        <main className="flex-1 p-4 md:p-6 max-w-7xl w-full">
+        <main className="flex-1 p-4 md:p-6 max-w-7xl w-full pb-24 md:pb-6">
           {view === "dashboard" && <DashboardView />}
           {view === "leads" && <LeadsView />}
           {view === "map" && <MapView />}
@@ -92,6 +93,7 @@ const Shell = () => {
         </main>
       </div>
       <UpgradeDialog />
+      <MobileBottomNav active={view} onNavigate={setView} />
     </div>
   );
 };

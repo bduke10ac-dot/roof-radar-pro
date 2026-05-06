@@ -1,8 +1,8 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { MarketingLayout } from "@/components/MarketingLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { CloudLightning, Map, Zap, ShieldCheck, Target, Radar } from "lucide-react";
+import { CloudLightning, Map, Zap, ShieldCheck, Target, Radar, Rocket } from "lucide-react";
 import { useEffect } from "react";
 
 const features = [
@@ -15,6 +15,11 @@ const features = [
 ];
 
 export default function Landing() {
+  const navigate = useNavigate();
+  const useNow = () => {
+    localStorage.setItem("rr_guest", "1");
+    navigate("/app");
+  };
   useEffect(() => {
     document.title = "RoofRadar — Storm-driven lead generation for roofers";
     const meta = document.querySelector('meta[name="description"]') ?? Object.assign(document.createElement("meta"), { name: "description" });
@@ -36,11 +41,14 @@ export default function Landing() {
           <p className="mt-5 text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
             RoofRadar combines real-time weather data, property records and automated outreach so your crew is on the right doors first.
           </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Button asChild size="lg"><Link to="/signup">Start 14-day free trial</Link></Button>
-            <Button asChild size="lg" variant="outline"><Link to="/pricing">See pricing</Link></Button>
+          <div className="mt-8 flex flex-col sm:flex-row flex-wrap justify-center gap-3">
+            <Button onClick={useNow} size="lg" className="h-12 text-base">
+              <Rocket className="w-4 h-4" /> Use it now — no signup
+            </Button>
+            <Button asChild size="lg" variant="outline" className="h-12 text-base"><Link to="/signup">Start 14-day free trial</Link></Button>
+            <Button asChild size="lg" variant="ghost" className="h-12 text-base"><Link to="/pricing">See pricing</Link></Button>
           </div>
-          <p className="mt-3 text-xs text-muted-foreground">No credit card required • Cancel anytime</p>
+          <p className="mt-3 text-xs text-muted-foreground">Try the full app instantly • No credit card required</p>
         </div>
       </section>
 
@@ -61,8 +69,11 @@ export default function Landing() {
       <section className="max-w-4xl mx-auto px-4 py-12 md:py-20 text-center">
         <Card className="p-8 md:p-12 bg-gradient-to-br from-storm/15 to-background border-storm/30">
           <h2 className="text-2xl md:text-3xl font-bold">Ready to chase the next storm?</h2>
-          <p className="text-muted-foreground mt-2">Join contractors closing more deals with less guesswork.</p>
-          <Button asChild size="lg" className="mt-6"><Link to="/signup">Create your account</Link></Button>
+          <p className="text-muted-foreground mt-2">Tap below and start in seconds — no account needed.</p>
+          <div className="mt-6 flex flex-col sm:flex-row justify-center gap-3">
+            <Button onClick={useNow} size="lg" className="h-12 text-base"><Rocket className="w-4 h-4" /> Use it now</Button>
+            <Button asChild size="lg" variant="outline" className="h-12 text-base"><Link to="/signup">Create an account</Link></Button>
+          </div>
         </Card>
       </section>
     </MarketingLayout>
