@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 
 const pipelineStages: LeadStatus[] = ["new", "contacted", "inspection", "quoted", "won"];
 
-export function DashboardView() {
+export function StormOpsView() {
   const { leads, allLeads } = useMarketLeads();
   const stormEvents = useMarketStormEvents();
   const { activeMarket } = useMarkets();
