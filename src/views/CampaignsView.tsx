@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useMarketLeads } from "@/hooks/useMarketFilter";
 import { useMarkets, type SavedMarket } from "@/contexts/MarketContext";
 import { leadMatchesMarket } from "@/hooks/useMarketFilter";
