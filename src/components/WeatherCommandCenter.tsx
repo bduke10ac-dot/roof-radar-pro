@@ -78,7 +78,7 @@ export function WeatherCommandCenter() {
       </div>
 
       {/* HERO MAP */}
-      <div className="relative rounded-xl overflow-hidden border border-border/60 shadow-card h-[460px]" style={baseMapBackground(mapCtl.state.base)}>
+      <div className="relative rounded-xl overflow-hidden border border-border/60 shadow-card h-[320px] md:h-[460px]" style={baseMapBackground(mapCtl.state.base)}>
         <div className="absolute top-3 right-3 z-30">
           <MapControls
             state={mapCtl.state}
@@ -113,8 +113,8 @@ export function WeatherCommandCenter() {
                 <div className="absolute left-1/2 top-1/2 w-20 h-0.5 bg-white/70 origin-left"
                      style={{ transform: `rotate(${c.headingDeg}deg)` }} />
               )}
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg ring-2 ring-white/40 ${CELL_COLOR[c.type]} animate-pulse`}>
-                <Icon className="w-5 h-5" />
+              <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center shadow-lg ring-2 ring-white/40 ${CELL_COLOR[c.type]} animate-pulse`}>
+                <Icon className="w-4 h-4 md:w-5 md:h-5" />
               </div>
               <div className="mt-1 text-[10px] text-white bg-black/50 px-1.5 py-0.5 rounded whitespace-nowrap">
                 {c.label} · ETA {c.etaMinutes}m
@@ -123,7 +123,8 @@ export function WeatherCommandCenter() {
           );
         })}
 
-        <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-1.5 max-w-[70%]">
+        {/* Layer chips — hidden on mobile to keep the map readable */}
+        <div className="hidden md:flex absolute top-3 left-3 right-72 flex-wrap gap-1.5">
           {LAYER_DEFS.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
@@ -139,7 +140,8 @@ export function WeatherCommandCenter() {
           ))}
         </div>
 
-        <Card className="absolute bottom-3 left-3 w-56 p-3 bg-card/95 backdrop-blur">
+        {/* Floating cards — desktop only */}
+        <Card className="hidden md:block absolute bottom-3 left-3 w-56 p-3 bg-card/95 backdrop-blur">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-semibold uppercase text-muted-foreground">Current</span>
             <Cloud className="w-4 h-4 text-storm" />
@@ -154,7 +156,7 @@ export function WeatherCommandCenter() {
           </div>
         </Card>
 
-        <Card className="absolute top-14 left-3 w-64 p-3 bg-card/95 backdrop-blur max-h-[260px] overflow-auto z-20">
+        <Card className="hidden md:block absolute top-14 left-3 w-64 p-3 bg-card/95 backdrop-blur max-h-[260px] overflow-auto z-20">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold uppercase text-muted-foreground">Active Alerts</span>
             <Badge variant="destructive" className="text-[10px]">{alerts.length}</Badge>
@@ -172,7 +174,7 @@ export function WeatherCommandCenter() {
           </div>
         </Card>
 
-        <Card className="absolute bottom-3 right-3 w-56 p-3 bg-card/95 backdrop-blur">
+        <Card className="hidden md:block absolute bottom-3 right-3 w-56 p-3 bg-card/95 backdrop-blur">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-semibold uppercase text-muted-foreground">Opportunity</span>
             <TrendingUp className="w-4 h-4 text-success" />
@@ -182,6 +184,32 @@ export function WeatherCommandCenter() {
           <div className="mt-2 text-[11px] flex items-center gap-1">
             <MapPin className="w-3 h-3 text-storm" />
             Nearest: {nearest.label} · ETA {nearest.etaMinutes}m
+          </div>
+        </Card>
+      </div>
+
+      {/* Mobile summary cards — shown below the map */}
+      <div className="grid grid-cols-2 gap-3 md:hidden">
+        <Card className="p-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] font-semibold uppercase text-muted-foreground">Current</span>
+            <Cloud className="w-3.5 h-3.5 text-storm" />
+          </div>
+          <div className="text-2xl font-bold leading-none">{conditions.tempF}°F</div>
+          <div className="text-[11px] text-muted-foreground">{conditions.conditions}</div>
+          <div className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+            <Wind className="w-3 h-3" /> {conditions.windMph} mph {conditions.windDir}
+          </div>
+        </Card>
+        <Card className="p-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] font-semibold uppercase text-muted-foreground">Opportunity</span>
+            <TrendingUp className="w-3.5 h-3.5 text-success" />
+          </div>
+          <div className="text-2xl font-bold leading-none text-storm">{opportunityScore || 0}</div>
+          <div className="text-[11px] text-muted-foreground">{alerts.length} active alerts</div>
+          <div className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+            <MapPin className="w-3 h-3 text-storm" /> ETA {nearest.etaMinutes}m
           </div>
         </Card>
       </div>
