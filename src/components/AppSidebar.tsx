@@ -1,4 +1,5 @@
 import { LayoutDashboard, Users, Map, Send, ShieldCheck, Plug, CloudLightning, Target, Zap, CreditCard, Sparkles, BookOpen } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Button } from "@/components/ui/button";
