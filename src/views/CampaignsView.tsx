@@ -39,6 +39,16 @@ export function CampaignsView() {
     "RoofRadar: Hi {{first_name}}, free post-storm roof inspection in your area. Reply YES to schedule. Reply STOP to opt out."
   );
 
+  // AI cold call settings
+  const [aiCallEnabled, setAiCallEnabled] = useState(false);
+  const [aiVoice, setAiVoice] = useState<"female_warm" | "male_pro" | "female_pro" | "male_friendly">("female_warm");
+  const [aiCallWindow, setAiCallWindow] = useState<"9to6" | "10to7" | "11to5">("9to6");
+  const [aiGoal, setAiGoal] = useState<"book_inspection" | "qualify_only" | "voicemail_drop">("book_inspection");
+  const [aiScript, setAiScript] = useState(
+    `Hi, this is {{agent_name}} calling from {{company_name}} about recent storm damage in {{city}}.\n\nI'm not selling anything — we're offering free, no-obligation roof and exterior inspections to homeowners on {{street_name}} after the {{storm_date}} storm that brought {{hail_size}}\" hail and {{wind_speed}} mph winds to your area.\n\nMost inspections take about 20 minutes and we provide a written report you can keep, even if you don't need any work done. Many insurance carriers require an inspection within their claim window.\n\nWould a quick visit on {{slot_1}} or {{slot_2}} work better for you?\n\n[If yes] Great — I'll text you a confirmation right after this call.\n[If not interested] No problem, I'll mark you as not interested and we won't call again. Have a great day.\n[If voicemail] Hi, this is {{agent_name}} from {{company_name}}. We're offering free roof inspections after the recent storm in {{city}}. Call us back at {{callback_number}} or reply STOP to {{sms_number}} to opt out. Thanks.`
+  );
+
+
   const segmentLeads = (() => {
     if (segment === "market") {
       const m: SavedMarket | undefined = markets.find(x => x.id === marketId);
