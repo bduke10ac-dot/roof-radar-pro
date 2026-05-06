@@ -8,6 +8,7 @@ import { CampaignsView } from "@/views/CampaignsView";
 import { ComplianceView } from "@/views/ComplianceView";
 import { IntegrationsView } from "@/views/IntegrationsView";
 import { AutoStormCampaignsView } from "@/views/AutoStormCampaignsView";
+import { StormPlaybookView } from "@/views/StormPlaybookView";
 import { BillingView } from "@/views/BillingView";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { TrialBanner } from "@/components/TrialBanner";
@@ -60,6 +61,7 @@ const Shell = () => {
                 <SelectItem value="markets">Market Targeting</SelectItem>
                 <SelectItem value="campaigns">Campaigns</SelectItem>
                 <SelectItem value="auto-campaigns">Auto Storm Campaigns</SelectItem>
+                <SelectItem value="playbook">Storm Playbook</SelectItem>
                 <SelectItem value="compliance">Compliance</SelectItem>
                 <SelectItem value="integrations">Integrations</SelectItem>
                 <SelectItem value="billing">Billing & Subscription</SelectItem>
@@ -87,6 +89,7 @@ const Shell = () => {
           {view === "markets" && <MarketTargetingView />}
           {view === "campaigns" && <CampaignsView />}
           {view === "auto-campaigns" && <AutoStormCampaignsView />}
+          {view === "playbook" && <StormPlaybookView />}
           {view === "compliance" && <ComplianceView />}
           {view === "integrations" && <IntegrationsView />}
           {view === "billing" && <BillingView />}

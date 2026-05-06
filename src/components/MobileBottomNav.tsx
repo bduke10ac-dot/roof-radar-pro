@@ -1,11 +1,11 @@
-import { LayoutDashboard, Users, Map, Send, CreditCard } from "lucide-react";
+import { LayoutDashboard, Map, BookOpen, Send, CreditCard } from "lucide-react";
 import type { View } from "@/components/AppSidebar";
 import { cn } from "@/lib/utils";
 
 const items: { id: View; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "dashboard", label: "Home", icon: LayoutDashboard },
-  { id: "leads", label: "Leads", icon: Users },
   { id: "map", label: "Map", icon: Map },
+  { id: "playbook", label: "Playbook", icon: BookOpen },
   { id: "campaigns", label: "Send", icon: Send },
   { id: "billing", label: "Plan", icon: CreditCard },
 ];
