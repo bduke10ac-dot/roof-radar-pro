@@ -15,6 +15,7 @@ import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { TrialBanner } from "@/components/TrialBanner";
 import { UpgradeDialog } from "@/components/UpgradeDialog";
 import { CloudLightning, Bell, Search, Target } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MarketProvider, useMarkets } from "@/contexts/MarketContext";
@@ -48,7 +49,7 @@ const Shell = () => {
         <header className="sticky top-0 z-30 bg-background/85 backdrop-blur border-b border-border flex items-center gap-3 px-4 md:px-6 h-14">
           <div className="md:hidden flex items-center gap-2">
             <div className="w-7 h-7 rounded-md bg-gradient-storm flex items-center justify-center">
-              <CloudLightning className="w-4 h-4 text-[hsl(60_100%_60%)] drop-shadow-[0_0_5px_hsl(60_100%_60%/0.8)]" />
+              <BrandLogo className="w-5 h-5" />
             </div>
             <span className="font-bold">RoofRadar</span>
           </div>
