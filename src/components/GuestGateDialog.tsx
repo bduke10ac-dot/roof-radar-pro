@@ -53,7 +53,6 @@ const schema = z.object({
   company: companySchema,
   email: emailSchema,
   phone: phoneSchema,
-  consent: z.literal(true, { errorMap: () => ({ message: "You must agree to be contacted" }) }),
 });
 
 type Props = {
