@@ -18,13 +18,19 @@ export function DashboardView() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">Storm Operations Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Live overview of your territory and lead pipeline.</p>
+      <header className="flex items-end justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Storm Operations Dashboard</h1>
+          <p className="text-sm text-muted-foreground">
+            {activeMarket
+              ? <>Scoped to <span className="text-storm font-medium inline-flex items-center gap-1"><Target className="w-3 h-3" />{activeMarket.name}</span> · {leads.length} of {allLeads.length} leads</>
+              : <>Live overview of your territory and lead pipeline.</>}
+          </p>
+        </div>
       </header>
 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatCard label="Mapped homes" value="12,847" icon={Home} trend="Across 14 ZIP codes" />
+        <StatCard label="Mapped homes" value={leads.length.toLocaleString()} icon={Home} trend={activeMarket ? `Market: ${activeMarket.name}` : "All territories"} />
         <StatCard label="High storm-score leads" value={highScore} icon={AlertTriangle} tone="warning" trend="Score ≥ 85" />
         <StatCard label="Opted-in contacts" value={optedIn} icon={MailCheck} tone="success" trend="SMS eligible" />
         <StatCard label="Scheduled inspections" value={inspections} icon={CalendarCheck} tone="storm" trend="This week" />
