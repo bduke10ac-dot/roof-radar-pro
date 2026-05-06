@@ -15,6 +15,7 @@ import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { TrialBanner } from "@/components/TrialBanner";
 import { UpgradeDialog } from "@/components/UpgradeDialog";
 import { CloudLightning, Bell, Search, Target } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MarketProvider, useMarkets } from "@/contexts/MarketContext";
