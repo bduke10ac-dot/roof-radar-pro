@@ -1,10 +1,4 @@
 project_id = "tohhkrjnnlamitkazlnt"
 
-[functions.create-checkout]
-verify_jwt = false
-
-[functions.payments-webhook]
-verify_jwt = false
-
-[functions.create-portal-session]
+[functions.notify-guest-signup]
 verify_jwt = false

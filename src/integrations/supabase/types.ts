@@ -318,6 +318,45 @@ export type Database = {
           },
         ]
       }
+      guest_leads: {
+        Row: {
+          company: string
+          consent: boolean
+          created_at: string
+          email: string
+          id: string
+          name: string
+          notified: boolean
+          phone: string
+          source: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          company: string
+          consent?: boolean
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          notified?: boolean
+          phone: string
+          source?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          company?: string
+          consent?: boolean
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          notified?: boolean
+          phone?: string
+          source?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       job_zones: {
         Row: {
           active_status: boolean
