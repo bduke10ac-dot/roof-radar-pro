@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { CloudLightning } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
