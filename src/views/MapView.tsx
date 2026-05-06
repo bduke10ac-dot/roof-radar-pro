@@ -632,6 +632,58 @@ export function MapView() {
           ))}
         </div>
       </div>
+
+      {/* Edit radius bottom sheet (mobile-friendly) */}
+      <Drawer open={editRadiusOpen} onOpenChange={setEditRadiusOpen}>
+        <DrawerContent className="px-4">
+          <DrawerHeader className="text-left px-0">
+            <DrawerTitle className="flex items-center gap-2">
+              <Ruler className="w-4 h-4 text-storm" /> Edit geofence radius
+            </DrawerTitle>
+            <DrawerDescription>
+              Adjust the search area around your pin. Tap a preset or fine-tune with the slider.
+            </DrawerDescription>
+          </DrawerHeader>
+
+          <div className="px-0 pb-2 space-y-5">
+            <div className="text-center">
+              <div className="text-5xl font-bold tabular-nums text-storm">{radius[0]}</div>
+              <div className="text-xs uppercase tracking-wider text-muted-foreground mt-1">miles</div>
+            </div>
+
+            <Slider value={radius} onValueChange={setRadius} min={5} max={100} step={1} className="py-2" />
+
+            <div className="grid grid-cols-5 gap-2">
+              {[5, 15, 25, 50, 100].map(v => (
+                <button
+                  key={v}
+                  onClick={() => setRadius([v])}
+                  className={cn(
+                    "h-11 rounded-lg border text-sm font-semibold tabular-nums",
+                    radius[0] === v
+                      ? "bg-storm text-storm-foreground border-storm"
+                      : "bg-background border-border hover:border-storm/50"
+                  )}
+                >
+                  {v}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
+              <span>Properties inside radius</span>
+              <span className="font-bold text-foreground tabular-nums">{visible.length}</span>
+            </div>
+          </div>
+
+          <DrawerFooter className="px-0">
+            <Button onClick={() => setEditRadiusOpen(false)} size="lg">Done</Button>
+            <DrawerClose asChild>
+              <Button variant="ghost" size="sm">Cancel</Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
