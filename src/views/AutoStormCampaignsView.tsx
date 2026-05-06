@@ -13,7 +13,7 @@ import {
   Zap, Plus, CloudLightning, Wind, Tornado, CloudRain, AlertTriangle, Bolt,
   TreeDeciduous, PowerOff, Mail, MessageSquare, FileText, Footprints,
   ClipboardCheck, Send, ShieldCheck, ShieldAlert, Clock, Eye, Pencil, Trash2,
-  CheckCircle2, XCircle, Activity, Megaphone, Target,
+  CheckCircle2, XCircle, Activity, Megaphone, Target, MapPin, Lock,
 } from "lucide-react";
 import { useMarkets } from "@/contexts/MarketContext";
 import { useWeather } from "@/contexts/WeatherContext";
