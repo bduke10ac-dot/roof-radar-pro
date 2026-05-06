@@ -61,6 +61,7 @@ const Shell = () => {
                 <SelectItem value="markets">Market Targeting</SelectItem>
                 <SelectItem value="campaigns">Campaigns</SelectItem>
                 <SelectItem value="auto-campaigns">Auto Storm Campaigns</SelectItem>
+                <SelectItem value="playbook">Storm Playbook</SelectItem>
                 <SelectItem value="compliance">Compliance</SelectItem>
                 <SelectItem value="integrations">Integrations</SelectItem>
                 <SelectItem value="billing">Billing & Subscription</SelectItem>
