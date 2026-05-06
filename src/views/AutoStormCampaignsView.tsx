@@ -61,6 +61,12 @@ type TriggeredCampaign = {
   channels: ChannelKey[];
   message: string;
   triggeredAt: string;
+  // SMS compliance breakdown
+  smsEligible?: number;
+  smsBlockedNoConsent?: number;
+  smsBlockedDnc?: number;
+  reroutedToMail?: number;
+  reroutedToDoorKnock?: number;
 };
 
 // =============== Constants ===============
