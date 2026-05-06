@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
-import { Route, Layers, MapPin, Target, Flame, CloudHail, Wind, Tornado, CloudRain, TreeDeciduous } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Route, Layers, MapPin, Target, Flame, CloudHail, Wind, Tornado, CloudRain, TreeDeciduous, Plus, Minus, Maximize2, Minimize2, Locate } from "lucide-react";
 import { MapControls, useMapControls, baseMapBackground } from "@/components/MapControls";
+import { useMarkets } from "@/contexts/MarketContext";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,11 +21,53 @@ import { cn } from "@/lib/utils";
 
 export function MapView() {
   const { leads, allLeads, activeMarket } = useMarketLeads();
+  const { markets, activeMarketId, setActiveMarketId } = useMarkets();
   const [minScore, setMinScore] = useState([60]);
   const [zip, setZip] = useState("all");
   const [radius, setRadius] = useState([35]);
   const [overlays, setOverlays] = useState<OverlayState>(DEFAULT_OVERLAYS);
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const mapWrapRef = useRef<HTMLDivElement>(null);
   const mapCtl = useMapControls("territory-map");
+
+  // Track real fullscreen state
+  useEffect(() => {
+    const onFs = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onFs);
+    return () => document.removeEventListener("fullscreenchange", onFs);
+  }, []);
+
+  const toggleFullscreen = async () => {
+    const el = mapWrapRef.current;
+    if (!el) return;
+    try {
+      if (!document.fullscreenElement) await el.requestFullscreen();
+      else await document.exitFullscreen();
+    } catch {}
+  };
+
+  const zoomIn = () => setZoom(z => Math.min(4, +(z + 0.25).toFixed(2)));
+  const zoomOut = () => setZoom(z => Math.max(0.5, +(z - 0.25).toFixed(2)));
+  const resetView = () => { setZoom(1); setPan({ x: 0, y: 0 }); };
+
+  // Wheel zoom + drag pan
+  const dragRef = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
+  const onWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.15 : 0.15;
+    setZoom(z => Math.max(0.5, Math.min(4, +(z + delta).toFixed(2))));
+  };
+  const onMouseDown = (e: React.MouseEvent) => {
+    dragRef.current = { x: e.clientX, y: e.clientY, px: pan.x, py: pan.y };
+  };
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!dragRef.current) return;
+    setPan({ x: dragRef.current.px + (e.clientX - dragRef.current.x), y: dragRef.current.py + (e.clientY - dragRef.current.y) });
+  };
+  const endDrag = () => { dragRef.current = null; };
+
 
   // Sync MapControls layer toggles -> storm overlay state
   useEffect(() => {
@@ -200,7 +243,24 @@ export function MapView() {
         </div>
 
         {/* Map canvas */}
-        <div className="relative rounded-xl overflow-hidden shadow-elevated border border-border/60 min-h-[420px] lg:min-h-[640px]" style={baseMapBackground(mapCtl.state.base)}>
+        <div
+          ref={mapWrapRef}
+          className={cn(
+            "relative rounded-xl overflow-hidden shadow-elevated border border-border/60 select-none",
+            isFullscreen ? "min-h-screen" : "min-h-[420px] lg:min-h-[640px]"
+          )}
+          style={baseMapBackground(mapCtl.state.base)}
+          onWheel={onWheel}
+          onMouseDown={onMouseDown}
+          onMouseMove={onMouseMove}
+          onMouseUp={endDrag}
+          onMouseLeave={endDrag}
+        >
+          {/* Transformed scene (zoom + pan) */}
+          <div
+            className="absolute inset-0 origin-center transition-transform duration-100 ease-out"
+            style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, cursor: dragRef.current ? "grabbing" : "grab" }}
+          >
           <div className="absolute inset-0" style={{
             backgroundImage: `linear-gradient(hsl(210 30% 85%) 1px, transparent 1px), linear-gradient(90deg, hsl(210 30% 85%) 1px, transparent 1px)`,
             backgroundSize: "40px 40px",
@@ -209,17 +269,6 @@ export function MapView() {
           <div className="absolute top-2/3 left-0 right-0 h-1.5 bg-white/70" />
           <div className="absolute top-0 bottom-0 left-1/4 w-1.5 bg-white/70" />
           <div className="absolute top-0 bottom-0 left-2/3 w-2 bg-white/80" />
-
-          {/* Floating Map Controls */}
-          <div className="absolute top-3 right-3 z-20">
-            <MapControls
-              state={mapCtl.state}
-              onBase={mapCtl.setBase}
-              onPitch={mapCtl.setPitch}
-              onRotation={mapCtl.setRotation}
-              onToggle={mapCtl.toggle}
-            />
-          </div>
 
           {/* Active market boundary */}
           {activeMarket && (mapCtl.state.layers.bCustom || mapCtl.state.layers.bCity) && (
@@ -348,6 +397,55 @@ export function MapView() {
               </div>
             );
           })}
+          </div>
+          {/* End transformed scene */}
+
+          {/* Floating Map Controls (outside transform) */}
+          <div className="absolute top-3 right-3 z-20" onMouseDown={(e) => e.stopPropagation()} onWheel={(e) => e.stopPropagation()}>
+            <MapControls
+              state={mapCtl.state}
+              onBase={mapCtl.setBase}
+              onPitch={mapCtl.setPitch}
+              onRotation={mapCtl.setRotation}
+              onToggle={mapCtl.toggle}
+            />
+          </div>
+
+          {/* Zoom + fullscreen toolbar */}
+          <div className="absolute top-3 left-3 z-20 flex flex-col gap-1.5" onMouseDown={(e) => e.stopPropagation()} onWheel={(e) => e.stopPropagation()}>
+            <button onClick={zoomIn} title="Zoom in" className="w-9 h-9 rounded-md bg-card/95 backdrop-blur border border-border/60 shadow-card flex items-center justify-center hover:bg-accent">
+              <Plus className="w-4 h-4" />
+            </button>
+            <button onClick={zoomOut} title="Zoom out" className="w-9 h-9 rounded-md bg-card/95 backdrop-blur border border-border/60 shadow-card flex items-center justify-center hover:bg-accent">
+              <Minus className="w-4 h-4" />
+            </button>
+            <button onClick={resetView} title="Reset view" className="w-9 h-9 rounded-md bg-card/95 backdrop-blur border border-border/60 shadow-card flex items-center justify-center hover:bg-accent">
+              <Locate className="w-4 h-4" />
+            </button>
+            <button onClick={toggleFullscreen} title={isFullscreen ? "Exit fullscreen" : "Fullscreen"} className="w-9 h-9 rounded-md bg-card/95 backdrop-blur border border-border/60 shadow-card flex items-center justify-center hover:bg-accent">
+              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </button>
+            <div className="px-1.5 py-0.5 rounded bg-card/95 backdrop-blur border border-border/60 text-[10px] text-center font-semibold tabular-nums">
+              {Math.round(zoom * 100)}%
+            </div>
+          </div>
+
+          {/* Market quick-selector */}
+          <div className="absolute bottom-3 right-3 z-20 w-56 max-w-[calc(100vw-1.5rem)]" onMouseDown={(e) => e.stopPropagation()} onWheel={(e) => e.stopPropagation()}>
+            <div className="bg-card/95 backdrop-blur rounded-lg border border-border/60 shadow-elevated p-2">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 px-1 flex items-center gap-1">
+                <Target className="w-3 h-3 text-storm" /> Active market
+              </div>
+              <Select value={activeMarketId ?? "none"} onValueChange={(v) => setActiveMarketId(v === "none" ? null : v)}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="No market selected" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">All territories</SelectItem>
+                  {markets.map(m => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
 
           {/* Legend */}
           <div className="absolute bottom-3 left-3 bg-card/95 backdrop-blur rounded-lg p-3 shadow-card border border-border/60 text-[11px] space-y-2 max-w-[220px]">
