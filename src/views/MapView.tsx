@@ -448,11 +448,56 @@ export function MapView() {
             </div>
           ))}
 
-          {/* Geofence */}
-          <div className="absolute pointer-events-none" style={{ left: "55%", top: "60%", transform: "translate(-50%, -50%)" }}>
-            <div className="rounded-full border-2 border-storm/60 bg-storm/5"
-              style={{ width: `${radius[0] * 4}px`, height: `${radius[0] * 4}px` }} />
+          {/* Geofence (draggable center + resize handle) */}
+          <div
+            className="absolute"
+            style={{ left: `${geoCenter.x}%`, top: `${geoCenter.y}%`, transform: "translate(-50%, -50%)" }}
+          >
+            <div
+              className="relative rounded-full border-2 border-storm/70 bg-storm/10 shadow-elevated"
+              style={{ width: `${radius[0] * 4}px`, height: `${radius[0] * 4}px` }}
+            >
+              {/* Center handle (move) */}
+              <button
+                type="button"
+                onMouseDown={(e) => { e.stopPropagation(); beginGeoDrag("move", e.clientX, e.clientY); }}
+                onTouchStart={(e) => { e.stopPropagation(); const t = e.touches[0]; beginGeoDrag("move", t.clientX, t.clientY); }}
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-storm text-storm-foreground shadow-elevated flex items-center justify-center ring-4 ring-background/80 active:scale-95 touch-none"
+                title="Drag to move geofence"
+                aria-label="Move geofence"
+              >
+                <Move className="w-4 h-4" />
+              </button>
+              {/* Resize handle (radius) */}
+              <button
+                type="button"
+                onMouseDown={(e) => { e.stopPropagation(); beginGeoDrag("resize", e.clientX, e.clientY); }}
+                onTouchStart={(e) => { e.stopPropagation(); const t = e.touches[0]; beginGeoDrag("resize", t.clientX, t.clientY); }}
+                onClick={(e) => e.stopPropagation()}
+                className="absolute -right-5 -bottom-5 w-11 h-11 rounded-full bg-warning text-background shadow-elevated flex items-center justify-center ring-4 ring-background/80 active:scale-95 touch-none"
+                title="Drag to change radius"
+                aria-label="Resize geofence"
+              >
+                <Ruler className="w-4 h-4" />
+              </button>
+              {/* Radius badge + Edit button */}
+              <div className="absolute left-1/2 -top-3 -translate-x-1/2 -translate-y-full flex items-center gap-1.5">
+                <span className="px-2 py-0.5 rounded-full bg-card/95 backdrop-blur border border-border/60 text-[11px] font-bold tabular-nums shadow-card">
+                  {radius[0]} mi
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setEditRadiusOpen(true); }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  className="px-2 py-0.5 rounded-full bg-storm text-storm-foreground text-[11px] font-semibold shadow-card active:scale-95"
+                >
+                  Edit
+                </button>
+              </div>
+            </div>
           </div>
+
 
           {/* Lead heatmap */}
           {overlays.leadHeatmap && visible.filter(l => l.liveScore >= 80).map(l => (
