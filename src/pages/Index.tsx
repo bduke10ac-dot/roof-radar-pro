@@ -85,9 +85,13 @@ const Shell = () => {
   );
 };
 
+import { WeatherProvider } from "@/contexts/WeatherContext";
+
 const Index = () => (
   <MarketProvider>
-    <Shell />
+    <WeatherProvider>
+      <Shell />
+    </WeatherProvider>
   </MarketProvider>
 );
 
