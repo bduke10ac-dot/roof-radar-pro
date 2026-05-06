@@ -27,7 +27,10 @@ export function LeadsView() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Lead database</h1>
-          <p className="text-sm text-muted-foreground">{filtered.length} of {leads.length} property owners</p>
+          <p className="text-sm text-muted-foreground">
+            {filtered.length} of {leads.length} property owners
+            {activeMarket && <> · scoped to <span className="text-storm font-medium">{activeMarket.name}</span> ({allLeads.length} total)</>}
+          </p>
         </div>
         <Button variant="outline" size="sm"><Download className="w-4 h-4 mr-2" />Export CSV</Button>
       </header>
