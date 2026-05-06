@@ -3,10 +3,11 @@ import { cn } from "@/lib/utils";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Button } from "@/components/ui/button";
 
-export type View = "dashboard" | "leads" | "map" | "markets" | "campaigns" | "auto-campaigns" | "playbook" | "compliance" | "integrations" | "billing";
+export type View = "dashboard" | "storm-ops" | "leads" | "map" | "markets" | "campaigns" | "auto-campaigns" | "playbook" | "compliance" | "integrations" | "billing";
 
 const items: { id: View; label: string; icon: typeof LayoutDashboard }[] = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "dashboard", label: "Home", icon: LayoutDashboard },
+  { id: "storm-ops", label: "Storm Operations", icon: CloudLightning },
   { id: "leads", label: "Leads", icon: Users },
   { id: "map", label: "Map", icon: Map },
   { id: "markets", label: "Market Targeting", icon: Target },
