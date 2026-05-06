@@ -154,7 +154,7 @@ export function WeatherCommandCenter() {
           </div>
         </Card>
 
-        <Card className="absolute top-3 right-3 w-64 p-3 bg-card/95 backdrop-blur max-h-[280px] overflow-auto">
+        <Card className="absolute top-14 left-3 w-64 p-3 bg-card/95 backdrop-blur max-h-[260px] overflow-auto z-20">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold uppercase text-muted-foreground">Active Alerts</span>
             <Badge variant="destructive" className="text-[10px]">{alerts.length}</Badge>
