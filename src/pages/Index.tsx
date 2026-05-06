@@ -7,6 +7,7 @@ import { MarketTargetingView } from "@/views/MarketTargetingView";
 import { CampaignsView } from "@/views/CampaignsView";
 import { ComplianceView } from "@/views/ComplianceView";
 import { IntegrationsView } from "@/views/IntegrationsView";
+import { AutoStormCampaignsView } from "@/views/AutoStormCampaignsView";
 import { CloudLightning, Bell, Search, Target } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
