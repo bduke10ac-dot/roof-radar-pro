@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { type StormCell } from "@/lib/mockWeather";
 import { useWeather } from "@/contexts/WeatherContext";
+import { MapControls, useMapControls, baseMapBackground } from "@/components/MapControls";
 
 type LayerKey =
   | "radar" | "hail" | "wind" | "rain" | "lightning"
@@ -41,6 +42,7 @@ const CELL_COLOR: Record<StormCell["type"], string> = {
 
 export function WeatherCommandCenter() {
   const { conditions, cells, alerts, marketImpacts, rooferAlerts, opportunityScore, lastTick } = useWeather();
+  const mapCtl = useMapControls("command-center");
   const [layers, setLayers] = useState<Record<LayerKey, boolean>>({
     radar: true, hail: true, wind: true, rain: false, lightning: true,
     tornado: true, severe: true, watches: false, tracks: true, future: false, satellite: false,
@@ -76,7 +78,16 @@ export function WeatherCommandCenter() {
       </div>
 
       {/* HERO MAP */}
-      <div className="relative rounded-xl overflow-hidden border border-border/60 shadow-card h-[460px] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="relative rounded-xl overflow-hidden border border-border/60 shadow-card h-[460px]" style={baseMapBackground(mapCtl.state.base)}>
+        <div className="absolute top-3 right-3 z-30">
+          <MapControls
+            state={mapCtl.state}
+            onBase={mapCtl.setBase}
+            onPitch={mapCtl.setPitch}
+            onRotation={mapCtl.setRotation}
+            onToggle={mapCtl.toggle}
+          />
+        </div>
         {layers.radar && (
           <div className="absolute inset-0 opacity-60"
                style={{ backgroundImage: "radial-gradient(circle at 30% 40%, hsl(var(--storm)/0.55), transparent 35%), radial-gradient(circle at 70% 55%, hsl(var(--warning)/0.5), transparent 30%), radial-gradient(circle at 80% 70%, hsl(var(--destructive)/0.5), transparent 25%)" }} />
@@ -143,7 +154,7 @@ export function WeatherCommandCenter() {
           </div>
         </Card>
 
-        <Card className="absolute top-3 right-3 w-64 p-3 bg-card/95 backdrop-blur max-h-[280px] overflow-auto">
+        <Card className="absolute top-14 left-3 w-64 p-3 bg-card/95 backdrop-blur max-h-[260px] overflow-auto z-20">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold uppercase text-muted-foreground">Active Alerts</span>
             <Badge variant="destructive" className="text-[10px]">{alerts.length}</Badge>

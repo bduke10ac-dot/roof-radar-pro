@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Route, Layers, MapPin, Target, Flame, CloudHail, Wind, Tornado, CloudRain, TreeDeciduous } from "lucide-react";
+import { MapControls, useMapControls, baseMapBackground } from "@/components/MapControls";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -23,6 +24,19 @@ export function MapView() {
   const [zip, setZip] = useState("all");
   const [radius, setRadius] = useState([35]);
   const [overlays, setOverlays] = useState<OverlayState>(DEFAULT_OVERLAYS);
+  const mapCtl = useMapControls("territory-map");
+
+  // Sync MapControls layer toggles -> storm overlay state
+  useEffect(() => {
+    setOverlays(o => ({
+      ...o,
+      hail: mapCtl.state.layers.stormHail,
+      wind: mapCtl.state.layers.stormWind,
+      rain: mapCtl.state.layers.stormRain,
+      tornado: mapCtl.state.layers.stormTornado,
+      leadHeatmap: mapCtl.state.layers.leadDensity,
+    }));
+  }, [mapCtl.state.layers.stormHail, mapCtl.state.layers.stormWind, mapCtl.state.layers.stormRain, mapCtl.state.layers.stormTornado, mapCtl.state.layers.leadDensity]);
 
   const update = (patch: Partial<OverlayState>) => setOverlays(o => ({ ...o, ...patch }));
   const preset = (p: LayerPreset) => setOverlays(o => applyPreset(o, p));
@@ -186,7 +200,7 @@ export function MapView() {
         </div>
 
         {/* Map canvas */}
-        <div className="relative rounded-xl overflow-hidden shadow-elevated border border-border/60 aspect-[4/3] lg:aspect-auto lg:min-h-[640px] bg-[hsl(210_40%_92%)]">
+        <div className="relative rounded-xl overflow-hidden shadow-elevated border border-border/60 aspect-[4/3] lg:aspect-auto lg:min-h-[640px]" style={baseMapBackground(mapCtl.state.base)}>
           <div className="absolute inset-0" style={{
             backgroundImage: `linear-gradient(hsl(210 30% 85%) 1px, transparent 1px), linear-gradient(90deg, hsl(210 30% 85%) 1px, transparent 1px)`,
             backgroundSize: "40px 40px",
@@ -196,8 +210,19 @@ export function MapView() {
           <div className="absolute top-0 bottom-0 left-1/4 w-1.5 bg-white/70" />
           <div className="absolute top-0 bottom-0 left-2/3 w-2 bg-white/80" />
 
+          {/* Floating Map Controls */}
+          <div className="absolute top-3 right-3 z-20">
+            <MapControls
+              state={mapCtl.state}
+              onBase={mapCtl.setBase}
+              onPitch={mapCtl.setPitch}
+              onRotation={mapCtl.setRotation}
+              onToggle={mapCtl.toggle}
+            />
+          </div>
+
           {/* Active market boundary */}
-          {activeMarket && (
+          {activeMarket && (mapCtl.state.layers.bCustom || mapCtl.state.layers.bCity) && (
             <div className="absolute pointer-events-none border-2 border-dashed border-storm rounded-2xl"
               style={{ left: "8%", top: "6%", right: "6%", bottom: "10%" }}>
               <div className="absolute -top-3 left-3 px-2 py-0.5 bg-storm text-storm-foreground text-[10px] font-bold rounded uppercase tracking-wider">
