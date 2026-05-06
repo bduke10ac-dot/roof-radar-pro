@@ -226,6 +226,80 @@ export type Database = {
           },
         ]
       }
+      live_weather_events: {
+        Row: {
+          created_at: string
+          current_temperature: number | null
+          dew_point: number | null
+          event_type: string | null
+          feels_like: number | null
+          hail_risk: number | null
+          humidity: number | null
+          id: string
+          lightning_active: boolean | null
+          market_id: string | null
+          pressure: number | null
+          rain_chance: number | null
+          recommended_action: string | null
+          severe_alert_type: string | null
+          storm_arrival_time: string | null
+          weather_geojson: Json | null
+          wind_direction: string | null
+          wind_gust: number | null
+          wind_speed: number | null
+        }
+        Insert: {
+          created_at?: string
+          current_temperature?: number | null
+          dew_point?: number | null
+          event_type?: string | null
+          feels_like?: number | null
+          hail_risk?: number | null
+          humidity?: number | null
+          id?: string
+          lightning_active?: boolean | null
+          market_id?: string | null
+          pressure?: number | null
+          rain_chance?: number | null
+          recommended_action?: string | null
+          severe_alert_type?: string | null
+          storm_arrival_time?: string | null
+          weather_geojson?: Json | null
+          wind_direction?: string | null
+          wind_gust?: number | null
+          wind_speed?: number | null
+        }
+        Update: {
+          created_at?: string
+          current_temperature?: number | null
+          dew_point?: number | null
+          event_type?: string | null
+          feels_like?: number | null
+          hail_risk?: number | null
+          humidity?: number | null
+          id?: string
+          lightning_active?: boolean | null
+          market_id?: string | null
+          pressure?: number | null
+          rain_chance?: number | null
+          recommended_action?: string | null
+          severe_alert_type?: string | null
+          storm_arrival_time?: string | null
+          weather_geojson?: Json | null
+          wind_direction?: string | null
+          wind_gust?: number | null
+          wind_speed?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_weather_events_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "markets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       market_storm_scores: {
         Row: {
           affected_home_count: number | null
