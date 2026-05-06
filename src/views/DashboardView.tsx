@@ -2,13 +2,16 @@ import { Home, AlertTriangle, MailCheck, CalendarCheck, CloudRain } from "lucide
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge, StormScoreBadge } from "@/components/StormScoreBadge";
 import { type LeadStatus } from "@/lib/mockData";
-import { useLeads, useStormEvents } from "@/hooks/useLeads";
+import { useMarketLeads, useMarketStormEvents } from "@/hooks/useMarketFilter";
+import { useMarkets } from "@/contexts/MarketContext";
+import { Target } from "lucide-react";
 
 const pipelineStages: LeadStatus[] = ["new", "contacted", "inspection", "quoted", "won"];
 
 export function DashboardView() {
-  const { leads } = useLeads();
-  const stormEvents = useStormEvents();
+  const { leads, allLeads } = useMarketLeads();
+  const stormEvents = useMarketStormEvents();
+  const { activeMarket } = useMarkets();
   const highScore = leads.filter(l => l.stormScore >= 85).length;
   const optedIn = leads.filter(l => l.consent === "opted_in").length;
   const inspections = leads.filter(l => l.status === "inspection").length;
