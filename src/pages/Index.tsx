@@ -85,7 +85,8 @@ const Shell = () => {
         </header>
 
         <main className="flex-1 p-4 md:p-6 max-w-7xl w-full pb-24 md:pb-6">
-          {view === "dashboard" && <DashboardView />}
+          {view === "dashboard" && <DashboardView onNavigate={setView} />}
+          {view === "storm-ops" && <StormOpsView />}
           {view === "leads" && <LeadsView />}
           {view === "map" && <MapView />}
           {view === "markets" && <MarketTargetingView />}
