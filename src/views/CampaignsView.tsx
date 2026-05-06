@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, MessageSquare, Save, Send, Download, Lock, AlertTriangle, Target } from "lucide-react";
+import { Mail, MessageSquare, Save, Send, Download, Lock, AlertTriangle, Target, ImageIcon, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,7 @@ import { useMarketLeads } from "@/hooks/useMarketFilter";
 import { useMarkets, type SavedMarket } from "@/contexts/MarketContext";
 import { leadMatchesMarket } from "@/hooks/useMarketFilter";
 import { toast } from "sonner";
+import { useBrand } from "@/hooks/useBrand";
 
 type Segment = "all" | "state" | "region" | "county" | "city" | "zip" | "geofence" | "market" | "storm";
 const SEGMENTS: { value: Segment; label: string }[] = [
@@ -27,6 +28,7 @@ const SEGMENTS: { value: Segment; label: string }[] = [
 export function CampaignsView() {
   const { leads, allLeads } = useMarketLeads();
   const { markets, activeMarket } = useMarkets();
+  const { brand } = useBrand();
   const [segment, setSegment] = useState<Segment>(activeMarket ? "market" : "all");
   const [marketId, setMarketId] = useState<string>(activeMarket?.id ?? markets[0]?.id ?? "");
   const [emailSubj, setEmailSubj] = useState("Free roof inspection after the April 22 storm");
@@ -63,6 +65,27 @@ export function CampaignsView() {
         <h1 className="text-2xl font-bold tracking-tight">Campaign builder</h1>
         <p className="text-sm text-muted-foreground">Reach the right homeowners through compliant channels.</p>
       </header>
+
+      <div className="bg-card rounded-xl p-3 shadow-card border border-border/60 flex items-center gap-3">
+        <div className="w-12 h-12 rounded-md bg-background border border-border/60 flex items-center justify-center overflow-hidden shrink-0">
+          {brand.company_logo_url
+            ? <img src={brand.company_logo_url} alt="Company logo" className="w-full h-full object-contain" />
+            : <ImageIcon className="w-5 h-5 text-muted-foreground" />}
+        </div>
+        <div className="flex-1 min-w-0 text-xs">
+          <div className="font-semibold truncate">
+            {brand.company_logo_url ? (brand.company_name ?? "Your branding") : "No company logo set"}
+          </div>
+          <div className="text-muted-foreground truncate">
+            {brand.company_logo_url
+              ? "Will appear on outgoing emails, SMS landing pages and shared storm reports."
+              : "Upload your logo in Billing & Subscription → Company branding."}
+          </div>
+        </div>
+        <Button size="sm" variant="outline" className="shrink-0" onClick={() => toast.info("Open Billing & Subscription → Company branding to upload your logo.")}>
+          <Upload className="w-3.5 h-3.5" /> {brand.company_logo_url ? "Change" : "Add logo"}
+        </Button>
+      </div>
 
       <div className="bg-card rounded-xl p-4 shadow-card border border-border/60 grid sm:grid-cols-[1fr_1fr_auto] gap-3 items-end">
         <div>
