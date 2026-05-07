@@ -24,6 +24,7 @@ import { NwsAlertsPanel } from "@/components/NwsAlertsPanel";
 import { useNwsAlerts } from "@/hooks/useNwsAlerts";
 import { RadarTileOverlay } from "@/components/RadarTileOverlay";
 import { useDemoMode } from "@/contexts/DemoModeContext";
+import { RealMap } from "@/components/RealMap";
 
 export function MapView() {
   const { demoMode } = useDemoMode();
@@ -372,358 +373,43 @@ export function MapView() {
           )}
         </div>
 
-        {/* Map canvas */}
+        {/* Real interactive map (Leaflet + OpenStreetMap tiles + RainViewer radar + NWS polygons) */}
         <div
           ref={mapWrapRef}
           className={cn(
-            "relative rounded-xl overflow-hidden shadow-elevated border border-border/60 select-none",
-            isFullscreen ? "min-h-screen" : "min-h-[420px] lg:min-h-[640px]"
+            "relative rounded-xl overflow-hidden shadow-elevated border border-border/60 w-full max-w-full",
+            isFullscreen ? "h-screen" : "h-[60vh] min-h-[360px] lg:h-[640px]"
           )}
-          style={{ ...baseMapBackground(mapCtl.state.base), touchAction: "none" }}
-          onWheel={onWheel}
-          onMouseDown={onMouseDown}
-          onMouseMove={onMouseMove}
-          onMouseUp={endDrag}
-          onMouseLeave={endDrag}
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
         >
-          {/* Transformed scene (zoom + pan) */}
-          <div
-            className={cn("absolute inset-0 origin-center", isDragging ? "" : "transition-transform duration-150 ease-out")}
-            style={{ transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`, willChange: "transform", cursor: isDragging ? "grabbing" : "grab" }}
-          >
-          <div className="absolute inset-0" style={{
-            backgroundImage: `linear-gradient(hsl(210 30% 85%) 1px, transparent 1px), linear-gradient(90deg, hsl(210 30% 85%) 1px, transparent 1px)`,
-            backgroundSize: "40px 40px",
-          }} />
-          <div className="absolute top-1/3 left-0 right-0 h-2 bg-white/80" />
-          <div className="absolute top-2/3 left-0 right-0 h-1.5 bg-white/70" />
-          <div className="absolute top-0 bottom-0 left-1/4 w-1.5 bg-white/70" />
-          <div className="absolute top-0 bottom-0 left-2/3 w-2 bg-white/80" />
-
-          {/* Active market boundary */}
-          {activeMarket && (mapCtl.state.layers.bCustom || mapCtl.state.layers.bCity) && (
-            <div className="absolute pointer-events-none border-2 border-dashed border-storm rounded-2xl"
-              style={{ left: "8%", top: "6%", right: "6%", bottom: "10%" }}>
-              <div className="absolute -top-3 left-3 px-2 py-0.5 bg-storm text-storm-foreground text-[10px] font-bold rounded uppercase tracking-wider">
-                {activeMarket.name}
-              </div>
-            </div>
-          )}
-
-          {/* Live precipitation radar tiles (RainViewer · falls back to "radar unavailable") */}
-          {(overlays.rain || mapCtl.state.layers.stormRain) && <RadarTileOverlay opacity={0.5} />}
-
-          {/* Demo overlay banner — visible whenever mock layers are rendering */}
+          <RealMap
+            pins={visible.map(l => ({
+              id: l.id,
+              lat: l.lat,
+              lng: l.lng,
+              title: l.ownerName,
+              subtitle: l.propertyAddress,
+              score: l.liveScore,
+              onClick: () => setSelectedLeadId(l.id),
+            }))}
+            showRadar={overlays.rain}
+            nwsGeometry={
+              nwsPolygons.length > 0
+                ? ({
+                    type: "FeatureCollection",
+                    features: nwsPolygons.map((a) => ({
+                      type: "Feature",
+                      properties: { id: a.id, severity: a.severity, headline: a.headline },
+                      geometry: a.geometry as any,
+                    })),
+                  } as any)
+                : null
+            }
+          />
           {demoMode && (overlays.hail || overlays.wind || overlays.tornado) && (
-            <div className="absolute top-2 left-2 z-10 bg-warning text-warning-foreground text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider shadow">
-              Demo Overlay · Mock storm data
+            <div className="absolute top-2 left-2 z-[500] bg-warning text-warning-foreground text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider shadow pointer-events-none">
+              Demo Mode · simulated overlays
             </div>
           )}
-
-          {/* SVG overlays */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-            {/* Live NWS alert polygons (real NOAA data) */}
-            {nwsPolygons.map(a => {
-              const geom: any = a.geometry;
-              const coords: number[][][] | undefined =
-                geom?.type === "Polygon" ? geom.coordinates :
-                geom?.type === "MultiPolygon" ? geom.coordinates[0] : undefined;
-              if (!coords || !coords[0]) return null;
-              const ring = coords[0];
-              const lons = ring.map(c => c[0]); const lats = ring.map(c => c[1]);
-              const minL = Math.min(...lons), maxL = Math.max(...lons);
-              const minLa = Math.min(...lats), maxLa = Math.max(...lats);
-              // Project to viewBox using leads bounds when available, else local geom bounds
-              const useLeadsBounds = isFinite(minLng) && isFinite(maxLng) && (maxLng - minLng) > 0.01;
-              const proj = (lon: number, lat: number) => {
-                const x = useLeadsBounds
-                  ? ((lon - minLng) / (maxLng - minLng)) * 88 + 6
-                  : ((lon - minL) / (maxL - minL || 1)) * 80 + 10;
-                const y = useLeadsBounds
-                  ? (1 - (lat - minLat) / (maxLat - minLat)) * 80 + 10
-                  : (1 - (lat - minLa) / (maxLa - minLa || 1)) * 70 + 15;
-                return `${x},${y}`;
-              };
-              const points = ring.map((c: number[]) => proj(c[0], c[1])).join(" ");
-              const sev = (a.severity || "").toLowerCase();
-              const color = sev === "extreme" ? "hsl(0 85% 50%)" : sev === "severe" ? "hsl(28 90% 50%)" : "hsl(45 90% 50%)";
-              return (
-                <polygon key={a.id} points={points}
-                  fill={color} fillOpacity={0.18}
-                  stroke={color} strokeOpacity={0.9} strokeWidth={0.4} />
-              );
-            })}
-            {/* Rain zones (under everything) */}
-            {overlays.rain && RAIN_ZONES.map(r => (
-              <g key={r.id}>
-                <rect x={r.x} y={r.y} width={r.w} height={r.h} rx="3"
-                  fill="hsl(210 90% 55%)" fillOpacity={0.12 + r.intensity * 0.18}
-                  stroke="hsl(210 90% 50%)" strokeOpacity={0.5} strokeWidth={0.3} strokeDasharray="1.5 1" />
-              </g>
-            ))}
-            {/* Tree damage */}
-            {overlays.treeDamage && TREE_DAMAGE_ZONES.map(t => (
-              <circle key={t.id} cx={t.x} cy={t.y} r={t.r}
-                fill="hsl(140 50% 45%)" fillOpacity={0.18}
-                stroke="hsl(140 60% 35%)" strokeOpacity={0.7} strokeWidth={0.3} strokeDasharray="0.8 0.8" />
-            ))}
-            {/* Hail swaths */}
-            {demoMode && overlays.hail && HAIL_SWATHS
-              .filter(s => s.hailSize >= overlays.minHail)
-              .filter(s => !overlays.hailDateFrom || s.date >= overlays.hailDateFrom)
-              .filter(s => !overlays.hailDateTo || s.date <= overlays.hailDateTo)
-              .map(s => (
-                <g key={s.id}>
-                  <rect x={s.x} y={s.y} width={s.w} height={s.h} rx="6"
-                    fill={hailColor(s.hailSize)} fillOpacity={0.22}
-                    stroke={hailColor(s.hailSize)} strokeOpacity={0.85} strokeWidth={0.4} />
-                </g>
-            ))}
-            {/* Wind corridors */}
-            {demoMode && overlays.wind && WIND_CORRIDORS.filter(w => w.windSpeed >= overlays.minWind).map(w => (
-              <g key={w.id}>
-                <line x1={w.x1} y1={w.y1} x2={w.x2} y2={w.y2}
-                  stroke={windColor(w.windSpeed)} strokeWidth={w.windSpeed / 18} strokeOpacity={0.55} strokeLinecap="round" />
-                {overlays.showWindDirection && (
-                  <polygon
-                    points={`${w.x2},${w.y2} ${w.x2 - 3},${w.y2 - 1.5} ${w.x2 - 3},${w.y2 + 1.5}`}
-                    transform={`rotate(${(Math.atan2(w.y2 - w.y1, w.x2 - w.x1) * 180) / Math.PI}, ${w.x2}, ${w.y2})`}
-                    fill={windColor(w.windSpeed)} fillOpacity={0.9} />
-                )}
-              </g>
-            ))}
-            {/* Tornado tracks */}
-            {demoMode && overlays.tornado && TORNADO_TRACKS.filter(t => t.ef >= overlays.efRating).map(t => (
-              <g key={t.id}>
-                {overlays.showTornadoWidth && (
-                  <line x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2}
-                    stroke="hsl(0 80% 50%)" strokeOpacity={0.18} strokeWidth={Math.max(2, t.widthYd / 60)} strokeLinecap="round" />
-                )}
-                <line x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2}
-                  stroke="hsl(0 85% 45%)" strokeWidth={0.6} strokeDasharray="1.5 1" strokeLinecap="round" />
-              </g>
-            ))}
-          </svg>
-
-          {/* Hail labels (HTML so tooltips look right) */}
-          {demoMode && overlays.hail && HAIL_SWATHS
-            .filter(s => s.hailSize >= overlays.minHail)
-            .map(s => (
-              <div key={`hl-${s.id}`} className="absolute pointer-events-none" style={{ left: `${s.x + 1}%`, top: `${s.y + 1}%` }}>
-                <div className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-card/90 border border-border/60"
-                  style={{ color: hailColor(s.hailSize) }}>
-                  {s.hailSize}" hail · {s.date}{overlays.showHailConfidence && ` · ${s.confidence}%`}
-                </div>
-              </div>
-          ))}
-          {/* Wind labels */}
-          {overlays.wind && overlays.showWindAffected && WIND_CORRIDORS
-            .filter(w => w.windSpeed >= overlays.minWind)
-            .map(w => (
-              <div key={`wl-${w.id}`} className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2"
-                style={{ left: `${(w.x1 + w.x2) / 2}%`, top: `${(w.y1 + w.y2) / 2}%` }}>
-                <div className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-card/90 border border-border/60"
-                  style={{ color: windColor(w.windSpeed) }}>
-                  {w.windSpeed} mph · {w.affectedHomes.toLocaleString()} homes
-                </div>
-              </div>
-          ))}
-          {/* Tornado labels */}
-          {demoMode && overlays.tornado && TORNADO_TRACKS.filter(t => t.ef >= overlays.efRating).map(t => (
-            <div key={`tl-${t.id}`} className="absolute pointer-events-none"
-              style={{ left: `${(t.x1 + t.x2) / 2}%`, top: `${(t.y1 + t.y2) / 2}%` }}>
-              <div className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-destructive text-destructive-foreground -translate-x-1/2 -translate-y-1/2">
-                EF{t.ef} · {t.widthYd}yd · {t.date}
-              </div>
-            </div>
-          ))}
-
-          {/* Geofence (draggable center + resize handle) */}
-          <div
-            className="absolute"
-            style={{ left: `${geoCenter.x}%`, top: `${geoCenter.y}%`, transform: "translate(-50%, -50%)" }}
-          >
-            <div
-              className="relative rounded-full border-2 border-storm/70 bg-storm/10 shadow-elevated"
-              style={{ width: `${radius[0] * 4}px`, height: `${radius[0] * 4}px` }}
-            >
-              {/* Center handle (move) */}
-              <button
-                type="button"
-                onMouseDown={(e) => { e.stopPropagation(); beginGeoDrag("move", e.clientX, e.clientY); }}
-                onTouchStart={(e) => { e.stopPropagation(); const t = e.touches[0]; beginGeoDrag("move", t.clientX, t.clientY); }}
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-storm text-storm-foreground shadow-elevated flex items-center justify-center ring-4 ring-background/80 active:scale-95 touch-none"
-                title="Drag to move geofence"
-                aria-label="Move geofence"
-              >
-                <Move className="w-4 h-4" />
-              </button>
-              {/* Resize handle (radius) */}
-              <button
-                type="button"
-                onMouseDown={(e) => { e.stopPropagation(); beginGeoDrag("resize", e.clientX, e.clientY); }}
-                onTouchStart={(e) => { e.stopPropagation(); const t = e.touches[0]; beginGeoDrag("resize", t.clientX, t.clientY); }}
-                onClick={(e) => e.stopPropagation()}
-                className="absolute -right-5 -bottom-5 w-11 h-11 rounded-full bg-warning text-background shadow-elevated flex items-center justify-center ring-4 ring-background/80 active:scale-95 touch-none"
-                title="Drag to change radius"
-                aria-label="Resize geofence"
-              >
-                <Ruler className="w-4 h-4" />
-              </button>
-              {/* Radius badge + Edit button */}
-              <div className="absolute left-1/2 -top-3 -translate-x-1/2 -translate-y-full flex items-center gap-1.5">
-                <span className="px-2 py-0.5 rounded-full bg-card/95 backdrop-blur border border-border/60 text-[11px] font-bold tabular-nums shadow-card">
-                  {radius[0]} mi
-                </span>
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); setEditRadiusOpen(true); }}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  className="px-2 py-0.5 rounded-full bg-storm text-storm-foreground text-[11px] font-semibold shadow-card active:scale-95"
-                >
-                  Edit
-                </button>
-              </div>
-            </div>
-          </div>
-
-
-          {/* Lead heatmap */}
-          {overlays.leadHeatmap && visible.filter(l => l.liveScore >= 80).map(l => (
-            <div key={`h-${l.id}`} className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
-              style={{ left: `${l.pos.x}%`, top: `${l.pos.y}%`, width: 120, height: 120, background: "hsl(var(--warning) / 0.45)" }} />
-          ))}
-
-          {/* Pins (limit visible to first 200 for performance) */}
-          {visible.slice(0, 200).map(l => {
-            const color = l.liveScore >= 85 ? "bg-warning" : l.liveScore >= 70 ? "bg-storm" : "bg-muted-foreground";
-            return (
-              <div key={l.id} className="absolute -translate-x-1/2 -translate-y-full group focus-within:z-10" style={{ left: `${l.pos.x}%`, top: `${l.pos.y}%` }}>
-                <button
-                  type="button"
-                  tabIndex={0}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  onClick={(e) => { e.stopPropagation(); setSelectedLeadId(l.id === selectedLeadId ? null : l.id); }}
-                  className="relative block focus:outline-none"
-                  aria-label={`${l.ownerName} · storm score ${l.liveScore}`}
-                >
-                  {l.liveScore >= 85 && <div className={`absolute inset-0 rounded-full ${color} animate-pulse-ring`} />}
-                  <div className={`relative w-7 h-7 md:w-6 md:h-6 rounded-full ${color} ring-2 ring-white shadow-elevated flex items-center justify-center ${selectedLeadId === l.id ? "ring-storm scale-125" : ""}`}>
-                    <MapPin className="w-3 h-3 text-white" />
-                  </div>
-                </button>
-                {selectedLeadId === l.id ? (
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-30 w-56 bg-card rounded-lg shadow-elevated border border-border p-2.5 text-left" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
-                    <div className="text-sm font-semibold truncate">{l.ownerName}</div>
-                    <div className="text-[11px] text-muted-foreground truncate">{l.propertyAddress}</div>
-                    <div className="text-[11px] mt-1">Score <span className="font-semibold text-storm">{l.liveScore}</span></div>
-                    <div className="grid grid-cols-3 gap-1 mt-2">
-                      <a href={l.phone ? `tel:${l.phone}` : undefined} onClick={e => { if (!l.phone) e.preventDefault(); }} className={`text-center text-[11px] py-1.5 rounded border border-border ${l.phone ? "active:bg-accent" : "opacity-40 pointer-events-none"}`}>Call</a>
-                      <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(l.propertyAddress)}`} target="_blank" rel="noreferrer" className="text-center text-[11px] py-1.5 rounded border border-border active:bg-accent">Route</a>
-                      <button onClick={() => toast.info(`Opened ${l.ownerName} — switch to Leads to edit.`)} className="text-[11px] py-1.5 rounded border border-border active:bg-accent">Open</button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded bg-primary text-primary-foreground text-[11px] whitespace-nowrap opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition shadow-elevated pointer-events-none">
-                    {l.ownerName} · score {l.liveScore}
-                    {(l.inHail || l.inWind || l.inTornado || l.inRain) && <> · {[l.inHail && "hail", l.inWind && "wind", l.inTornado && "tornado", l.inRain && "rain"].filter(Boolean).join("+")}</>}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-          </div>
-          {/* End transformed scene */}
-
-          {/* Floating Map Controls (outside transform) */}
-          <div className="absolute top-3 right-3 z-20" onMouseDown={(e) => e.stopPropagation()} onWheel={(e) => e.stopPropagation()}>
-            <MapControls
-              state={mapCtl.state}
-              onBase={mapCtl.setBase}
-              onPitch={mapCtl.setPitch}
-              onRotation={mapCtl.setRotation}
-              onToggle={mapCtl.toggle}
-            />
-          </div>
-
-          {/* Zoom + fullscreen toolbar */}
-          <div className="absolute top-3 left-3 z-20 flex flex-col gap-1.5" onMouseDown={(e) => e.stopPropagation()} onWheel={(e) => e.stopPropagation()}>
-            <button onClick={zoomIn} title="Zoom in" className="w-9 h-9 rounded-md bg-card/95 backdrop-blur border border-border/60 shadow-card flex items-center justify-center hover:bg-accent">
-              <Plus className="w-4 h-4" />
-            </button>
-            <button onClick={zoomOut} title="Zoom out" className="w-9 h-9 rounded-md bg-card/95 backdrop-blur border border-border/60 shadow-card flex items-center justify-center hover:bg-accent">
-              <Minus className="w-4 h-4" />
-            </button>
-            <button onClick={resetView} title="Reset view" className="w-9 h-9 rounded-md bg-card/95 backdrop-blur border border-border/60 shadow-card flex items-center justify-center hover:bg-accent">
-              <Locate className="w-4 h-4" />
-            </button>
-            <button onClick={toggleFullscreen} title={isFullscreen ? "Exit fullscreen" : "Fullscreen"} className="w-9 h-9 rounded-md bg-card/95 backdrop-blur border border-border/60 shadow-card flex items-center justify-center hover:bg-accent">
-              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-            </button>
-            <div className="px-1.5 py-0.5 rounded bg-card/95 backdrop-blur border border-border/60 text-[10px] text-center font-semibold tabular-nums">
-              {Math.round(zoom * 100)}%
-            </div>
-          </div>
-
-          {/* Market quick-selector */}
-          <div className="absolute bottom-3 right-3 z-20 w-56 max-w-[calc(100vw-1.5rem)]" onMouseDown={(e) => e.stopPropagation()} onWheel={(e) => e.stopPropagation()}>
-            <div className="bg-card/95 backdrop-blur rounded-lg border border-border/60 shadow-elevated p-2">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 px-1 flex items-center gap-1">
-                <Target className="w-3 h-3 text-storm" /> Active market
-              </div>
-              <Select value={activeMarketId ?? "none"} onValueChange={(v) => setActiveMarketId(v === "none" ? null : v)}>
-                <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="No market selected" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">All territories</SelectItem>
-                  {markets.map(m => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-
-          {/* Legend */}
-          <div className="absolute bottom-3 left-3 bg-card/95 backdrop-blur rounded-lg p-3 shadow-card border border-border/60 text-[11px] space-y-2 max-w-[220px]">
-            {overlays.hail && (
-              <LegendRow title="Hail size">
-                {[0.75, 1.0, 1.5, 2.0].map(s => (
-                  <span key={s} className="inline-flex items-center gap-1">
-                    <span className="w-3 h-3 rounded" style={{ background: hailColor(s) }} /> {s}"
-                  </span>
-                ))}
-              </LegendRow>
-            )}
-            {overlays.wind && (
-              <LegendRow title="Wind mph">
-                {[50, 58, 65, 70].map(s => (
-                  <span key={s} className="inline-flex items-center gap-1">
-                    <span className="w-3 h-1.5 rounded" style={{ background: windColor(s) }} /> {s}+
-                  </span>
-                ))}
-              </LegendRow>
-            )}
-            {overlays.tornado && (
-              <LegendRow title="Tornado">
-                <span className="inline-flex items-center gap-1"><span className="w-4 h-0.5 bg-destructive" /> track</span>
-              </LegendRow>
-            )}
-            {overlays.rain && (
-              <LegendRow title="Rain"><span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded bg-storm/50" /> heavy</span></LegendRow>
-            )}
-            {overlays.leadHeatmap && (
-              <LegendRow title="Leads"><span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-warning/60 blur-[1px]" /> density</span></LegendRow>
-            )}
-            <div className="pt-1.5 border-t border-border/60 flex flex-wrap gap-x-3 gap-y-1">
-              <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-warning" /> ≥85</span>
-              <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-storm" /> 70–84</span>
-              <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-muted-foreground" /> &lt;70</span>
-            </div>
-          </div>
         </div>
       </div>
 

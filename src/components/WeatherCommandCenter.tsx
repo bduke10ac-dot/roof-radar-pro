@@ -11,6 +11,7 @@ import {
 import { type StormCell } from "@/lib/mockWeather";
 import { useWeather } from "@/contexts/WeatherContext";
 import { MapControls, useMapControls, baseMapBackground } from "@/components/MapControls";
+import { RealMap } from "@/components/RealMap";
 
 type LayerKey =
   | "radar" | "hail" | "wind" | "rain" | "lightning"
@@ -78,59 +79,21 @@ export function WeatherCommandCenter() {
         </div>
       </div>
 
-      {/* HERO MAP */}
-      <div className="relative rounded-xl overflow-hidden border border-border/60 shadow-card h-[320px] md:h-[460px]" style={baseMapBackground(mapCtl.state.base)}>
-        <div className="absolute top-3 right-3 z-30">
-          <MapControls
-            state={mapCtl.state}
-            onBase={mapCtl.setBase}
-            onPitch={mapCtl.setPitch}
-            onRotation={mapCtl.setRotation}
-            onToggle={mapCtl.toggle}
-          />
-        </div>
-        {layers.radar && (
-          <div className="absolute inset-0"
-               style={{ backgroundImage: "radial-gradient(circle at 30% 40%, hsl(var(--storm)/0.95), hsl(var(--storm)/0.4) 20%, transparent 38%), radial-gradient(circle at 70% 55%, hsl(var(--warning)/0.9), hsl(var(--warning)/0.35) 18%, transparent 32%), radial-gradient(circle at 80% 70%, hsl(var(--destructive)/0.95), hsl(var(--destructive)/0.4) 15%, transparent 28%), radial-gradient(circle at 20% 75%, hsl(var(--success)/0.7), transparent 22%)" }} />
-        )}
-        {layers.satellite && (
-          <div className="absolute inset-0 opacity-60 mix-blend-screen"
-               style={{ backgroundImage: "radial-gradient(ellipse at 50% 50%, white, transparent 60%)" }} />
-        )}
-        <svg className="absolute inset-0 w-full h-full opacity-20" preserveAspectRatio="none">
-          {[...Array(10)].map((_, i) => (
-            <g key={i}>
-              <line x1={`${i * 10}%`} y1="0" x2={`${i * 10}%`} y2="100%" stroke="white" strokeWidth="0.5" />
-              <line y1={`${i * 10}%`} x1="0" y2={`${i * 10}%`} x2="100%" stroke="white" strokeWidth="0.5" />
-            </g>
-          ))}
-        </svg>
-
-        {visibleCells.map(c => {
-          const Icon = CELL_ICON[c.type];
-          return (
-            <div key={c.id} className="absolute" style={{ left: `${c.x}%`, top: `${c.y}%`, transform: "translate(-50%,-50%)" }}>
-              {layers.tracks && (
-                <div className="absolute left-1/2 top-1/2 w-20 h-0.5 bg-white/70 origin-left"
-                     style={{ transform: `rotate(${c.headingDeg}deg)` }} />
-              )}
-              <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center shadow-lg ring-2 ring-white/40 ${CELL_COLOR[c.type]} animate-pulse`}>
-                <Icon className="w-4 h-4 md:w-5 md:h-5" />
-              </div>
-              <div className="mt-1 text-[10px] text-white bg-black/50 px-1.5 py-0.5 rounded whitespace-nowrap">
-                {c.label} · ETA {c.etaMinutes}m
-              </div>
-            </div>
-          );
-        })}
-
-        {/* Layer chips — hidden on mobile to keep the map readable */}
-        <div className="hidden md:flex absolute top-3 left-3 right-72 flex-wrap gap-1.5">
-          {LAYER_DEFS.map(({ key, label, icon: Icon }) => (
+      {/* HERO MAP — real Leaflet map with live RainViewer radar + NWS polygons */}
+      <div className="relative rounded-xl overflow-hidden border border-border/60 shadow-card h-[320px] md:h-[460px] w-full max-w-full">
+        <RealMap
+          showRadar={layers.radar}
+          pins={[]}
+          center={[37.5, -97]}
+          zoom={4}
+        />
+        {/* Layer chips — scrollable on mobile so they never overflow */}
+        <div className="absolute top-2 left-2 right-2 z-[500] flex gap-1.5 overflow-x-auto no-scrollbar">
+          {LAYER_DEFS.slice(0, 6).map(({ key, label, icon: Icon }) => (
             <button
               key={key}
               onClick={() => toggle(key)}
-              className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium border transition ${
+              className={`shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium border transition ${
                 layers[key]
                   ? "bg-white text-slate-900 border-white"
                   : "bg-black/40 text-white/80 border-white/20 hover:bg-black/60"

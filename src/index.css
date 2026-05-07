@@ -96,3 +96,17 @@
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }
+
+@layer base {
+  html, body, #root { max-width: 100vw; overflow-x: hidden; }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* Leaflet marker popup readability inside our themed UI */
+.leaflet-container { font-family: inherit; background: #0b1220; }
+.leaflet-popup-content-wrapper { border-radius: 0.5rem; }
+.leaflet-control-zoom a { color: hsl(var(--foreground)); }
