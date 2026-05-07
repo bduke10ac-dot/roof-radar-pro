@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Route, Layers, MapPin, Target, Flame, CloudHail, Wind, Tornado, CloudRain, TreeDeciduous, Plus, Minus, Maximize2, Minimize2, Locate, Ruler, Move } from "lucide-react";
+import { Route, Layers, MapPin, Target, Flame, CloudHail, Wind, Tornado, CloudRain, TreeDeciduous, Plus, Minus, Maximize2, Minimize2, Locate, Ruler, Move, Phone, Navigation, ClipboardCheck, MessageSquare, Loader2 } from "lucide-react";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { MapControls, useMapControls } from "@/components/MapControls";
 import { useMarkets } from "@/contexts/MarketContext";
 import { Button } from "@/components/ui/button";
@@ -10,8 +11,10 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { StormScoreBadge } from "@/components/StormScoreBadge";
+import { StormScoreBadge, StatusBadge, ConsentBadge } from "@/components/StormScoreBadge";
 import { useMarketLeads } from "@/hooks/useMarketFilter";
+import { useLeads } from "@/hooks/useLeads";
+import { useGeocodePending } from "@/hooks/useGeocodePending";
 import { useMapPrefs } from "@/hooks/useMapPrefs";
 import {
   DEFAULT_OVERLAYS, HAIL_THRESHOLDS, WIND_THRESHOLDS, EF_RATINGS, applyPreset, computeStormScore,
