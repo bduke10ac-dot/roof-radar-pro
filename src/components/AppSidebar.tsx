@@ -1,11 +1,11 @@
-import { LayoutDashboard, Users, Map, Send, ShieldCheck, Plug, CloudLightning, Target, Zap, CreditCard, Sparkles, BookOpen, Activity } from "lucide-react";
+import { LayoutDashboard, Users, Map, Send, ShieldCheck, Plug, CloudLightning, Target, Zap, CreditCard, Sparkles, BookOpen, Activity, UserCog, ShieldAlert } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Button } from "@/components/ui/button";
 
-export type View = "dashboard" | "storm-ops" | "leads" | "map" | "markets" | "campaigns" | "auto-campaigns" | "playbook" | "compliance" | "integrations" | "billing" | "readiness";
+export type View = "dashboard" | "storm-ops" | "leads" | "map" | "markets" | "campaigns" | "auto-campaigns" | "playbook" | "compliance" | "integrations" | "billing" | "team" | "admin-users" | "readiness";
 
 const items: { id: View; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean }[] = [
   { id: "dashboard", label: "Home", icon: LayoutDashboard },
