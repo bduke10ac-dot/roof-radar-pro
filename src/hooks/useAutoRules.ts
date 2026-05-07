@@ -76,6 +76,8 @@ function ruleToRow(r: Partial<AutoRule>): Record<string, unknown> {
   if (r.name !== undefined) m.rule_name = r.name;
   if (r.enabled !== undefined) m.is_active = r.enabled;
   if (r.marketId !== undefined) m.market_id = r.marketId;
+  if (r.marketScopeType !== undefined) m.market_scope_type = r.marketScopeType;
+  if (r.marketScopeValue !== undefined) m.market_scope_value = r.marketScopeValue;
   if (r.triggerHail !== undefined) m.trigger_hail = r.triggerHail;
   if (r.triggerWindGust !== undefined) m.trigger_wind_gust = r.triggerWindGust;
   if (r.triggerSustainedWind !== undefined) m.trigger_sustained_wind = r.triggerSustainedWind;
