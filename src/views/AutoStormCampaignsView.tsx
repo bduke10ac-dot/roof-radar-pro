@@ -13,8 +13,9 @@ import {
   Zap, Plus, CloudLightning, Wind, Tornado, CloudRain, AlertTriangle, Bolt,
   TreeDeciduous, PowerOff, Mail, MessageSquare, FileText, Footprints,
   ClipboardCheck, Send, ShieldCheck, ShieldAlert, Clock, Eye, Pencil, Trash2,
-  CheckCircle2, XCircle, Activity, Megaphone, Target, MapPin, Lock, PhoneCall,
+  CheckCircle2, XCircle, Activity, Megaphone, Target, MapPin, Lock, PhoneCall, Download,
 } from "lucide-react";
+import { toCsv, downloadCsv } from "@/lib/csv";
 import { useMarkets } from "@/contexts/MarketContext";
 import { useWeather } from "@/contexts/WeatherContext";
 import { useAutoRules, type AutoRule } from "@/hooks/useAutoRules";
