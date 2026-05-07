@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, GeoJSON, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, GeoJSON, useMap, Circle, CircleMarker } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { CloudOff, Radio, Loader2, Crosshair, LocateFixed } from "lucide-react";
 import { toast } from "sonner";
-import { Circle as LeafletCircle, CircleMarker } from "react-leaflet";
 
 // Fix default marker icons for bundlers (Vite)
 import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
