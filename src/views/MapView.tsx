@@ -243,6 +243,8 @@ export function MapView() {
         </Button>
       </header>
 
+      <NwsAlertsPanel />
+
       <div className="grid lg:grid-cols-[320px_1fr] gap-5">
         {/* Layer panel */}
         <div className="bg-card rounded-xl shadow-card border border-border/60 h-fit">
