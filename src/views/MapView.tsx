@@ -205,7 +205,7 @@ export function MapView() {
             {activeMarket && <> · in <span className="text-storm font-medium">{activeMarket.name}</span> ({allLeads.length} unscoped)</>}
           </p>
         </div>
-        <Button onClick={() => toast.success(`Route created with ${visible.length} stops`)}>
+        <Button onClick={() => toast.info("Route building coming soon", { description: `Will optimize a ${visible.length}-stop door-knock route across your reps.` })}>
           <Route className="w-4 h-4 mr-2" />Create door-knocking route
         </Button>
       </header>

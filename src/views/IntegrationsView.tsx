@@ -1,6 +1,8 @@
 import { Plug, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { integrations } from "@/lib/mockData";
+import { ComingSoon } from "@/components/ComingSoon";
+import { toast } from "sonner";
 
 const categoryColors: Record<string, string> = {
   Database: "bg-storm/10 text-storm",
@@ -35,13 +37,18 @@ export function IntegrationsView() {
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${categoryColors[cat] || "bg-muted"}`}>
                     <Plug className="w-5 h-5" />
                   </div>
-                  <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground inline-flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" /> Available
-                  </span>
+                  <ComingSoon />
                 </div>
                 <div className="font-semibold">{i.name}</div>
                 <div className="text-xs text-muted-foreground mt-1 mb-4 flex-1">{i.desc}</div>
-                <Button variant="outline" size="sm" className="w-full">Connect</Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => toast.info(`${i.name} integration coming soon`, { description: "Lovable Connectors will handle OAuth securely." })}
+                >
+                  Connect
+                </Button>
               </div>
             ))}
           </div>

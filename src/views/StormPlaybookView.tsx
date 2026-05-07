@@ -156,9 +156,10 @@ export function StormPlaybookView() {
           <h2 className="text-xl font-bold flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-storm" />
             Storm Playbook
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-warning/15 text-warning border border-warning/30 text-[10px] font-semibold uppercase tracking-wide">Demo data</span>
           </h2>
           <p className="text-xs text-muted-foreground">
-            Everything you need before, during, and after the storm — with NOAA outlooks, Farmers' Almanac long-range forecasts, and historical patterns.
+            Long-range outlooks &amp; historical events shown here are illustrative. Live NWS alerts are available on the Storm Operations page.
           </p>
         </div>
         <div className="flex items-center gap-2">

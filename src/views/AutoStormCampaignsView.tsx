@@ -19,6 +19,7 @@ import { useMarkets } from "@/contexts/MarketContext";
 import { useWeather } from "@/contexts/WeatherContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ComingSoon } from "@/components/ComingSoon";
 
 // =============== Types ===============
 
@@ -250,9 +251,11 @@ export function AutoStormCampaignsView() {
   };
 
   const approve = (t: TriggeredCampaign) => {
-    setTriggered(ts => ts.map(x => x.id === t.id ? { ...x, status: "sent" } : x));
+    setTriggered(ts => ts.map(x => x.id === t.id ? { ...x, status: "approved" } : x));
     setReviewing(null);
-    toast.success(`Approved & sent · ${t.eligible.toLocaleString()} eligible recipients`);
+    toast.info("Campaign approved · sending coming soon", {
+      description: "Connect Twilio/Resend to enable real sends. Approval is recorded in the audit log.",
+    });
   };
   const reject = (t: TriggeredCampaign) => {
     setTriggered(ts => ts.map(x => x.id === t.id ? { ...x, status: "rejected" } : x));
@@ -337,9 +340,11 @@ export function AutoStormCampaignsView() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
             <Zap className="w-6 h-6 text-storm" /> Auto Storm Campaigns
+            <ComingSoon label="Sending coming soon" />
           </h1>
           <p className="text-sm text-muted-foreground">
             Automatically trigger email, SMS, mail, and door-knock campaigns when damaging weather is detected in your markets.
+            Rule building & approval flow work today; actual delivery activates once Twilio/Resend are connected.
           </p>
         </div>
         <div className="flex items-center gap-2">

@@ -12,6 +12,7 @@ import { useMarkets, type SavedMarket } from "@/contexts/MarketContext";
 import { leadMatchesMarket } from "@/hooks/useMarketFilter";
 import { toast } from "sonner";
 import { useBrand } from "@/hooks/useBrand";
+import { ComingSoon } from "@/components/ComingSoon";
 
 type Segment = "all" | "state" | "region" | "county" | "city" | "zip" | "geofence" | "market" | "storm";
 const SEGMENTS: { value: Segment; label: string }[] = [
@@ -129,9 +130,9 @@ export function CampaignsView() {
 
       <Tabs defaultValue="email">
         <TabsList>
-          <TabsTrigger value="email"><Mail className="w-4 h-4 mr-2" />Email</TabsTrigger>
-          <TabsTrigger value="sms"><MessageSquare className="w-4 h-4 mr-2" />SMS</TabsTrigger>
-          <TabsTrigger value="aicall"><PhoneCall className="w-4 h-4 mr-2" />AI cold call</TabsTrigger>
+          <TabsTrigger value="email"><Mail className="w-4 h-4 mr-2" />Email <ComingSoon className="ml-2" /></TabsTrigger>
+          <TabsTrigger value="sms"><MessageSquare className="w-4 h-4 mr-2" />SMS <ComingSoon className="ml-2" /></TabsTrigger>
+          <TabsTrigger value="aicall"><PhoneCall className="w-4 h-4 mr-2" />AI cold call <ComingSoon className="ml-2" /></TabsTrigger>
         </TabsList>
 
         <TabsContent value="email" className="mt-5">
@@ -147,7 +148,7 @@ export function CampaignsView() {
                 <p className="text-xs text-muted-foreground mt-2">Must include an unsubscribe link. Use <code>{`{{unsubscribe_link}}`}</code>.</p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button disabled={!canSendEmail} onClick={() => toast.success(`Test email queued for ${emailEligible.length} contacts`)}>
+                <Button disabled={!canSendEmail} onClick={() => toast.info("Email sending coming soon", { description: "Connect Resend in Integrations to enable real sends." })}>
                   {canSendEmail ? <Send className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
                   {canSendEmail ? "Send test" : "Add unsubscribe link"}
                 </Button>
@@ -197,7 +198,7 @@ export function CampaignsView() {
                   disabled={!canSendSms}
                   onClick={() => {
                     if (!canSendSms) return;
-                    toast.success(`Test SMS queued for ${smsEligible.length} eligible contacts`);
+                    toast.info("SMS sending coming soon", { description: "Connect Twilio in Integrations to enable real sends." });
                   }}
                 >
                   {canSendSms ? <Send className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
@@ -294,7 +295,7 @@ export function CampaignsView() {
                   disabled={!canStartAiCalls}
                   onClick={() => {
                     if (!canStartAiCalls) return;
-                    toast.success(`AI cold-call campaign queued for ${aiCallEligible.length} numbers (goal: ${aiGoal.replace("_"," ")})`);
+                    toast.info("AI cold-call agent coming soon", { description: "Will use Lovable AI Gateway + Twilio Voice once enabled." });
                   }}
                 >
                   {canStartAiCalls ? <PhoneCall className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
