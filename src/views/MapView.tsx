@@ -385,15 +385,17 @@ export function MapView() {
           )}
         >
           <RealMap
-            pins={visible.map(l => ({
-              id: l.id,
-              lat: l.lat,
-              lng: l.lng,
-              title: l.ownerName,
-              subtitle: l.propertyAddress,
-              score: l.liveScore,
-              onClick: () => setSelectedLeadId(l.id),
-            }))}
+            pins={visible
+              .filter(l => Number.isFinite(l.lat) && Number.isFinite(l.lng) && l.lat !== 0 && l.lng !== 0)
+              .map(l => ({
+                id: l.id,
+                lat: l.lat,
+                lng: l.lng,
+                title: l.ownerName,
+                subtitle: l.propertyAddress,
+                score: l.liveScore,
+                onClick: () => setSelectedLeadId(l.id),
+              }))}
             showRadar={overlays.rain}
             nwsGeometry={
               nwsPolygons.length > 0
@@ -415,6 +417,9 @@ export function MapView() {
           )}
         </div>
       </div>
+
+      <GeocodeBanner />
+      <PinClickSheet selectedLeadId={selectedLeadId} onClose={() => setSelectedLeadId(null)} />
 
       <div className="bg-card rounded-xl p-4 shadow-card border border-border/60">
         <h3 className="font-semibold mb-3 text-sm">Properties in view</h3>
