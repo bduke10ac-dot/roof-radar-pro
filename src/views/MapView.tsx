@@ -129,13 +129,12 @@ export function MapView() {
   const onTouchMove = (e: React.TouchEvent) => {
     const ref = touchRef.current;
     if (ref.mode === "pinch" && e.touches.length >= 2) {
-      e.preventDefault();
       const d = distance(e.touches[0], e.touches[1]);
       const ratio = d / (ref.startDist || d);
       setZoom(Math.max(0.5, Math.min(4, +((ref.startZoom || 1) * ratio).toFixed(2))));
     } else if (ref.mode === "pan" && e.touches.length === 1) {
       const t = e.touches[0];
-      setPan({
+      queuePan({
         x: (ref.startPanX || 0) + (t.clientX - (ref.startX || 0)),
         y: (ref.startPanY || 0) + (t.clientY - (ref.startY || 0)),
       });
