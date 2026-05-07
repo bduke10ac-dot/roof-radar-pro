@@ -108,6 +108,8 @@ const Shell = () => {
           {view === "compliance" && <ComplianceView />}
           {view === "integrations" && <IntegrationsView />}
           {view === "billing" && <BillingView />}
+          {view === "team" && <TeamView />}
+          {view === "admin-users" && <AdminUsersView />}
           {view === "readiness" && <AppReadinessView />}
         </main>
       </div>
