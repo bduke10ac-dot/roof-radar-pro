@@ -162,13 +162,25 @@ export function LeadsView() {
               >
                 <Phone className="w-3.5 h-3.5" /> Call
               </a>
-              <a
-                href={l.phone ? `sms:${l.phone}` : undefined}
-                onClick={e => { e.stopPropagation(); if (!l.phone) e.preventDefault(); }}
-                className={`flex items-center justify-center gap-1.5 rounded-md border border-border/60 py-2 text-xs font-medium ${l.phone ? "active:bg-accent/50" : "opacity-40 pointer-events-none"}`}
-              >
-                <MessageSquare className="w-3.5 h-3.5" /> Text
-              </a>
+              {(() => {
+                const canText = !!l.phone && !!l.smsConsent && l.consent === "opted_in" && !l.dncStatus;
+                return (
+                  <a
+                    href={canText ? `sms:${l.phone}` : undefined}
+                    onClick={e => {
+                      e.stopPropagation();
+                      if (!canText) {
+                        e.preventDefault();
+                        toast.error("Cannot text this lead", { description: !l.phone ? "No phone on file." : l.dncStatus ? "Lead is on DNC list." : "No SMS consent on file." });
+                      }
+                    }}
+                    title={!l.phone ? "No phone" : l.dncStatus ? "DNC" : (!l.smsConsent || l.consent !== "opted_in") ? "No SMS consent" : "Send SMS"}
+                    className={`flex items-center justify-center gap-1.5 rounded-md border border-border/60 py-2 text-xs font-medium ${canText ? "active:bg-accent/50" : "opacity-40"}`}
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" /> Text
+                  </a>
+                );
+              })()}
               <a
                 href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(l.propertyAddress)}`}
                 target="_blank"
