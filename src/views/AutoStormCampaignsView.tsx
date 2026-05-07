@@ -596,8 +596,8 @@ export function AutoStormCampaignsView() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={simulate}>
-            <Activity className="w-4 h-4 mr-2" /> Simulate trigger
+          <Button variant="outline" onClick={simulate} disabled={simulating}>
+            <Activity className="w-4 h-4 mr-2" /> {simulating ? "Simulating…" : "Simulate trigger"}
           </Button>
           <Button onClick={openNew}>
             <Plus className="w-4 h-4 mr-2" /> New automation rule
