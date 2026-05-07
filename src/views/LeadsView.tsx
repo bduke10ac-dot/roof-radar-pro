@@ -1,19 +1,53 @@
-import { useState, useMemo } from "react";
-import { Search, Download } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { Search, Download, Save, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { StatusBadge, StormScoreBadge, ConsentBadge } from "@/components/StormScoreBadge";
 import { type Lead } from "@/lib/mockData";
 import { useMarketLeads } from "@/hooks/useMarketFilter";
+import { useLeads } from "@/hooks/useLeads";
+import { toast } from "sonner";
 
 export function LeadsView() {
   const { leads, allLeads, activeMarket } = useMarketLeads();
+  const { updateLead, deleteLead, refresh, loading, usingMock } = useLeads();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
   const [consent, setConsent] = useState("all");
   const [selected, setSelected] = useState<Lead | null>(null);
+  const [form, setForm] = useState<Partial<Lead>>({});
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (selected) setForm({
+      ownerName: selected.ownerName, propertyAddress: selected.propertyAddress,
+      mailingAddress: selected.mailingAddress, parcelId: selected.parcelId,
+      roofAge: selected.roofAge, homeValue: selected.homeValue,
+      stormScore: selected.stormScore, status: selected.status,
+      phone: selected.phone, email: selected.email, notes: selected.notes,
+      smsConsent: selected.smsConsent,
+    });
+  }, [selected]);
+
+  const handleSave = async () => {
+    if (!selected) return;
+    setBusy(true);
+    const ok = await updateLead(selected.id, form as any);
+    setBusy(false);
+    if (ok) { toast.success("Lead saved"); setSelected(null); }
+  };
+  const handleDelete = async () => {
+    if (!selected) return;
+    if (!confirm("Delete this lead?")) return;
+    setBusy(true);
+    const ok = await deleteLead(selected.id);
+    setBusy(false);
+    if (ok) { toast.success("Lead deleted"); setSelected(null); }
+  };
 
   const filtered = useMemo(() => leads.filter(l => {
     if (status !== "all" && l.status !== status) return false;
