@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Route, Layers, MapPin, Target, Flame, CloudHail, Wind, Tornado, CloudRain, TreeDeciduous, Plus, Minus, Maximize2, Minimize2, Locate, Ruler, Move } from "lucide-react";
+import { Route, Layers, MapPin, Target, Flame, CloudHail, Wind, Tornado, CloudRain, TreeDeciduous, Plus, Minus, Maximize2, Minimize2, Locate, Ruler, Move, Phone, Navigation, ClipboardCheck, MessageSquare, Loader2 } from "lucide-react";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { MapControls, useMapControls } from "@/components/MapControls";
 import { useMarkets } from "@/contexts/MarketContext";
 import { Button } from "@/components/ui/button";
@@ -10,8 +11,10 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { StormScoreBadge } from "@/components/StormScoreBadge";
+import { StormScoreBadge, StatusBadge, ConsentBadge } from "@/components/StormScoreBadge";
 import { useMarketLeads } from "@/hooks/useMarketFilter";
+import { useLeads } from "@/hooks/useLeads";
+import { useGeocodePending } from "@/hooks/useGeocodePending";
 import { useMapPrefs } from "@/hooks/useMapPrefs";
 import {
   DEFAULT_OVERLAYS, HAIL_THRESHOLDS, WIND_THRESHOLDS, EF_RATINGS, applyPreset, computeStormScore,
@@ -382,15 +385,17 @@ export function MapView() {
           )}
         >
           <RealMap
-            pins={visible.map(l => ({
-              id: l.id,
-              lat: l.lat,
-              lng: l.lng,
-              title: l.ownerName,
-              subtitle: l.propertyAddress,
-              score: l.liveScore,
-              onClick: () => setSelectedLeadId(l.id),
-            }))}
+            pins={visible
+              .filter(l => Number.isFinite(l.lat) && Number.isFinite(l.lng) && l.lat !== 0 && l.lng !== 0)
+              .map(l => ({
+                id: l.id,
+                lat: l.lat,
+                lng: l.lng,
+                title: l.ownerName,
+                subtitle: l.propertyAddress,
+                score: l.liveScore,
+                onClick: () => setSelectedLeadId(l.id),
+              }))}
             showRadar={overlays.rain}
             nwsGeometry={
               nwsPolygons.length > 0
@@ -412,6 +417,9 @@ export function MapView() {
           )}
         </div>
       </div>
+
+      <GeocodeBanner />
+      <PinClickSheet selectedLeadId={selectedLeadId} onClose={() => setSelectedLeadId(null)} />
 
       <div className="bg-card rounded-xl p-4 shadow-card border border-border/60">
         <h3 className="font-semibold mb-3 text-sm">Properties in view</h3>
@@ -522,5 +530,77 @@ function LegendRow({ title, children }: { title: string; children: React.ReactNo
       <div className="font-semibold mb-0.5">{title}</div>
       <div className="flex flex-wrap gap-x-2 gap-y-1 text-muted-foreground">{children}</div>
     </div>
+  );
+}
+
+function GeocodeBanner() {
+  const { pendingCount, running, run } = useGeocodePending();
+  if (pendingCount === 0) return null;
+  return (
+    <div className="rounded-xl border border-warning/40 bg-warning/10 p-3 flex flex-wrap items-center gap-3 text-sm">
+      <MapPin className="w-4 h-4 text-warning" />
+      <div className="flex-1 min-w-0">
+        <div className="font-medium">{pendingCount} lead{pendingCount === 1 ? "" : "s"} need geocoding</div>
+        <div className="text-xs text-muted-foreground">Imported leads need lat/lng before they appear as map pins.</div>
+      </div>
+      <Button size="sm" onClick={() => run(25)} disabled={running}>
+        {running ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />Geocoding…</> : `Geocode ${Math.min(pendingCount, 25)} now`}
+      </Button>
+    </div>
+  );
+}
+
+function PinClickSheet({ selectedLeadId, onClose }: { selectedLeadId: string | null; onClose: () => void }) {
+  const { leads, updateLeadStatus } = useLeads();
+  const lead = leads.find(l => l.id === selectedLeadId) ?? null;
+  const open = !!lead;
+  const canText = !!lead?.phone && !!lead?.smsConsent && lead?.consent === "opted_in" && !lead?.dncStatus;
+  return (
+    <Sheet open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+        {lead && (
+          <>
+            <SheetHeader>
+              <SheetTitle className="text-left">{lead.ownerName}</SheetTitle>
+            </SheetHeader>
+            <div className="mt-4 space-y-4 text-sm">
+              <div className="text-muted-foreground">{lead.propertyAddress}</div>
+              <div className="flex flex-wrap items-center gap-2">
+                <StatusBadge status={lead.status} />
+                <ConsentBadge consent={lead.consent} />
+                <StormScoreBadge score={lead.stormScore} />
+              </div>
+              <div className="grid grid-cols-4 gap-1.5">
+                <a href={lead.phone ? `tel:${lead.phone}` : undefined}
+                  className={`flex flex-col items-center justify-center gap-1 rounded-lg border border-border/60 py-3 text-[11px] font-medium ${lead.phone ? "active:bg-accent/50" : "opacity-40 pointer-events-none"}`}>
+                  <Phone className="w-4 h-4 text-storm" /> Call
+                </a>
+                <a href={canText ? `sms:${lead.phone}` : undefined}
+                  onClick={(e) => { if (!canText) { e.preventDefault(); toast.error("Cannot text", { description: !lead.phone ? "No phone on file." : lead.dncStatus ? "Lead is on DNC." : "No SMS consent." }); } }}
+                  className={`flex flex-col items-center justify-center gap-1 rounded-lg border border-border/60 py-3 text-[11px] font-medium ${canText ? "active:bg-accent/50" : "opacity-40"}`}>
+                  <MessageSquare className="w-4 h-4 text-storm" /> Text
+                </a>
+                <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(lead.propertyAddress)}`}
+                  target="_blank" rel="noreferrer"
+                  className="flex flex-col items-center justify-center gap-1 rounded-lg border border-border/60 py-3 text-[11px] font-medium active:bg-accent/50">
+                  <Navigation className="w-4 h-4 text-storm" /> Route
+                </a>
+                <button
+                  onClick={async () => {
+                    const ok = await updateLeadStatus(lead.id, "inspection");
+                    if (ok) { toast.success("Marked as inspection"); onClose(); }
+                  }}
+                  className="flex flex-col items-center justify-center gap-1 rounded-lg border border-border/60 py-3 text-[11px] font-medium active:bg-accent/50">
+                  <ClipboardCheck className="w-4 h-4 text-storm" /> Inspected
+                </button>
+              </div>
+              <div className="text-xs text-muted-foreground border-t border-border/60 pt-3">
+                Roof age <b className="text-foreground">{lead.roofAge}y</b> · Home value <b className="text-foreground">${(lead.homeValue/1000).toFixed(0)}k</b>
+              </div>
+            </div>
+          </>
+        )}
+      </SheetContent>
+    </Sheet>
   );
 }

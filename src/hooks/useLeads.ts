@@ -115,11 +115,8 @@ export function useLeads() {
 
     if (error) {
       setError(error.message);
-      setLeads(mockLeads);
-      setUsingMock(true);
-    } else if (!data || data.length === 0) {
-      setLeads(mockLeads);
-      setUsingMock(true);
+      setLeads([]);
+      setUsingMock(false);
     } else {
       setLeads((data as unknown as Row[]).map(rowToLead));
       setUsingMock(false);
