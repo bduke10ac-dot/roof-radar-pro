@@ -223,11 +223,13 @@ export function AutoStormCampaignsView() {
       : a.triggerWindGust || a.triggerSustainedWind ? "wind"
       : a.triggerHeavyRain ? "leak"
       : "severe";
+    const scopeType = (a.marketScopeType as Rule["marketScope"]["type"]) ?? "saved";
+    const scopeValue = a.marketScopeValue ?? market?.name ?? "";
     return {
       id: a.id,
       name: a.name,
       enabled: a.enabled,
-      marketScope: { type: "saved", value: market?.name ?? "" },
+      marketScope: { type: scopeType, value: scopeValue },
       triggers: {
         hail: a.triggerHail, windGust: a.triggerWindGust, windSustained: a.triggerSustainedWind,
         tornadoWarning: a.triggerTornado, tornadoWatch: false,
@@ -255,11 +257,13 @@ export function AutoStormCampaignsView() {
   };
 
   const localRuleToDb = (r: Rule): Omit<AutoRule, "id" | "createdAt"> => {
-    const market = markets.find(m => m.name === r.marketScope.value);
+    const market = r.marketScope.type === "saved" ? markets.find(m => m.name === r.marketScope.value) : null;
     return {
       name: r.name,
       enabled: r.enabled,
       marketId: market?.id ?? null,
+      marketScopeType: r.marketScope.type,
+      marketScopeValue: r.marketScope.value,
       triggerHail: r.triggers.hail,
       triggerWindGust: r.triggers.windGust,
       triggerSustainedWind: r.triggers.windSustained,
