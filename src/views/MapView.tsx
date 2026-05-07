@@ -27,7 +27,23 @@ export function MapView() {
   const [minScore, setMinScore] = useState([60]);
   const [zip, setZip] = useState("all");
   const [radius, setRadius] = useState([35]);
+  const { prefs, update: updatePrefs } = useMapPrefs();
   const [overlays, setOverlays] = useState<OverlayState>(DEFAULT_OVERLAYS);
+
+  // Hydrate overlay toggles from saved map preferences once they load
+  const hydrated = useRef(false);
+  useEffect(() => {
+    if (hydrated.current) return;
+    hydrated.current = true;
+    setOverlays(o => ({
+      ...o,
+      hail: prefs.hail_layer_enabled,
+      wind: prefs.wind_layer_enabled,
+      rain: prefs.rain_layer_enabled,
+      tornado: prefs.tornado_layer_enabled,
+      leadHeatmap: prefs.lead_heatmap_enabled,
+    }));
+  }, [prefs]);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isFullscreen, setIsFullscreen] = useState(false);
