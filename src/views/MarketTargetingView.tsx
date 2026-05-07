@@ -283,7 +283,7 @@ function SliderRow({ label, value, onChange, max, step, format }: { label: strin
   );
 }
 
-function SavedMarketCard({ market, active, onActivate, onDelete }: { market: SavedMarket; active: boolean; onActivate: () => void; onDelete: () => void }) {
+function SavedMarketCard({ market, active, onActivate, onEdit, onDelete }: { market: SavedMarket; active: boolean; onActivate: () => void; onEdit?: () => void; onDelete: () => void }) {
   const score = scoreMarket(market, {
     stormCount: 3, avgHail: market.filters.minHail ?? 1.2, avgWind: market.filters.minWind ?? 60,
     affectedHomes: market.filters.minAffected ?? 1500, avgRoofAge: market.filters.minRoofAge ?? 14,
