@@ -24,6 +24,7 @@ import { NwsAlertsPanel } from "@/components/NwsAlertsPanel";
 import { useNwsAlerts } from "@/hooks/useNwsAlerts";
 import { RadarTileOverlay } from "@/components/RadarTileOverlay";
 import { useDemoMode } from "@/contexts/DemoModeContext";
+import { RealMap } from "@/components/RealMap";
 
 export function MapView() {
   const { demoMode } = useDemoMode();
