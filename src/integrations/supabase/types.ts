@@ -372,6 +372,7 @@ export type Database = {
           created_at: string
           id: string
           job_address: string | null
+          owner_id: string | null
           polygon_geojson: Json | null
           radius_miles: number | null
         }
@@ -380,6 +381,7 @@ export type Database = {
           created_at?: string
           id?: string
           job_address?: string | null
+          owner_id?: string | null
           polygon_geojson?: Json | null
           radius_miles?: number | null
         }
@@ -388,6 +390,7 @@ export type Database = {
           created_at?: string
           id?: string
           job_address?: string | null
+          owner_id?: string | null
           polygon_geojson?: Json | null
           radius_miles?: number | null
         }
