@@ -597,18 +597,25 @@ export function MapView() {
               style={{ left: `${l.pos.x}%`, top: `${l.pos.y}%`, width: 120, height: 120, background: "hsl(var(--warning) / 0.45)" }} />
           ))}
 
-          {/* Pins */}
-          {visible.map(l => {
+          {/* Pins (limit visible to first 200 for performance) */}
+          {visible.slice(0, 200).map(l => {
             const color = l.liveScore >= 85 ? "bg-warning" : l.liveScore >= 70 ? "bg-storm" : "bg-muted-foreground";
             return (
-              <div key={l.id} className="absolute -translate-x-1/2 -translate-y-full group" style={{ left: `${l.pos.x}%`, top: `${l.pos.y}%` }}>
-                <div className="relative">
+              <div key={l.id} className="absolute -translate-x-1/2 -translate-y-full group focus-within:z-10" style={{ left: `${l.pos.x}%`, top: `${l.pos.y}%` }}>
+                <button
+                  type="button"
+                  tabIndex={0}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  className="relative block focus:outline-none"
+                  aria-label={`${l.ownerName} · storm score ${l.liveScore}`}
+                >
                   {l.liveScore >= 85 && <div className={`absolute inset-0 rounded-full ${color} animate-pulse-ring`} />}
-                  <div className={`relative w-6 h-6 rounded-full ${color} ring-2 ring-white shadow-elevated flex items-center justify-center`}>
+                  <div className={`relative w-7 h-7 md:w-6 md:h-6 rounded-full ${color} ring-2 ring-white shadow-elevated flex items-center justify-center`}>
                     <MapPin className="w-3 h-3 text-white" />
                   </div>
-                </div>
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded bg-primary text-primary-foreground text-[11px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition shadow-elevated">
+                </button>
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded bg-primary text-primary-foreground text-[11px] whitespace-nowrap opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition shadow-elevated pointer-events-none">
                   {l.ownerName} · score {l.liveScore}
                   {(l.inHail || l.inWind || l.inTornado || l.inRain) && <> · {[l.inHail && "hail", l.inWind && "wind", l.inTornado && "tornado", l.inRain && "rain"].filter(Boolean).join("+")}</>}
                 </div>
