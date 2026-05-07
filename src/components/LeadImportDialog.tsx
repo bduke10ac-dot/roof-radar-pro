@@ -108,6 +108,13 @@ export function LeadImportDialog({ trigger }: { trigger?: React.ReactNode }) {
                 <Lock className="w-3 h-3" /> Log in to actually save imported leads.
               </div>
             )}
+            <div className="flex items-center justify-between text-xs border-t border-border/60 pt-3">
+              <span className="text-muted-foreground">Need a starting template?</span>
+              <Button variant="ghost" size="sm" type="button"
+                onClick={() => downloadCsv("roofradar-sample-leads.csv", SAMPLE_CSV)}>
+                <Download className="w-3.5 h-3.5 mr-1.5" /> Download sample CSV
+              </Button>
+            </div>
           </div>
         )}
 
