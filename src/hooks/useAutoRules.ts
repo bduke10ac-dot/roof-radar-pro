@@ -43,6 +43,8 @@ function rowToRule(r: any): AutoRule {
     name: r.rule_name,
     enabled: !!r.is_active,
     marketId: r.market_id,
+    marketScopeType: r.market_scope_type,
+    marketScopeValue: r.market_scope_value,
     triggerHail: !!r.trigger_hail,
     triggerWindGust: !!r.trigger_wind_gust,
     triggerSustainedWind: !!r.trigger_sustained_wind,
