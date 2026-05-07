@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, GeoJSON, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { CloudOff, Radio } from "lucide-react";
+import { CloudOff, Radio, Loader2, Crosshair } from "lucide-react";
 
 // Fix default marker icons for bundlers (Vite)
 import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
@@ -58,19 +58,23 @@ function useRainViewerFrame(enabled: boolean) {
   return { frame, error };
 }
 
-function FitBounds({ pins, center }: { pins?: RealMapPin[]; center?: [number, number] }) {
+/** Fits bounds ONCE on initial pin load, then stops fighting user. */
+function FitBoundsOnce({ pins, center, trigger }: { pins?: RealMapPin[]; center?: [number, number]; trigger: number }) {
   const map = useMap();
+  const didInitial = useRef(false);
   useEffect(() => {
+    if (didInitial.current && trigger === 0) return;
     if (pins && pins.length > 1) {
       const bounds = L.latLngBounds(pins.map(p => [p.lat, p.lng] as [number, number]));
       map.fitBounds(bounds, { padding: [40, 40], maxZoom: 11 });
     } else if (pins && pins.length === 1) {
       map.setView([pins[0].lat, pins[0].lng], 11);
-    } else if (center) {
+    } else if (center && !didInitial.current) {
       map.setView(center, map.getZoom());
     }
+    didInitial.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pins?.length, center?.[0], center?.[1]]);
+  }, [trigger]);
   return null;
 }
 
@@ -100,8 +104,10 @@ export function RealMap({
   children,
 }: RealMapProps) {
   const { frame, error: radarError } = useRainViewerFrame(showRadar);
+  const radarLoading = showRadar && !frame && !radarError;
   const renderedPins = useMemo(() => pins.slice(0, 500), [pins]);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [fitTrigger, setFitTrigger] = useState(1);
 
   return (
     <div ref={containerRef} className={`relative w-full h-full min-h-[360px] max-w-full overflow-hidden ${className ?? ""}`}>
@@ -142,15 +148,30 @@ export function RealMap({
             </Popup>
           </Marker>
         ))}
-        <FitBounds pins={renderedPins} center={center} />
+        <FitBoundsOnce pins={renderedPins} center={center} trigger={fitTrigger} />
         <InvalidateSize />
         {children}
       </MapContainer>
+
+      {renderedPins.length > 0 && (
+        <button
+          onClick={() => setFitTrigger(t => t + 1)}
+          className="absolute top-2 right-2 z-[400] bg-card/95 backdrop-blur border border-border/60 rounded-md px-2 py-1.5 text-[11px] font-medium shadow-card flex items-center gap-1 hover:bg-accent active:scale-95"
+          title="Fit to leads"
+        >
+          <Crosshair className="w-3 h-3 text-storm" /> Fit to leads
+        </button>
+      )}
+
       {showRadar && (
         <div className="absolute bottom-2 left-2 z-[400] pointer-events-none">
           {radarError ? (
             <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded px-2 py-1 text-[10px] flex items-center gap-1">
               <CloudOff className="w-3 h-3" /> Radar unavailable
+            </div>
+          ) : radarLoading ? (
+            <div className="bg-card/90 backdrop-blur border border-border/60 rounded px-2 py-1 text-[10px] flex items-center gap-1">
+              <Loader2 className="w-3 h-3 animate-spin text-storm" /> Loading radar…
             </div>
           ) : frame ? (
             <div className="bg-card/90 backdrop-blur border border-border/60 rounded px-2 py-1 text-[10px] flex items-center gap-1">
