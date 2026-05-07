@@ -184,10 +184,29 @@ export function RealMap({
             </Popup>
           </Marker>
         ))}
+        {userLoc && (
+          <>
+            <Circle center={[userLoc.lat, userLoc.lng]} radius={userLoc.accuracy}
+              pathOptions={{ color: "#2563eb", weight: 1, fillColor: "#2563eb", fillOpacity: 0.12 }} />
+            <CircleMarker center={[userLoc.lat, userLoc.lng]} radius={7}
+              pathOptions={{ color: "#fff", weight: 2, fillColor: "#2563eb", fillOpacity: 1 }}>
+              <Popup>You are here</Popup>
+            </CircleMarker>
+          </>
+        )}
         <FitBoundsOnce pins={renderedPins} center={center} trigger={fitTrigger} />
         <InvalidateSize />
         {children}
       </MapContainer>
+
+      <button
+        onClick={handleLocate}
+        disabled={locating}
+        title="My location"
+        className="absolute bottom-3 right-3 z-[400] bg-card/95 backdrop-blur border border-border/60 rounded-full w-11 h-11 flex items-center justify-center shadow-elevated hover:bg-accent active:scale-95 disabled:opacity-60"
+      >
+        {locating ? <Loader2 className="w-5 h-5 animate-spin text-storm" /> : <LocateFixed className="w-5 h-5 text-storm" />}
+      </button>
 
       {renderedPins.length > 0 && (
         <button
