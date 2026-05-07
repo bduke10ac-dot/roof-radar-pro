@@ -1,17 +1,14 @@
-import { Activity, Users, Map as MapIcon, Send, BookOpen, Target, Zap, ArrowRight, CloudLightning, CheckCircle2, Circle } from "lucide-react";
+import { Activity, Users, Map as MapIcon, Send, BookOpen, Target, Zap, ArrowRight, CloudLightning, CheckCircle2, Circle, Download } from "lucide-react";
 import type { View } from "@/components/AppSidebar";
 import { useMarkets } from "@/contexts/MarketContext";
 import { useLeads } from "@/hooks/useLeads";
 import { useAutoRules } from "@/hooks/useAutoRules";
 
-const tiles: { id: View; label: string; desc: string; icon: typeof Activity }[] = [
-  { id: "storm-ops", label: "Storm Operations", desc: "Live weather, lead boost, pipeline & opportunities", icon: Activity },
-  { id: "map", label: "Map", desc: "Radar, geofences and impacted homes", icon: MapIcon },
-  { id: "leads", label: "Leads", desc: "Browse and manage homeowner leads", icon: Users },
-  { id: "markets", label: "Market Targeting", desc: "Define and prioritize service markets", icon: Target },
-  { id: "campaigns", label: "Campaigns", desc: "Send SMS and email outreach", icon: Send },
-  { id: "auto-campaigns", label: "Auto Storm Campaigns", desc: "Triggered automation when storms hit", icon: Zap },
-  { id: "playbook", label: "Storm Playbook", desc: "Before / during / after the storm", icon: BookOpen },
+const moreTiles: { id: View; label: string; icon: typeof Activity }[] = [
+  { id: "markets", label: "Markets", icon: Target },
+  { id: "auto-campaigns", label: "Automations", icon: Zap },
+  { id: "campaigns", label: "Campaigns", icon: Send },
+  { id: "playbook", label: "Playbook", icon: BookOpen },
 ];
 
 export function DashboardView({ onNavigate }: { onNavigate?: (v: View) => void }) {
@@ -25,101 +22,117 @@ export function DashboardView({ onNavigate }: { onNavigate?: (v: View) => void }
   const completed = [hasMarket, hasLeads, hasRule].filter(Boolean).length;
   const showSetup = completed < 3;
 
+  // Decide the "next best action" so the user doesn't have to.
+  const nextAction = !hasMarket
+    ? { label: "Create your first market", desc: "Define the area you serve.", view: "markets" as View }
+    : !hasLeads
+    ? { label: "Import leads", desc: "Upload a CSV of homeowners.", view: "leads" as View }
+    : { label: "Find storm-impacted homes", desc: "Open the map and start working.", view: "map" as View };
+
   return (
-    <div className="space-y-6">
-      <header className="rounded-xl bg-gradient-storm text-white p-5 md:p-7 shadow-elevated">
-        <div className="flex items-center gap-2 text-xs uppercase tracking-wider opacity-80">
-          <CloudLightning className="w-4 h-4" /> RoofRadar
+    <div className="space-y-5">
+      {/* Compact hero */}
+      <header className="rounded-xl bg-gradient-storm text-white p-4 md:p-6 shadow-elevated">
+        <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider opacity-80">
+          <CloudLightning className="w-3.5 h-3.5" /> RoofRadar
         </div>
-        <h1 className="text-2xl md:text-3xl font-bold mt-2">
-          Everything you need to be ready for the next storm — and be the first to assist after.
+        <h1 className="text-lg md:text-2xl font-bold mt-1.5 leading-tight">
+          Be first on the roof after every storm.
         </h1>
-        <p className="text-sm md:text-base opacity-90 mt-2">
-          Maximize every opportunity. From radar to roof — prepare, track, target, contact, close.
-        </p>
         {activeMarket && (
-          <p className="text-xs opacity-80 mt-3 inline-flex items-center gap-1">
-            <Target className="w-3 h-3" /> Active market: {activeMarket.name}
+          <p className="text-[11px] opacity-80 mt-2 inline-flex items-center gap-1">
+            <Target className="w-3 h-3" /> {activeMarket.name}
           </p>
         )}
       </header>
 
+      {/* Storm Workflow — Storms · Leads · Export */}
+      <section>
+        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Storm workflow</div>
+        <div className="grid grid-cols-3 gap-2 md:gap-3">
+          <WorkflowTile icon={CloudLightning} label="Storms" desc="Active areas" onClick={() => onNavigate?.("storm-ops")} />
+          <WorkflowTile icon={Users} label="Leads" desc={`${leads.length} homes`} onClick={() => onNavigate?.("leads")} />
+          <WorkflowTile icon={Download} label="Export" desc="Send & route" onClick={() => onNavigate?.("campaigns")} />
+        </div>
+      </section>
+
+      {/* Sticky Next Action */}
+      <button
+        onClick={() => onNavigate?.(nextAction.view)}
+        className="w-full text-left bg-storm text-white rounded-xl p-4 shadow-elevated active:scale-[0.99] transition-transform flex items-center gap-3"
+      >
+        <div className="w-11 h-11 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
+          <ArrowRight className="w-5 h-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-[10px] uppercase tracking-wider opacity-80">Next step</div>
+          <div className="font-semibold truncate">{nextAction.label}</div>
+          <div className="text-xs opacity-80 truncate">{nextAction.desc}</div>
+        </div>
+      </button>
+
       {showSetup && (
-        <section className="bg-card rounded-xl p-5 shadow-card border border-border/60">
+        <section className="bg-card rounded-xl p-4 shadow-card border border-border/60">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold">Get started</h2>
-            <span className="text-xs text-muted-foreground tabular-nums">{completed} of 3 complete</span>
+            <h2 className="text-sm font-semibold">Get started</h2>
+            <span className="text-xs text-muted-foreground tabular-nums">{completed} of 3</span>
           </div>
-          <div className="grid sm:grid-cols-3 gap-3">
-            <SetupItem
-              done={hasMarket}
-              label="Create your first market"
-              desc="Define the geography you serve."
-              cta="Open Market Targeting"
-              onClick={() => onNavigate?.("markets")}
-            />
-            <SetupItem
-              done={hasLeads}
-              label="Import or add leads"
-              desc="Upload a CSV of homeowners."
-              cta="Open Leads"
-              onClick={() => onNavigate?.("leads")}
-            />
-            <SetupItem
-              done={hasRule}
-              label="Set up an auto storm campaign"
-              desc="Trigger outreach when storms hit."
-              cta="Open Auto Campaigns"
-              onClick={() => onNavigate?.("auto-campaigns")}
-            />
+          <div className="space-y-2">
+            <SetupItem done={hasMarket} label="Create your first market" onClick={() => onNavigate?.("markets")} />
+            <SetupItem done={hasLeads} label="Import or add leads" onClick={() => onNavigate?.("leads")} />
+            <SetupItem done={hasRule} label="Set up an auto storm campaign" onClick={() => onNavigate?.("auto-campaigns")} />
           </div>
         </section>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-        {tiles.map(t => {
-          const Icon = t.icon;
-          return (
-            <button
-              key={t.id}
-              onClick={() => onNavigate?.(t.id)}
-              className="group text-left bg-card rounded-xl p-4 md:p-5 shadow-card border border-border/60 hover:border-storm/50 hover:shadow-elevated transition-all active:scale-[0.99]"
-            >
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-md bg-storm/10 text-storm flex items-center justify-center shrink-0">
-                  <Icon className="w-5 h-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold flex items-center gap-1">
-                    {t.label}
-                    <ArrowRight className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">{t.desc}</p>
-                </div>
-              </div>
-            </button>
-          );
-        })}
-      </div>
+      {/* Secondary — collapsed list */}
+      <section>
+        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">More tools</div>
+        <div className="grid grid-cols-2 gap-2">
+          {moreTiles.map(t => {
+            const Icon = t.icon;
+            return (
+              <button
+                key={t.id}
+                onClick={() => onNavigate?.(t.id)}
+                className="flex items-center gap-2 bg-card border border-border/60 rounded-lg px-3 py-3 text-sm font-medium active:bg-accent/50 transition-colors min-h-[52px]"
+              >
+                <Icon className="w-4 h-4 text-storm" />
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }
 
-function SetupItem({ done, label, desc, cta, onClick }: { done: boolean; label: string; desc: string; cta: string; onClick: () => void }) {
+function WorkflowTile({ icon: Icon, label, desc, onClick }: { icon: typeof Activity; label: string; desc: string; onClick: () => void }) {
   return (
-    <div className={`rounded-lg border p-3 ${done ? "border-success/40 bg-success/5" : "border-border bg-background"}`}>
-      <div className="flex items-start gap-2">
-        {done ? <CheckCircle2 className="w-4 h-4 text-success mt-0.5 shrink-0" /> : <Circle className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />}
-        <div className="min-w-0 flex-1">
-          <div className={`text-sm font-medium ${done ? "line-through text-muted-foreground" : ""}`}>{label}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">{desc}</div>
-          {!done && (
-            <button onClick={onClick} className="mt-2 text-xs font-medium text-storm hover:underline inline-flex items-center gap-1">
-              {cta} <ArrowRight className="w-3 h-3" />
-            </button>
-          )}
-        </div>
+    <button
+      onClick={onClick}
+      className="bg-card border border-border/60 rounded-xl p-3 md:p-4 shadow-card hover:border-storm/50 active:scale-[0.98] transition-all flex flex-col items-start min-h-[88px]"
+    >
+      <div className="w-9 h-9 rounded-md bg-storm/10 text-storm flex items-center justify-center">
+        <Icon className="w-5 h-5" />
       </div>
-    </div>
+      <div className="mt-2 text-sm font-semibold">{label}</div>
+      <div className="text-[11px] text-muted-foreground">{desc}</div>
+    </button>
+  );
+}
+
+function SetupItem({ done, label, onClick }: { done: boolean; label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={done ? undefined : onClick}
+      disabled={done}
+      className={`w-full flex items-center gap-2.5 rounded-lg border p-3 text-left min-h-[48px] ${done ? "border-success/40 bg-success/5" : "border-border bg-background active:bg-accent/40"}`}
+    >
+      {done ? <CheckCircle2 className="w-4 h-4 text-success shrink-0" /> : <Circle className="w-4 h-4 text-muted-foreground shrink-0" />}
+      <span className={`text-sm flex-1 ${done ? "line-through text-muted-foreground" : "font-medium"}`}>{label}</span>
+      {!done && <ArrowRight className="w-4 h-4 text-storm" />}
+    </button>
   );
 }
