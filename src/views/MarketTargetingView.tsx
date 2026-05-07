@@ -88,9 +88,10 @@ export function MarketTargetingView() {
     }
   ), [draft, minHail, minWind, minAffected, minRoofAge, minHomeValue, minClaim]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) { toast.error("Give this market a name"); return; }
-    const m = saveMarket(draft);
+    const m = await saveMarket(draft);
+    if (!m) return;
     toast.success(`Saved "${m.name}"`);
     setName(""); setStates([]); setRegions([]); setCounties([]); setCities([]); setZips([]);
     setMinHail([0]); setMinWind([0]); setMinConfidence([0]); setMinAffected([0]);
