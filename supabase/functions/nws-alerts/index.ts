@@ -1,6 +1,10 @@
 // Real NOAA / National Weather Service alerts feed.
 // Public API — no key required. https://www.weather.gov/documentation/services-web-api
-import { corsHeaders } from "@supabase/supabase-js/cors";
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+};
 
 interface NwsFeature {
   id: string;
