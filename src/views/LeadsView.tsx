@@ -266,12 +266,23 @@ export function LeadsView() {
                   >
                     <Phone className="w-4 h-4 text-storm" /> Call
                   </a>
-                  <a
-                    href={selected.phone ? `sms:${selected.phone}` : undefined}
-                    className={`flex flex-col items-center justify-center gap-1 rounded-lg border border-border/60 py-2.5 text-[11px] font-medium ${selected.phone ? "active:bg-accent/50" : "opacity-40 pointer-events-none"}`}
-                  >
-                    <MessageSquare className="w-4 h-4 text-storm" /> Text
-                  </a>
+                  {(() => {
+                    const canText = !!selected.phone && !!selected.smsConsent && selected.consent === "opted_in" && !selected.dncStatus;
+                    return (
+                      <a
+                        href={canText ? `sms:${selected.phone}` : undefined}
+                        onClick={e => {
+                          if (!canText) {
+                            e.preventDefault();
+                            toast.error("Cannot text this lead", { description: !selected.phone ? "No phone on file." : selected.dncStatus ? "Lead is on DNC list." : "No SMS consent on file." });
+                          }
+                        }}
+                        className={`flex flex-col items-center justify-center gap-1 rounded-lg border border-border/60 py-2.5 text-[11px] font-medium ${canText ? "active:bg-accent/50" : "opacity-40"}`}
+                      >
+                        <MessageSquare className="w-4 h-4 text-storm" /> Text
+                      </a>
+                    );
+                  })()}
                   <a
                     href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(selected.propertyAddress)}`}
                     target="_blank"
