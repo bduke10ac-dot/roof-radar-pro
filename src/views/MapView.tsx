@@ -20,6 +20,8 @@ import {
 } from "@/lib/stormOverlays";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { NwsAlertsPanel } from "@/components/NwsAlertsPanel";
+import { useNwsAlerts } from "@/hooks/useNwsAlerts";
 
 export function MapView() {
   const { leads, allLeads, activeMarket } = useMarketLeads();
