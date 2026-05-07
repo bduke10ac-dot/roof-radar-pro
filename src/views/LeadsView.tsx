@@ -133,30 +133,71 @@ export function LeadsView() {
           {selected && (
             <>
               <SheetHeader>
-                <SheetTitle>{selected.ownerName}</SheetTitle>
+                <SheetTitle>Edit lead</SheetTitle>
               </SheetHeader>
               <div className="mt-5 space-y-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <StatusBadge status={selected.status} />
+                <div className="flex items-center gap-2 flex-wrap">
+                  <StatusBadge status={(form.status as Lead["status"]) ?? selected.status} />
                   <ConsentBadge consent={selected.consent} />
-                  <StormScoreBadge score={selected.stormScore} />
+                  <StormScoreBadge score={form.stormScore ?? selected.stormScore} />
+                  {usingMock && (
+                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground">demo data — log in to persist</span>
+                  )}
                 </div>
-                <DetailRow label="Property" value={selected.propertyAddress} />
-                <DetailRow label="Mailing" value={selected.mailingAddress} />
-                <DetailRow label="Parcel ID" value={selected.parcelId} />
+
+                <Field label="Owner name">
+                  <Input value={form.ownerName ?? ""} onChange={e => setForm(f => ({ ...f, ownerName: e.target.value }))} />
+                </Field>
+                <Field label="Property address">
+                  <Input value={form.propertyAddress ?? ""} onChange={e => setForm(f => ({ ...f, propertyAddress: e.target.value }))} />
+                </Field>
+                <Field label="Mailing address">
+                  <Input value={form.mailingAddress ?? ""} onChange={e => setForm(f => ({ ...f, mailingAddress: e.target.value }))} />
+                </Field>
                 <div className="grid grid-cols-2 gap-3">
-                  <DetailRow label="Roof age" value={`${selected.roofAge} years`} />
-                  <DetailRow label="Home value" value={`$${selected.homeValue.toLocaleString()}`} />
-                  <DetailRow label="Hail size" value={`${selected.hailSize}"`} />
-                  <DetailRow label="Wind speed" value={`${selected.windSpeed} mph`} />
-                  <DetailRow label="Last storm" value={selected.lastStormDate} />
-                  <DetailRow label="ZIP" value={selected.zip} />
+                  <Field label="Parcel ID">
+                    <Input value={form.parcelId ?? ""} onChange={e => setForm(f => ({ ...f, parcelId: e.target.value }))} />
+                  </Field>
+                  <Field label="Status">
+                    <Select value={(form.status as string) ?? selected.status} onValueChange={v => setForm(f => ({ ...f, status: v as Lead["status"] }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {["new","contacted","inspection","quoted","won","lost"].map(s => (
+                          <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field label="Roof age (years)">
+                    <Input type="number" value={form.roofAge ?? 0} onChange={e => setForm(f => ({ ...f, roofAge: Number(e.target.value) }))} />
+                  </Field>
+                  <Field label="Home value ($)">
+                    <Input type="number" value={form.homeValue ?? 0} onChange={e => setForm(f => ({ ...f, homeValue: Number(e.target.value) }))} />
+                  </Field>
+                  <Field label="Storm score">
+                    <Input type="number" value={form.stormScore ?? 0} onChange={e => setForm(f => ({ ...f, stormScore: Number(e.target.value) }))} />
+                  </Field>
+                  <Field label="ZIP">
+                    <Input value={selected.zip} disabled />
+                  </Field>
                 </div>
-                <DetailRow label="Phone" value={selected.phone} />
-                <DetailRow label="Email" value={selected.email} />
-                <div>
-                  <div className="text-xs text-muted-foreground mb-1">Notes</div>
-                  <div className="p-3 rounded-md bg-muted text-foreground/90 min-h-[60px]">{selected.notes || "—"}</div>
+                <Field label="Phone">
+                  <Input value={form.phone ?? ""} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+                </Field>
+                <Field label="Email">
+                  <Input value={form.email ?? ""} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+                </Field>
+                <Field label="Notes">
+                  <Textarea value={form.notes ?? ""} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={4} />
+                </Field>
+
+                <div className="flex items-center justify-between pt-2 border-t border-border/60">
+                  <Button variant="ghost" onClick={handleDelete} disabled={busy || usingMock}>
+                    <Trash2 className="w-4 h-4 mr-2 text-destructive" /> Delete
+                  </Button>
+                  <Button onClick={handleSave} disabled={busy || usingMock}>
+                    <Save className="w-4 h-4 mr-2" /> {busy ? "Saving…" : "Save changes"}
+                  </Button>
                 </div>
               </div>
             </>
