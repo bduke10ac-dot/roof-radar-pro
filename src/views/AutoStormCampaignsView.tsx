@@ -19,6 +19,7 @@ import { useMarkets } from "@/contexts/MarketContext";
 import { useWeather } from "@/contexts/WeatherContext";
 import { useAutoRules, type AutoRule } from "@/hooks/useAutoRules";
 import { useTriggeredCampaigns, type TriggeredCampaignRow } from "@/hooks/useTriggeredCampaigns";
+import { useMarketAutomationPrefs } from "@/hooks/useMarketAutomationPrefs";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -93,7 +94,7 @@ const TRIGGER_DEFS: { key: TriggerKey; label: string; icon: any }[] = [
 const CHANNEL_DEFS: { key: ChannelKey; label: string; icon: any }[] = [
   { key: "email",      label: "Email",                    icon: Mail },
   { key: "sms",        label: "SMS (consent required)",   icon: MessageSquare },
-  { key: "aiCall",     label: "AI cold call (book inspection)", icon: PhoneCall },
+  { key: "aiCall",     label: "AI-assisted follow-up (Coming Soon)", icon: PhoneCall },
   { key: "directMail", label: "Direct mail export",       icon: FileText },
   { key: "doorKnock",  label: "Door-knocking route",      icon: Footprints },
   { key: "crmTask",    label: "CRM task",                 icon: ClipboardCheck },
@@ -209,6 +210,7 @@ export function AutoStormCampaignsView() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<Rule>(DEFAULT_RULE());
   const [reviewing, setReviewing] = useState<TriggeredCampaign | null>(null);
+  const [confirmingSend, setConfirmingSend] = useState<TriggeredCampaign | null>(null);
   const [savingRule, setSavingRule] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<Rule | null>(null);
   const [simulating, setSimulating] = useState(false);
@@ -236,11 +238,8 @@ export function AutoStormCampaignsView() {
     }));
   }, [user, dbTriggered, localTriggered]);
 
-  // Per-market master switch — automation only watches markets that are turned on
-  const [marketAutomation, setMarketAutomation] = useState<Record<string, boolean>>(
-    () => Object.fromEntries(markets.map(m => [m.name, true]))
-  );
-
+  // Per-market master switch — persisted per user via Supabase
+  const { prefs: marketAutomation, setMarketEnabled } = useMarketAutomationPrefs();
   const isMarketArmed = (name: string) => marketAutomation[name] !== false;
 
   // Map AutoRule (DB) -> local Rule shape so the existing UI works unchanged
@@ -396,8 +395,14 @@ export function AutoStormCampaignsView() {
     if (!ok) toast.error("Toggle failed — reverted");
   };
 
-  const approve = async (t: TriggeredCampaign) => {
+  // Step 1 — open confirmation modal
+  const approve = (t: TriggeredCampaign) => {
     setReviewing(null);
+    setConfirmingSend(t);
+  };
+  // Step 2 — actually mark approved (sending is gated until SMS/Email connectors are added)
+  const finalApprove = async (t: TriggeredCampaign) => {
+    setConfirmingSend(null);
     if (user) {
       const ok = await setTriggeredStatus(t.id, "approved");
       if (!ok) return;
@@ -405,11 +410,12 @@ export function AutoStormCampaignsView() {
       setLocalTriggered(ts => ts.map(x => x.id === t.id ? { ...x, status: "approved" } : x));
     }
     toast.info("Campaign approved · sending coming soon", {
-      description: "Connect Twilio/Resend to enable real sends. Approval is recorded in the audit log.",
+      description: "Approval is recorded. Real SMS/Email sending activates once Twilio/Resend are connected.",
     });
   };
   const reject = async (t: TriggeredCampaign) => {
     setReviewing(null);
+    setConfirmingSend(null);
     if (user) {
       const ok = await setTriggeredStatus(t.id, "rejected");
       if (!ok) return;
@@ -643,9 +649,10 @@ export function AutoStormCampaignsView() {
                       {ruleCount} rule{ruleCount === 1 ? "" : "s"} · {on ? "Watching live weather" : "Paused"}
                     </div>
                   </div>
-                  <Switch checked={on} onCheckedChange={v => {
-                    setMarketAutomation(s => ({ ...s, [m.name]: v }));
-                    toast.success(`${m.name} auto-campaigns ${v ? "on" : "off"}`);
+                  <Switch checked={on} onCheckedChange={async v => {
+                    const ok = await setMarketEnabled(m.name, m.id ?? null, v);
+                    if (ok) toast.success(`${m.name} auto-campaigns ${v ? "on" : "off"}`);
+                    else toast.error("Could not save preference");
                   }} />
                 </label>
               );
@@ -986,7 +993,7 @@ export function AutoStormCampaignsView() {
               )}
               {editing.channels.aiCall && (
                 <p className="text-[11px] text-storm mt-1.5 flex items-center gap-1">
-                  <PhoneCall className="w-3 h-3" /> AI voice agent will cold-call non-DNC homeowners to book free roof & exterior inspections. TCPA-safe: skips DNC, respects calling hours, leaves voicemail with opt-out, logs every call.
+                  <PhoneCall className="w-3 h-3" /> AI-assisted follow-up for eligible contacts only, subject to consent, DNC, and calling-hour rules. (Coming Soon — not active yet.)
                 </p>
               )}
             </div>
@@ -1082,6 +1089,48 @@ export function AutoStormCampaignsView() {
             <Button variant="outline" onClick={() => setPendingDelete(null)}>Cancel</Button>
             <Button variant="destructive" onClick={confirmDeleteRule}>Delete rule</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Final send confirmation */}
+      <Dialog open={!!confirmingSend} onOpenChange={v => !v && setConfirmingSend(null)}>
+        <DialogContent className="max-w-md">
+          {confirmingSend && (() => {
+            const t = confirmingSend;
+            const smsCount = t.channels.includes("sms") ? (t.smsEligible ?? 0) : 0;
+            const emailCount = t.channels.includes("email") ? Math.max(0, t.eligible - smsCount) : 0;
+            return (
+              <>
+                <DialogHeader><DialogTitle>Confirm campaign send</DialogTitle></DialogHeader>
+                <div className="space-y-3 text-sm">
+                  <p className="text-muted-foreground">
+                    Review the estimated impact before approving <span className="font-semibold text-foreground">{t.ruleName}</span>.
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Field label="Estimated SMS" value={smsCount.toLocaleString()} />
+                    <Field label="Estimated Email" value={emailCount.toLocaleString()} />
+                    <Field label="Blocked by compliance" value={(t.blocked ?? 0).toLocaleString()} />
+                    <Field label="Channels" value={t.channels.join(", ") || "—"} />
+                  </div>
+                  <Card className="p-3 bg-warning/5 border-warning/30">
+                    <div className="flex items-start gap-2">
+                      <ShieldAlert className="w-4 h-4 text-warning shrink-0 mt-0.5" />
+                      <p className="text-[11px] text-muted-foreground">
+                        SMS sends only to contacts with consent and not on DNC; quiet hours and STOP language enforced server-side.
+                        Email skips unsubscribed addresses and includes an unsubscribe footer. Real delivery activates once Twilio/Resend are connected — until then, approval is recorded for audit only.
+                      </p>
+                    </div>
+                  </Card>
+                </div>
+                <DialogFooter className="gap-2">
+                  <Button variant="outline" onClick={() => setConfirmingSend(null)}>Cancel</Button>
+                  <Button onClick={() => finalApprove(t)}>
+                    <CheckCircle2 className="w-4 h-4 mr-2" /> Confirm & approve
+                  </Button>
+                </DialogFooter>
+              </>
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </div>
