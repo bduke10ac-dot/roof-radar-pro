@@ -398,6 +398,16 @@ export function MapView() {
             </div>
           )}
 
+          {/* Live precipitation radar tiles (RainViewer · falls back to "radar unavailable") */}
+          {(overlays.rain || mapCtl.state.layers.stormRain) && <RadarTileOverlay opacity={0.5} />}
+
+          {/* Demo overlay banner — visible whenever mock layers are rendering */}
+          {demoMode && (overlays.hail || overlays.wind || overlays.tornado) && (
+            <div className="absolute top-2 left-2 z-10 bg-warning text-warning-foreground text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider shadow">
+              Demo Overlay · Mock storm data
+            </div>
+          )}
+
           {/* SVG overlays */}
           <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
             {/* Live NWS alert polygons (real NOAA data) */}
