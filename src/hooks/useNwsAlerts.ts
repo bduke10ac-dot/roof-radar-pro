@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+
 
 export interface NwsAlert {
   id: string;
@@ -33,21 +33,18 @@ export function useNwsAlerts(state?: string, event?: string, refreshMs = 60_000)
 
     async function load() {
       try {
-        const { data, error } = await supabase.functions.invoke("nws-alerts", {
-          body: { state, event },
-          method: "GET",
-        }).catch(async () => {
-          // functions.invoke uses POST; fall back to direct GET
-          const url = new URL(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/nws-alerts`);
-          if (state) url.searchParams.set("state", state);
-          if (event) url.searchParams.set("event", event);
-          const res = await fetch(url.toString(), {
-            headers: { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-          });
-          return { data: await res.json(), error: res.ok ? null : { message: `HTTP ${res.status}` } };
+        const url = new URL(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/nws-alerts`);
+        if (state) url.searchParams.set("state", state);
+        if (event) url.searchParams.set("event", event);
+        const res = await fetch(url.toString(), {
+          headers: {
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
         });
         if (!active) return;
-        if (error) throw error;
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
         setAlerts((data?.alerts ?? []) as NwsAlert[]);
         setError(null);
       } catch (e) {
