@@ -35,7 +35,7 @@ export interface AutoRule {
   createdAt: string;
 }
 
-const ROW_COLS = "id, rule_name, is_active, market_id, trigger_hail, trigger_wind_gust, trigger_sustained_wind, trigger_tornado, trigger_severe_weather, trigger_heavy_rain, trigger_lightning, hail_threshold, wind_gust_threshold, sustained_wind_threshold, rain_threshold, tornado_alert_type, severe_alert_type, allow_email, allow_sms, allow_direct_mail_export, allow_door_knock_route, allow_crm_task, allow_rep_push_notification, require_manual_approval, send_timing, message_template, created_at";
+const ROW_COLS = "id, rule_name, is_active, market_id, market_scope_type, market_scope_value, trigger_hail, trigger_wind_gust, trigger_sustained_wind, trigger_tornado, trigger_severe_weather, trigger_heavy_rain, trigger_lightning, hail_threshold, wind_gust_threshold, sustained_wind_threshold, rain_threshold, tornado_alert_type, severe_alert_type, allow_email, allow_sms, allow_direct_mail_export, allow_door_knock_route, allow_crm_task, allow_rep_push_notification, require_manual_approval, send_timing, message_template, created_at"; trigger_wind_gust, trigger_sustained_wind, trigger_tornado, trigger_severe_weather, trigger_heavy_rain, trigger_lightning, hail_threshold, wind_gust_threshold, sustained_wind_threshold, rain_threshold, tornado_alert_type, severe_alert_type, allow_email, allow_sms, allow_direct_mail_export, allow_door_knock_route, allow_crm_task, allow_rep_push_notification, require_manual_approval, send_timing, message_template, created_at";
 
 function rowToRule(r: any): AutoRule {
   return {
