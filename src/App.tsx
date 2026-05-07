@@ -14,6 +14,9 @@ import Checkout from "./pages/Checkout.tsx";
 import Privacy from "./pages/Privacy.tsx";
 import Terms from "./pages/Terms.tsx";
 import Support from "./pages/Support.tsx";
+import Consent from "./pages/Consent.tsx";
+import WeatherDisclaimer from "./pages/WeatherDisclaimer.tsx";
+import DataSources from "./pages/DataSources.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -34,6 +37,9 @@ const App = () => (
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/support" element={<Support />} />
+            <Route path="/consent" element={<Consent />} />
+            <Route path="/weather-disclaimer" element={<WeatherDisclaimer />} />
+            <Route path="/data-sources" element={<DataSources />} />
             <Route path="/app" element={<RequireAuth><Index /></RequireAuth>} />
             <Route path="*" element={<NotFound />} />
           </Routes>

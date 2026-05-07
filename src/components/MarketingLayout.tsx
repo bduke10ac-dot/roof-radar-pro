@@ -25,11 +25,14 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
       <footer className="border-t border-border py-8 text-sm text-muted-foreground">
         <div className="max-w-6xl mx-auto px-4 flex flex-wrap items-center justify-between gap-3">
           <div>© {new Date().getFullYear()} RoofRadar. All rights reserved.</div>
-          <nav className="flex gap-4">
+          <nav className="flex gap-4 flex-wrap">
             <Link to="/pricing" className="hover:text-foreground">Pricing</Link>
             <Link to="/support" className="hover:text-foreground">Support</Link>
             <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
             <Link to="/terms" className="hover:text-foreground">Terms</Link>
+            <Link to="/consent" className="hover:text-foreground">Consent</Link>
+            <Link to="/weather-disclaimer" className="hover:text-foreground">Weather data</Link>
+            <Link to="/data-sources" className="hover:text-foreground">Data sources</Link>
           </nav>
         </div>
       </footer>
