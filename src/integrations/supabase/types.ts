@@ -992,28 +992,34 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          invitee_email: string | null
           owner_user_id: string
           permissions: Json | null
           role: string | null
-          team_user_id: string
+          status: string
+          team_user_id: string | null
           territory: string | null
         }
         Insert: {
           created_at?: string
           id?: string
+          invitee_email?: string | null
           owner_user_id: string
           permissions?: Json | null
           role?: string | null
-          team_user_id: string
+          status?: string
+          team_user_id?: string | null
           territory?: string | null
         }
         Update: {
           created_at?: string
           id?: string
+          invitee_email?: string | null
           owner_user_id?: string
           permissions?: Json | null
           role?: string | null
-          team_user_id?: string
+          status?: string
+          team_user_id?: string | null
           territory?: string | null
         }
         Relationships: []
