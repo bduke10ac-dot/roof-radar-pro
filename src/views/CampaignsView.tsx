@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { useMarketLeads } from "@/hooks/useMarketFilter";
 import { useMarkets, type SavedMarket } from "@/contexts/MarketContext";
 import { leadMatchesMarket } from "@/hooks/useMarketFilter";
+import { useCampaignDrafts } from "@/hooks/useCampaignDrafts";
 import { toast } from "sonner";
 import { useBrand } from "@/hooks/useBrand";
 import { ComingSoon } from "@/components/ComingSoon";
@@ -31,6 +32,7 @@ export function CampaignsView() {
   const { leads, allLeads } = useMarketLeads();
   const { markets, activeMarket } = useMarkets();
   const { brand } = useBrand();
+  const { saveDraft, saving } = useCampaignDrafts();
   const [segment, setSegment] = useState<Segment>(activeMarket ? "market" : "all");
   const [marketId, setMarketId] = useState<string>(activeMarket?.id ?? markets[0]?.id ?? "");
   const [emailSubj, setEmailSubj] = useState("Free roof inspection after the April 22 storm");
@@ -152,7 +154,10 @@ export function CampaignsView() {
                   {canSendEmail ? <Send className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
                   {canSendEmail ? "Send test" : "Add unsubscribe link"}
                 </Button>
-                <Button variant="outline" onClick={() => toast.success("Template saved")}><Save className="w-4 h-4 mr-2" />Save template</Button>
+                <Button variant="outline" disabled={saving} onClick={async () => {
+                  const ok = await saveDraft({ name: emailSubj || "Email campaign", channel: "email", message: emailBody });
+                  if (ok) toast.success("Email template saved");
+                }}><Save className="w-4 h-4 mr-2" />{saving ? "Saving…" : "Save template"}</Button>
                 <Button variant="outline" onClick={() => toast.success(`CSV exported (${emailEligible.length} contacts)`)}><Download className="w-4 h-4 mr-2" />Export CSV</Button>
                 <Button variant="outline" onClick={() => toast.success(`Direct mail / door-knock list: ${coldExportable.length} addresses`)}>
                   <Download className="w-4 h-4 mr-2" />Cold outreach (mail/door)
@@ -204,7 +209,10 @@ export function CampaignsView() {
                   {canSendSms ? <Send className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
                   {canSendSms ? "Send test" : "SMS locked"}
                 </Button>
-                <Button variant="outline" onClick={() => toast.success("Template saved")}><Save className="w-4 h-4 mr-2" />Save template</Button>
+                <Button variant="outline" disabled={saving} onClick={async () => {
+                  const ok = await saveDraft({ name: "SMS campaign", channel: "sms", message: smsBody });
+                  if (ok) toast.success("SMS template saved");
+                }}><Save className="w-4 h-4 mr-2" />{saving ? "Saving…" : "Save template"}</Button>
                 <Button variant="outline" onClick={() => toast.success(`CSV exported (${smsEligible.length} eligible)`)}><Download className="w-4 h-4 mr-2" />Export CSV</Button>
               </div>
             </div>
@@ -301,7 +309,10 @@ export function CampaignsView() {
                   {canStartAiCalls ? <PhoneCall className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
                   {!aiCallEnabled ? "Enable to start" : !hasOptOut ? "Add opt-out language" : "Start AI calls"}
                 </Button>
-                <Button variant="outline" onClick={() => toast.success("Script template saved")}><Save className="w-4 h-4 mr-2" />Save script</Button>
+                <Button variant="outline" disabled={saving} onClick={async () => {
+                  const ok = await saveDraft({ name: "AI cold-call script", channel: "aicall", message: aiScript });
+                  if (ok) toast.success("Script template saved");
+                }}><Save className="w-4 h-4 mr-2" />{saving ? "Saving…" : "Save script"}</Button>
                 <Button variant="outline" onClick={() => toast.success(`Call list exported (${aiCallEligible.length} numbers)`)}><Download className="w-4 h-4 mr-2" />Export call list</Button>
               </div>
             </div>
