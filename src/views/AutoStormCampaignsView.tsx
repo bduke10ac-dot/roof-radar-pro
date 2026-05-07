@@ -19,6 +19,7 @@ import { useMarkets } from "@/contexts/MarketContext";
 import { useWeather } from "@/contexts/WeatherContext";
 import { useAutoRules, type AutoRule } from "@/hooks/useAutoRules";
 import { useTriggeredCampaigns, type TriggeredCampaignRow } from "@/hooks/useTriggeredCampaigns";
+import { useMarketAutomationPrefs } from "@/hooks/useMarketAutomationPrefs";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
