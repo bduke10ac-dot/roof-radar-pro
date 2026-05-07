@@ -237,11 +237,8 @@ export function AutoStormCampaignsView() {
     }));
   }, [user, dbTriggered, localTriggered]);
 
-  // Per-market master switch — automation only watches markets that are turned on
-  const [marketAutomation, setMarketAutomation] = useState<Record<string, boolean>>(
-    () => Object.fromEntries(markets.map(m => [m.name, true]))
-  );
-
+  // Per-market master switch — persisted per user via Supabase
+  const { prefs: marketAutomation, setMarketEnabled } = useMarketAutomationPrefs();
   const isMarketArmed = (name: string) => marketAutomation[name] !== false;
 
   // Map AutoRule (DB) -> local Rule shape so the existing UI works unchanged
