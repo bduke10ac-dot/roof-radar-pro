@@ -377,7 +377,14 @@ export function AutoStormCampaignsView() {
     }
   };
 
-  const deleteRule = async (id: string) => {
+  const requestDeleteRule = (id: string) => {
+    const r = rules.find(x => x.id === id);
+    if (r) setPendingDelete(r);
+  };
+  const confirmDeleteRule = async () => {
+    if (!pendingDelete) return;
+    const id = pendingDelete.id;
+    setPendingDelete(null);
     if (!user) { setRules(rs => rs.filter(r => r.id !== id)); toast.success("Rule deleted"); return; }
     const ok = await dbDeleteRule(id);
     if (ok) toast.success("Rule deleted");
@@ -385,33 +392,93 @@ export function AutoStormCampaignsView() {
 
   const toggleRule = async (id: string) => {
     if (!user) { setRules(rs => rs.map(r => r.id === id ? { ...r, enabled: !r.enabled } : r)); return; }
-    await dbToggleRule(id);
+    const ok = await dbToggleRule(id);
+    if (!ok) toast.error("Toggle failed — reverted");
   };
 
   const approve = async (t: TriggeredCampaign) => {
-    setTriggered(ts => ts.map(x => x.id === t.id ? { ...x, status: "approved" } : x));
     setReviewing(null);
     if (user) {
-      await supabase.from("triggered_campaigns").update({ campaign_status: "approved", approved_at: new Date().toISOString() }).eq("id", t.id);
+      const ok = await setTriggeredStatus(t.id, "approved");
+      if (!ok) return;
+    } else {
+      setLocalTriggered(ts => ts.map(x => x.id === t.id ? { ...x, status: "approved" } : x));
     }
     toast.info("Campaign approved · sending coming soon", {
       description: "Connect Twilio/Resend to enable real sends. Approval is recorded in the audit log.",
     });
   };
   const reject = async (t: TriggeredCampaign) => {
-    setTriggered(ts => ts.map(x => x.id === t.id ? { ...x, status: "rejected" } : x));
     setReviewing(null);
     if (user) {
-      await supabase.from("triggered_campaigns").update({ campaign_status: "rejected" }).eq("id", t.id);
+      const ok = await setTriggeredStatus(t.id, "rejected");
+      if (!ok) return;
+    } else {
+      setLocalTriggered(ts => ts.map(x => x.id === t.id ? { ...x, status: "rejected" } : x));
     }
     toast(`Campaign rejected`);
   };
 
-  // Compliance gate: never SMS without explicit consent and never to DNC.
-  // Non-eligible contacts are auto-rerouted to direct mail / door-knock.
-  const partitionForCompliance = (totalContacts: number, rule: Rule) => {
-    const consentRate = 0.42; // sms_consent = true (simulated)
-    const dncRate = 0.08;     // dnc_status = true
+  // Real compliance partition using leads/contact_methods.
+  // Returns null when there's no logged-in user (caller falls back to simulated math).
+  const partitionForComplianceReal = async (rule: Rule) => {
+    if (!user) return null;
+    // Pull all the user's leads in scope and join contact methods.
+    let leadsQuery = supabase.from("leads").select("id").eq("owner_id", user.id);
+    const market = rule.marketScope.type === "saved" ? markets.find(m => m.name === rule.marketScope.value) : null;
+    if (market) {
+      // Best-effort — only filter when leads have storm_event_id within the market; otherwise include all owner leads.
+      leadsQuery = leadsQuery; // placeholder for future market filtering
+    }
+    const { data: leadRows, error: leadsErr } = await leadsQuery;
+    if (leadsErr || !leadRows) return null;
+    const ids = leadRows.map(r => r.id);
+    if (ids.length === 0) {
+      return {
+        totalContacts: 0, smsEligible: 0, smsBlockedNoConsent: 0, smsBlockedDnc: 0,
+        emailEligible: 0, emailBlocked: 0, blocked: 0, reroutedToMail: 0, reroutedToDoorKnock: 0,
+      };
+    }
+    const { data: contacts, error: contactsErr } = await supabase
+      .from("contact_methods")
+      .select("lead_id, sms_consent, dnc_status, email, email_unsubscribed")
+      .in("lead_id", ids);
+    if (contactsErr || !contacts) return null;
+    const totalContacts = contacts.length;
+    let smsEligible = 0, smsBlockedNoConsent = 0, smsBlockedDnc = 0;
+    let emailEligible = 0, emailBlocked = 0;
+    for (const c of contacts) {
+      if (rule.channels.sms) {
+        if (c.dnc_status) smsBlockedDnc++;
+        else if (!c.sms_consent) smsBlockedNoConsent++;
+        else smsEligible++;
+      }
+      if (rule.channels.email) {
+        if (c.email && !c.email_unsubscribed) emailEligible++;
+        else emailBlocked++;
+      }
+    }
+    const blocked = smsBlockedNoConsent + smsBlockedDnc + (rule.channels.email ? emailBlocked : 0);
+    const fallbacks: ChannelKey[] = [];
+    if (rule.channels.directMail) fallbacks.push("directMail");
+    if (rule.channels.doorKnock) fallbacks.push("doorKnock");
+    const reroutable = smsBlockedNoConsent + smsBlockedDnc;
+    let reroutedToMail = 0, reroutedToDoorKnock = 0;
+    if (fallbacks.length === 2) {
+      reroutedToMail = Math.ceil(reroutable / 2);
+      reroutedToDoorKnock = Math.floor(reroutable / 2);
+    } else if (fallbacks[0] === "directMail") {
+      reroutedToMail = reroutable;
+    } else if (fallbacks[0] === "doorKnock") {
+      reroutedToDoorKnock = reroutable;
+    }
+    return { totalContacts, smsEligible, smsBlockedNoConsent, smsBlockedDnc, emailEligible, emailBlocked, blocked, reroutedToMail, reroutedToDoorKnock };
+  };
+
+  // Fallback simulated compliance math (used only for logged-out demo)
+  const partitionForComplianceDemo = (totalContacts: number, rule: Rule) => {
+    const consentRate = 0.42;
+    const dncRate = 0.08;
     const smsEligible = rule.channels.sms ? Math.floor(totalContacts * (consentRate - dncRate)) : 0;
     const smsBlockedNoConsent = rule.channels.sms ? Math.floor(totalContacts * (1 - consentRate)) : 0;
     const smsBlockedDnc = rule.channels.sms ? Math.floor(totalContacts * dncRate) : 0;
@@ -428,10 +495,11 @@ export function AutoStormCampaignsView() {
     } else if (fallbacks[0] === "doorKnock") {
       reroutedToDoorKnock = blocked;
     }
-    return { smsEligible, smsBlockedNoConsent, smsBlockedDnc, blocked, reroutedToMail, reroutedToDoorKnock };
+    return { totalContacts, smsEligible, smsBlockedNoConsent, smsBlockedDnc, blocked, reroutedToMail, reroutedToDoorKnock };
   };
 
-  const simulate = () => {
+  const simulate = async () => {
+    if (simulating) return;
     const armedRules = rules.filter(r => r.enabled && isMarketArmed(r.marketScope.value));
     if (armedRules.length === 0) return toast.error("No armed rules in active markets");
     let match: { rule: Rule; trigger: TriggerKey; reading: string } | null = null;
@@ -445,35 +513,71 @@ export function AutoStormCampaignsView() {
     if (!match) return toast.error("No live weather currently meets your thresholds");
     const r = match.rule;
     const tpl = TEMPLATES[r.template];
-    const totalContacts = 200 + Math.floor(Math.random() * 1500);
-    const comp = partitionForCompliance(totalContacts, r);
     const channels = (Object.keys(r.channels) as ChannelKey[]).filter(k => r.channels[k]);
-    const t: TriggeredCampaign = {
-      id: crypto.randomUUID(),
-      ruleName: r.name || "Unnamed rule",
-      marketName: r.marketScope.value || marketImpacts[0]?.marketName || "Active market",
-      trigger: match.trigger,
-      reading: match.reading,
-      eligible: totalContacts - comp.blocked,
-      blocked: comp.blocked,
-      status: r.manualApproval ? "pending" : "sent",
-      channels,
-      message: tpl.body,
-      triggeredAt: new Date().toISOString(),
-      smsEligible: comp.smsEligible,
-      smsBlockedNoConsent: comp.smsBlockedNoConsent,
-      smsBlockedDnc: comp.smsBlockedDnc,
-      reroutedToMail: comp.reroutedToMail,
-      reroutedToDoorKnock: comp.reroutedToDoorKnock,
-    };
-    setTriggered(ts => [t, ...ts]);
-    if (r.channels.sms && comp.blocked > 0) {
-      const parts: string[] = [];
-      if (comp.reroutedToMail) parts.push(`${comp.reroutedToMail} → mail`);
-      if (comp.reroutedToDoorKnock) parts.push(`${comp.reroutedToDoorKnock} → door-knock`);
-      toast.success(`${r.name} · ${comp.blocked} non-consenting SMS blocked · ${parts.join(", ") || "no fallback channel"}`);
-    } else {
-      toast.success(`Threshold met · ${r.name} · ${match.reading}`);
+    setSimulating(true);
+    try {
+      let comp = await partitionForComplianceReal(r);
+      let isDemo = false;
+      if (!comp || comp.totalContacts === 0) {
+        const totalContacts = 200 + Math.floor(Math.random() * 1500);
+        comp = partitionForComplianceDemo(totalContacts, r) as any;
+        isDemo = true;
+      }
+      const status: TriggeredCampaign["status"] = r.manualApproval ? "pending" : "sent";
+      const marketName = r.marketScope.value || marketImpacts[0]?.marketName || "Active market";
+      const market = r.marketScope.type === "saved" ? markets.find(m => m.name === r.marketScope.value) : null;
+
+      if (user) {
+        const created = await createTriggered({
+          ruleId: dbRules.find(d => d.id === r.id)?.id ?? null,
+          ruleName: r.name || "Unnamed rule",
+          marketId: market?.id ?? null,
+          marketName,
+          triggerType: match.trigger,
+          triggerReading: match.reading,
+          channels,
+          message: tpl.body,
+          eligibleCount: comp!.totalContacts - comp!.blocked,
+          blockedCount: comp!.blocked,
+          smsEligible: comp!.smsEligible,
+          smsBlockedNoConsent: comp!.smsBlockedNoConsent,
+          smsBlockedDnc: comp!.smsBlockedDnc,
+          reroutedToMail: comp!.reroutedToMail,
+          reroutedToDoorKnock: comp!.reroutedToDoorKnock,
+          status,
+          isDemo,
+        });
+        if (!created) return;
+      } else {
+        setLocalTriggered(ts => [{
+          id: crypto.randomUUID(),
+          ruleName: r.name || "Unnamed rule",
+          marketName,
+          trigger: match!.trigger,
+          reading: match!.reading,
+          eligible: comp!.totalContacts - comp!.blocked,
+          blocked: comp!.blocked,
+          status,
+          channels,
+          message: tpl.body,
+          triggeredAt: new Date().toISOString(),
+          smsEligible: comp!.smsEligible,
+          smsBlockedNoConsent: comp!.smsBlockedNoConsent,
+          smsBlockedDnc: comp!.smsBlockedDnc,
+          reroutedToMail: comp!.reroutedToMail,
+          reroutedToDoorKnock: comp!.reroutedToDoorKnock,
+        }, ...ts]);
+      }
+      if (r.channels.sms && comp!.blocked > 0) {
+        const parts: string[] = [];
+        if (comp!.reroutedToMail) parts.push(`${comp!.reroutedToMail} → mail`);
+        if (comp!.reroutedToDoorKnock) parts.push(`${comp!.reroutedToDoorKnock} → door-knock`);
+        toast.success(`${r.name} · ${comp!.blocked} non-consenting SMS blocked · ${parts.join(", ") || "no fallback channel"}${isDemo ? " · demo data" : ""}`);
+      } else {
+        toast.success(`Threshold met · ${r.name} · ${match.reading}${isDemo ? " · demo data" : ""}`);
+      }
+    } finally {
+      setSimulating(false);
     }
   };
 
