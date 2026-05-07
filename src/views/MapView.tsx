@@ -446,7 +446,7 @@ export function MapView() {
                 stroke="hsl(140 60% 35%)" strokeOpacity={0.7} strokeWidth={0.3} strokeDasharray="0.8 0.8" />
             ))}
             {/* Hail swaths */}
-            {nwsPolygons.length === 0 && overlays.hail && HAIL_SWATHS
+            {demoMode && overlays.hail && HAIL_SWATHS
               .filter(s => s.hailSize >= overlays.minHail)
               .filter(s => !overlays.hailDateFrom || s.date >= overlays.hailDateFrom)
               .filter(s => !overlays.hailDateTo || s.date <= overlays.hailDateTo)
@@ -458,7 +458,7 @@ export function MapView() {
                 </g>
             ))}
             {/* Wind corridors */}
-            {nwsPolygons.length === 0 && overlays.wind && WIND_CORRIDORS.filter(w => w.windSpeed >= overlays.minWind).map(w => (
+            {demoMode && overlays.wind && WIND_CORRIDORS.filter(w => w.windSpeed >= overlays.minWind).map(w => (
               <g key={w.id}>
                 <line x1={w.x1} y1={w.y1} x2={w.x2} y2={w.y2}
                   stroke={windColor(w.windSpeed)} strokeWidth={w.windSpeed / 18} strokeOpacity={0.55} strokeLinecap="round" />
@@ -471,7 +471,7 @@ export function MapView() {
               </g>
             ))}
             {/* Tornado tracks */}
-            {nwsPolygons.length === 0 && overlays.tornado && TORNADO_TRACKS.filter(t => t.ef >= overlays.efRating).map(t => (
+            {demoMode && overlays.tornado && TORNADO_TRACKS.filter(t => t.ef >= overlays.efRating).map(t => (
               <g key={t.id}>
                 {overlays.showTornadoWidth && (
                   <line x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2}
@@ -484,7 +484,7 @@ export function MapView() {
           </svg>
 
           {/* Hail labels (HTML so tooltips look right) */}
-          {nwsPolygons.length === 0 && overlays.hail && HAIL_SWATHS
+          {demoMode && overlays.hail && HAIL_SWATHS
             .filter(s => s.hailSize >= overlays.minHail)
             .map(s => (
               <div key={`hl-${s.id}`} className="absolute pointer-events-none" style={{ left: `${s.x + 1}%`, top: `${s.y + 1}%` }}>
@@ -507,7 +507,7 @@ export function MapView() {
               </div>
           ))}
           {/* Tornado labels */}
-          {nwsPolygons.length === 0 && overlays.tornado && TORNADO_TRACKS.filter(t => t.ef >= overlays.efRating).map(t => (
+          {demoMode && overlays.tornado && TORNADO_TRACKS.filter(t => t.ef >= overlays.efRating).map(t => (
             <div key={`tl-${t.id}`} className="absolute pointer-events-none"
               style={{ left: `${(t.x1 + t.x2) / 2}%`, top: `${(t.y1 + t.y2) / 2}%` }}>
               <div className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-destructive text-destructive-foreground -translate-x-1/2 -translate-y-1/2">
