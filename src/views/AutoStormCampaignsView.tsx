@@ -94,7 +94,7 @@ const TRIGGER_DEFS: { key: TriggerKey; label: string; icon: any }[] = [
 const CHANNEL_DEFS: { key: ChannelKey; label: string; icon: any }[] = [
   { key: "email",      label: "Email",                    icon: Mail },
   { key: "sms",        label: "SMS (consent required)",   icon: MessageSquare },
-  { key: "aiCall",     label: "AI cold call (book inspection)", icon: PhoneCall },
+  { key: "aiCall",     label: "AI-assisted follow-up (Coming Soon)", icon: PhoneCall },
   { key: "directMail", label: "Direct mail export",       icon: FileText },
   { key: "doorKnock",  label: "Door-knocking route",      icon: Footprints },
   { key: "crmTask",    label: "CRM task",                 icon: ClipboardCheck },
