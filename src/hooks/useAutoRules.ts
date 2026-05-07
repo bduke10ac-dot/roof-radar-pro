@@ -8,6 +8,8 @@ export interface AutoRule {
   name: string;
   enabled: boolean;
   marketId: string | null;
+  marketScopeType: string | null;
+  marketScopeValue: string | null;
   triggerHail: boolean;
   triggerWindGust: boolean;
   triggerSustainedWind: boolean;
@@ -33,7 +35,7 @@ export interface AutoRule {
   createdAt: string;
 }
 
-const ROW_COLS = "id, rule_name, is_active, market_id, trigger_hail, trigger_wind_gust, trigger_sustained_wind, trigger_tornado, trigger_severe_weather, trigger_heavy_rain, trigger_lightning, hail_threshold, wind_gust_threshold, sustained_wind_threshold, rain_threshold, tornado_alert_type, severe_alert_type, allow_email, allow_sms, allow_direct_mail_export, allow_door_knock_route, allow_crm_task, allow_rep_push_notification, require_manual_approval, send_timing, message_template, created_at";
+const ROW_COLS = "id, rule_name, is_active, market_id, market_scope_type, market_scope_value, trigger_hail, trigger_wind_gust, trigger_sustained_wind, trigger_tornado, trigger_severe_weather, trigger_heavy_rain, trigger_lightning, hail_threshold, wind_gust_threshold, sustained_wind_threshold, rain_threshold, tornado_alert_type, severe_alert_type, allow_email, allow_sms, allow_direct_mail_export, allow_door_knock_route, allow_crm_task, allow_rep_push_notification, require_manual_approval, send_timing, message_template, created_at";
 
 function rowToRule(r: any): AutoRule {
   return {
@@ -41,6 +43,8 @@ function rowToRule(r: any): AutoRule {
     name: r.rule_name,
     enabled: !!r.is_active,
     marketId: r.market_id,
+    marketScopeType: r.market_scope_type,
+    marketScopeValue: r.market_scope_value,
     triggerHail: !!r.trigger_hail,
     triggerWindGust: !!r.trigger_wind_gust,
     triggerSustainedWind: !!r.trigger_sustained_wind,
@@ -72,6 +76,8 @@ function ruleToRow(r: Partial<AutoRule>): Record<string, unknown> {
   if (r.name !== undefined) m.rule_name = r.name;
   if (r.enabled !== undefined) m.is_active = r.enabled;
   if (r.marketId !== undefined) m.market_id = r.marketId;
+  if (r.marketScopeType !== undefined) m.market_scope_type = r.marketScopeType;
+  if (r.marketScopeValue !== undefined) m.market_scope_value = r.marketScopeValue;
   if (r.triggerHail !== undefined) m.trigger_hail = r.triggerHail;
   if (r.triggerWindGust !== undefined) m.trigger_wind_gust = r.triggerWindGust;
   if (r.triggerSustainedWind !== undefined) m.trigger_sustained_wind = r.triggerSustainedWind;
