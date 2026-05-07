@@ -154,7 +154,10 @@ export function CampaignsView() {
                   {canSendEmail ? <Send className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
                   {canSendEmail ? "Send test" : "Add unsubscribe link"}
                 </Button>
-                <Button variant="outline" onClick={() => toast.success("Template saved")}><Save className="w-4 h-4 mr-2" />Save template</Button>
+                <Button variant="outline" disabled={saving} onClick={async () => {
+                  const ok = await saveDraft({ name: emailSubj || "Email campaign", channel: "email", message: emailBody });
+                  if (ok) toast.success("Email template saved");
+                }}><Save className="w-4 h-4 mr-2" />{saving ? "Saving…" : "Save template"}</Button>
                 <Button variant="outline" onClick={() => toast.success(`CSV exported (${emailEligible.length} contacts)`)}><Download className="w-4 h-4 mr-2" />Export CSV</Button>
                 <Button variant="outline" onClick={() => toast.success(`Direct mail / door-knock list: ${coldExportable.length} addresses`)}>
                   <Download className="w-4 h-4 mr-2" />Cold outreach (mail/door)
