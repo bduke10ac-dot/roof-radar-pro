@@ -390,8 +390,8 @@ export function MapView() {
         >
           {/* Transformed scene (zoom + pan) */}
           <div
-            className="absolute inset-0 origin-center transition-transform duration-100 ease-out"
-            style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, cursor: dragRef.current ? "grabbing" : "grab" }}
+            className={cn("absolute inset-0 origin-center", isDragging ? "" : "transition-transform duration-150 ease-out")}
+            style={{ transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`, willChange: "transform", cursor: isDragging ? "grabbing" : "grab" }}
           >
           <div className="absolute inset-0" style={{
             backgroundImage: `linear-gradient(hsl(210 30% 85%) 1px, transparent 1px), linear-gradient(90deg, hsl(210 30% 85%) 1px, transparent 1px)`,
