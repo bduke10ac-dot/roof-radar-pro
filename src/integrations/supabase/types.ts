@@ -27,6 +27,8 @@ export type Database = {
           id: string
           is_active: boolean | null
           market_id: string | null
+          market_scope_type: string | null
+          market_scope_value: string | null
           message_template: string | null
           owner_id: string | null
           rain_threshold: number | null
@@ -58,6 +60,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           market_id?: string | null
+          market_scope_type?: string | null
+          market_scope_value?: string | null
           message_template?: string | null
           owner_id?: string | null
           rain_threshold?: number | null
@@ -89,6 +93,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           market_id?: string | null
+          market_scope_type?: string | null
+          market_scope_value?: string | null
           message_template?: string | null
           owner_id?: string | null
           rain_threshold?: number | null
@@ -275,6 +281,7 @@ export type Database = {
           dnc_status: boolean
           email: string | null
           email_consent: boolean
+          email_unsubscribed: boolean
           id: string
           lead_id: string | null
           opt_in_date: string | null
@@ -288,6 +295,7 @@ export type Database = {
           dnc_status?: boolean
           email?: string | null
           email_consent?: boolean
+          email_unsubscribed?: boolean
           id?: string
           lead_id?: string | null
           opt_in_date?: string | null
@@ -301,6 +309,7 @@ export type Database = {
           dnc_status?: boolean
           email?: string | null
           email_consent?: boolean
+          email_unsubscribed?: boolean
           id?: string
           lead_id?: string | null
           opt_in_date?: string | null
@@ -963,15 +972,28 @@ export type Database = {
           campaign_id: string | null
           campaign_status: string | null
           channel: string | null
+          channels: string[] | null
           compliance_notes: string | null
           created_at: string
           eligible_contact_count: number | null
           id: string
+          is_demo: boolean | null
           market_id: string | null
+          market_name: string | null
           message_body: string | null
           owner_id: string | null
+          rejected_at: string | null
           requires_approval: boolean | null
+          rerouted_to_door_knock: number | null
+          rerouted_to_mail: number | null
+          rule_id: string | null
+          rule_name: string | null
           sent_at: string | null
+          sms_blocked_dnc: number | null
+          sms_blocked_no_consent: number | null
+          sms_eligible: number | null
+          trigger_reading: string | null
+          trigger_type: string | null
           weather_trigger_event_id: string | null
         }
         Insert: {
@@ -981,15 +1003,28 @@ export type Database = {
           campaign_id?: string | null
           campaign_status?: string | null
           channel?: string | null
+          channels?: string[] | null
           compliance_notes?: string | null
           created_at?: string
           eligible_contact_count?: number | null
           id?: string
+          is_demo?: boolean | null
           market_id?: string | null
+          market_name?: string | null
           message_body?: string | null
           owner_id?: string | null
+          rejected_at?: string | null
           requires_approval?: boolean | null
+          rerouted_to_door_knock?: number | null
+          rerouted_to_mail?: number | null
+          rule_id?: string | null
+          rule_name?: string | null
           sent_at?: string | null
+          sms_blocked_dnc?: number | null
+          sms_blocked_no_consent?: number | null
+          sms_eligible?: number | null
+          trigger_reading?: string | null
+          trigger_type?: string | null
           weather_trigger_event_id?: string | null
         }
         Update: {
@@ -999,15 +1034,28 @@ export type Database = {
           campaign_id?: string | null
           campaign_status?: string | null
           channel?: string | null
+          channels?: string[] | null
           compliance_notes?: string | null
           created_at?: string
           eligible_contact_count?: number | null
           id?: string
+          is_demo?: boolean | null
           market_id?: string | null
+          market_name?: string | null
           message_body?: string | null
           owner_id?: string | null
+          rejected_at?: string | null
           requires_approval?: boolean | null
+          rerouted_to_door_knock?: number | null
+          rerouted_to_mail?: number | null
+          rule_id?: string | null
+          rule_name?: string | null
           sent_at?: string | null
+          sms_blocked_dnc?: number | null
+          sms_blocked_no_consent?: number | null
+          sms_eligible?: number | null
+          trigger_reading?: string | null
+          trigger_type?: string | null
           weather_trigger_event_id?: string | null
         }
         Relationships: [
