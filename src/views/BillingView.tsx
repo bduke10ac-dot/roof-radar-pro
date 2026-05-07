@@ -251,6 +251,37 @@ export function BillingView() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Legal & policies */}
+      <Card className="p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <FileText className="w-4 h-4" /> <h3 className="font-semibold text-sm">Legal & policies</h3>
+        </div>
+        <div className="flex flex-wrap gap-3 text-sm">
+          <a href="/privacy" target="_blank" rel="noreferrer" className="underline hover:text-storm">Privacy Policy</a>
+          <a href="/terms" target="_blank" rel="noreferrer" className="underline hover:text-storm">Terms of Service</a>
+          <a href="/consent" target="_blank" rel="noreferrer" className="underline hover:text-storm">Consent & Communications</a>
+          <a href="/weather-disclaimer" target="_blank" rel="noreferrer" className="underline hover:text-storm">Weather Data Disclaimer</a>
+          <a href="/data-sources" target="_blank" rel="noreferrer" className="underline hover:text-storm">Data Sources Disclaimer</a>
+        </div>
+      </Card>
+
+      {/* Account deletion */}
+      <Card className="p-5 border-destructive/40">
+        <div className="flex items-center gap-2 mb-2">
+          <Trash2 className="w-4 h-4 text-destructive" />
+          <h3 className="font-semibold text-sm">Delete account</h3>
+        </div>
+        <p className="text-xs text-muted-foreground mb-3">
+          Permanently delete your RoofRadar account and all owned data — leads, markets, automation rules,
+          campaigns, imports, preferences, and subscription record. This action cannot be undone.
+        </p>
+        <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
+          <Trash2 className="w-3.5 h-3.5" /> Delete my account
+        </Button>
+      </Card>
+
+      <DeleteAccountDialog open={deleteOpen} onOpenChange={setDeleteOpen} />
     </div>
   );
 }
