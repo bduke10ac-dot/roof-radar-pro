@@ -209,7 +209,10 @@ export function CampaignsView() {
                   {canSendSms ? <Send className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
                   {canSendSms ? "Send test" : "SMS locked"}
                 </Button>
-                <Button variant="outline" onClick={() => toast.success("Template saved")}><Save className="w-4 h-4 mr-2" />Save template</Button>
+                <Button variant="outline" disabled={saving} onClick={async () => {
+                  const ok = await saveDraft({ name: "SMS campaign", channel: "sms", message: smsBody });
+                  if (ok) toast.success("SMS template saved");
+                }}><Save className="w-4 h-4 mr-2" />{saving ? "Saving…" : "Save template"}</Button>
                 <Button variant="outline" onClick={() => toast.success(`CSV exported (${smsEligible.length} eligible)`)}><Download className="w-4 h-4 mr-2" />Export CSV</Button>
               </div>
             </div>
