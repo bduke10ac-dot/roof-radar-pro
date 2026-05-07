@@ -724,7 +724,7 @@ export function AutoStormCampaignsView() {
                     <Button variant="outline" size="sm" onClick={() => openEdit(r)}>
                       <Pencil className="w-3.5 h-3.5 mr-1" /> Edit
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => deleteRule(r.id)}>
+                    <Button variant="ghost" size="sm" onClick={() => requestDeleteRule(r.id)}>
                       <Trash2 className="w-3.5 h-3.5 text-destructive" />
                     </Button>
                   </div>
