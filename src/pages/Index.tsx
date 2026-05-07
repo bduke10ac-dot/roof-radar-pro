@@ -84,12 +84,12 @@ const Shell = () => {
             <Input placeholder="Search addresses, owners, parcels…" className="pl-9 h-9" />
           </div>
           <ActiveMarketChip />
-          <div className="hidden md:flex items-center gap-3 ml-auto">
-            <button className="relative p-2 rounded-md hover:bg-accent">
+          <div className="flex items-center gap-3 ml-auto md:ml-0">
+            <button className="hidden md:inline-flex relative p-2 rounded-md hover:bg-accent">
               <Bell className="w-4 h-4" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-warning" />
             </button>
-            <div className="w-8 h-8 rounded-full bg-gradient-storm text-white flex items-center justify-center text-xs font-bold">RR</div>
+            <UserMenu />
           </div>
         </header>
 
