@@ -74,6 +74,15 @@ function FitBounds({ pins, center }: { pins?: RealMapPin[]; center?: [number, nu
   return null;
 }
 
+function InvalidateSize() {
+  const map = useMap();
+  useEffect(() => {
+    const t = setTimeout(() => map.invalidateSize(), 150);
+    return () => clearTimeout(t);
+  }, [map]);
+  return null;
+}
+
 function pinIcon(score?: number) {
   const color = score && score >= 85 ? "#f97316" : score && score >= 70 ? "#2563eb" : "#64748b";
   const html = `<div style="width:18px;height:18px;border-radius:9999px;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.4)"></div>`;
