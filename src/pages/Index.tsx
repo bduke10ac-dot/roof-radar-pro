@@ -79,6 +79,7 @@ const Shell = () => {
                 <SelectItem value="compliance">Compliance</SelectItem>
                 <SelectItem value="integrations">Integrations</SelectItem>
                 <SelectItem value="billing">Billing & Subscription</SelectItem>
+                <SelectItem value="team">Team & Permissions</SelectItem>
               </SelectContent>
             </Select>
           </div>
