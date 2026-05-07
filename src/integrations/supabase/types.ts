@@ -580,6 +580,7 @@ export type Database = {
           cities: string[] | null
           counties: string[] | null
           created_at: string
+          filters: Json
           id: string
           market_name: string
           market_type: string | null
@@ -587,13 +588,17 @@ export type Database = {
           opportunity_score: number | null
           owner_id: string | null
           region: string | null
+          regions: string[]
           state: string | null
+          states: string[]
+          updated_at: string
           zip_codes: string[] | null
         }
         Insert: {
           cities?: string[] | null
           counties?: string[] | null
           created_at?: string
+          filters?: Json
           id?: string
           market_name: string
           market_type?: string | null
@@ -601,13 +606,17 @@ export type Database = {
           opportunity_score?: number | null
           owner_id?: string | null
           region?: string | null
+          regions?: string[]
           state?: string | null
+          states?: string[]
+          updated_at?: string
           zip_codes?: string[] | null
         }
         Update: {
           cities?: string[] | null
           counties?: string[] | null
           created_at?: string
+          filters?: Json
           id?: string
           market_name?: string
           market_type?: string | null
@@ -615,7 +624,10 @@ export type Database = {
           opportunity_score?: number | null
           owner_id?: string | null
           region?: string | null
+          regions?: string[]
           state?: string | null
+          states?: string[]
+          updated_at?: string
           zip_codes?: string[] | null
         }
         Relationships: []
