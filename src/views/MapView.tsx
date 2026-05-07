@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { StormScoreBadge } from "@/components/StormScoreBadge";
 import { useMarketLeads } from "@/hooks/useMarketFilter";
+import { useMapPrefs } from "@/hooks/useMapPrefs";
 import {
   DEFAULT_OVERLAYS, HAIL_THRESHOLDS, WIND_THRESHOLDS, EF_RATINGS, applyPreset, computeStormScore,
   HAIL_SWATHS, WIND_CORRIDORS, TORNADO_TRACKS, RAIN_ZONES, TREE_DAMAGE_ZONES,
