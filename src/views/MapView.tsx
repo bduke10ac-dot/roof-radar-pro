@@ -82,19 +82,34 @@ export function MapView() {
   const resetView = () => { setZoom(1); setPan({ x: 0, y: 0 }); };
 
   const dragRef = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const rafRef = useRef<number | null>(null);
+  const pendingPanRef = useRef<{ x: number; y: number } | null>(null);
+  const flushPan = () => {
+    rafRef.current = null;
+    if (pendingPanRef.current) {
+      setPan(pendingPanRef.current);
+      pendingPanRef.current = null;
+    }
+  };
+  const queuePan = (next: { x: number; y: number }) => {
+    pendingPanRef.current = next;
+    if (rafRef.current == null) rafRef.current = requestAnimationFrame(flushPan);
+  };
   const onWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
     const delta = e.deltaY > 0 ? -0.15 : 0.15;
     setZoom(z => Math.max(0.5, Math.min(4, +(z + delta).toFixed(2))));
   };
   const onMouseDown = (e: React.MouseEvent) => {
     dragRef.current = { x: e.clientX, y: e.clientY, px: pan.x, py: pan.y };
+    setIsDragging(true);
   };
   const onMouseMove = (e: React.MouseEvent) => {
     if (!dragRef.current) return;
-    setPan({ x: dragRef.current.px + (e.clientX - dragRef.current.x), y: dragRef.current.py + (e.clientY - dragRef.current.y) });
+    queuePan({ x: dragRef.current.px + (e.clientX - dragRef.current.x), y: dragRef.current.py + (e.clientY - dragRef.current.y) });
   };
-  const endDrag = () => { dragRef.current = null; };
+  const endDrag = () => { dragRef.current = null; setIsDragging(false); };
+  useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
 
   // Touch: pinch-zoom + 1-finger pan
   const touchRef = useRef<{
