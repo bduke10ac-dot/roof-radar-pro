@@ -11,6 +11,7 @@ import {
 import { type StormCell } from "@/lib/mockWeather";
 import { useWeather } from "@/contexts/WeatherContext";
 import { MapControls, useMapControls, baseMapBackground } from "@/components/MapControls";
+import { RealMap } from "@/components/RealMap";
 
 type LayerKey =
   | "radar" | "hail" | "wind" | "rain" | "lightning"
