@@ -72,25 +72,49 @@ export function LeadsView() {
         </div>
         <div className="flex items-center gap-2">
           <LeadImportDialog />
-          <Button variant="outline" size="sm" onClick={() => {
-            const exportCap = plan.id === "free" ? 25 : plan.id === "starter" ? 1000 : 100000;
-            const rows = filtered.slice(0, exportCap).map(l => ({
-              owner_name: l.ownerName, property_address: l.propertyAddress,
-              mailing_address: l.mailingAddress, zip: l.zip,
-              phone: l.phone, email: l.email,
-              sms_consent: l.smsConsent ? "yes" : "no",
-              dnc_status: l.dncStatus ? "yes" : "no",
-              status: l.status, storm_score: l.stormScore,
-              roof_age: l.roofAge, home_value: l.homeValue,
-              market: activeMarket?.name ?? "",
-            }));
-            downloadCsv(`leads-${new Date().toISOString().slice(0,10)}.csv`, toCsv(rows));
-            if (filtered.length > exportCap) {
-              toast.warning(`Exported ${exportCap} of ${filtered.length} (${plan.name} plan limit)`);
-            } else {
-              toast.success(`Exported ${rows.length} leads`);
-            }
-          }}>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={filtered.length === 0}
+            title={filtered.length === 0 ? "No eligible leads to export" : `Export ${filtered.length} leads`}
+            onClick={async () => {
+              const exportCap = plan.id === "free" ? 25 : plan.id === "starter" ? 1000 : 100000;
+              const rows = filtered.slice(0, exportCap).map(l => ({
+                owner_name: l.ownerName, property_address: l.propertyAddress,
+                mailing_address: l.mailingAddress, zip: l.zip,
+                phone: l.phone, email: l.email,
+                sms_consent: l.smsConsent ? "yes" : "no",
+                dnc_status: l.dncStatus ? "yes" : "no",
+                status: l.status, storm_score: l.stormScore,
+                roof_age: l.roofAge, home_value: l.homeValue,
+                market: activeMarket?.name ?? "",
+              }));
+              try {
+                downloadCsv(`leads-${new Date().toISOString().slice(0,10)}.csv`, toCsv(rows));
+                if (filtered.length > exportCap) {
+                  toast.warning(`Exported ${exportCap} of ${filtered.length} (${plan.name} plan limit)`);
+                } else {
+                  toast.success(`Exported ${rows.length} leads`);
+                }
+                // Best-effort compliance log (silently skip if not authenticated / table policies block)
+                if (!usingMock) {
+                  const { supabase } = await import("@/integrations/supabase/client");
+                  await supabase.from("campaign_compliance_logs").insert(
+                    filtered.slice(0, exportCap).map(l => ({
+                      lead_id: null,
+                      channel: "csv_export",
+                      eligible: true,
+                      consent_status: l.smsConsent ?? false,
+                      dnc_status: l.dncStatus ?? false,
+                      message_sent: false,
+                    }))
+                  );
+                }
+              } catch (err) {
+                toast.error("Export failed", { description: (err as Error)?.message });
+              }
+            }}
+          >
             <Download className="w-4 h-4 mr-2" />Export CSV
           </Button>
         </div>
