@@ -46,9 +46,9 @@ const Shell = () => {
   const [view, setView] = useState<View>("dashboard");
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-screen flex bg-background overflow-x-hidden max-w-[100vw]">
       <AppSidebar active={view} onNavigate={setView} />
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 max-w-full">
       <TrialBanner onUpgrade={() => setView("billing")} />
       <div className="bg-warning/10 border-b border-warning/30 text-[11px] text-warning-foreground/90 px-4 md:px-6 py-1.5 flex items-center gap-2">
         <span className="font-bold uppercase tracking-wider text-warning">Beta</span>
