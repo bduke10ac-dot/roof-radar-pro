@@ -641,9 +641,10 @@ export function AutoStormCampaignsView() {
                       {ruleCount} rule{ruleCount === 1 ? "" : "s"} · {on ? "Watching live weather" : "Paused"}
                     </div>
                   </div>
-                  <Switch checked={on} onCheckedChange={v => {
-                    setMarketAutomation(s => ({ ...s, [m.name]: v }));
-                    toast.success(`${m.name} auto-campaigns ${v ? "on" : "off"}`);
+                  <Switch checked={on} onCheckedChange={async v => {
+                    const ok = await setMarketEnabled(m.name, m.id ?? null, v);
+                    if (ok) toast.success(`${m.name} auto-campaigns ${v ? "on" : "off"}`);
+                    else toast.error("Could not save preference");
                   }} />
                 </label>
               );
