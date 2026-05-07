@@ -216,3 +216,12 @@ function DetailRow({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <Label className="text-xs text-muted-foreground">{label}</Label>
+      <div className="mt-1">{children}</div>
+    </div>
+  );
+}
