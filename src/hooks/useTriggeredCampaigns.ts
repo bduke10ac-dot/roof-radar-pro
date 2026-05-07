@@ -117,7 +117,7 @@ export function useTriggeredCampaigns() {
   const setStatus = async (id: string, status: TriggeredStatus) => {
     const prev = items;
     const ts = new Date().toISOString();
-    const patch: Record<string, unknown> = { campaign_status: status };
+    const patch: { campaign_status: string; approved_at?: string; rejected_at?: string; sent_at?: string } = { campaign_status: status };
     if (status === "approved") patch.approved_at = ts;
     if (status === "rejected") patch.rejected_at = ts;
     if (status === "sent") patch.sent_at = ts;
