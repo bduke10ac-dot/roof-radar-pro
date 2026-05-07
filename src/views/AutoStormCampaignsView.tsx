@@ -1070,6 +1070,20 @@ export function AutoStormCampaignsView() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete confirmation */}
+      <Dialog open={!!pendingDelete} onOpenChange={v => !v && setPendingDelete(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Delete rule?</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            "{pendingDelete?.name || "Unnamed rule"}" will be permanently removed. This cannot be undone.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingDelete(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDeleteRule}>Delete rule</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
