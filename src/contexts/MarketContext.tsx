@@ -60,6 +60,7 @@ interface Ctx {
   activeMarketId: string | null;
   setActiveMarketId: (id: string | null) => void;
   saveMarket: (m: Omit<SavedMarket, "id" | "createdAt">) => Promise<SavedMarket | null>;
+  updateMarket: (id: string, patch: Partial<Omit<SavedMarket, "id" | "createdAt">>) => Promise<SavedMarket | null>;
   deleteMarket: (id: string) => Promise<void>;
   refresh: () => Promise<void>;
   activeMarket: SavedMarket | null;
@@ -161,6 +162,30 @@ export function MarketProvider({ children }: { children: ReactNode }) {
     return created;
   };
 
+  const updateMarket: Ctx["updateMarket"] = async (id, patch) => {
+    if (!user) { toast.error("Please log in"); return null; }
+    const row: Record<string, unknown> = {};
+    if (patch.name !== undefined) row.market_name = patch.name;
+    if (patch.states !== undefined) row.states = patch.states;
+    if (patch.regions !== undefined) row.regions = patch.regions;
+    if (patch.counties !== undefined) row.counties = patch.counties;
+    if (patch.cities !== undefined) row.cities = patch.cities;
+    if (patch.zips !== undefined) row.zip_codes = patch.zips;
+    if (patch.filters !== undefined) row.filters = patch.filters as any;
+    setSaving(true);
+    const { data, error } = await supabase
+      .from("markets")
+      .update(row as any)
+      .eq("id", id)
+      .select("id, market_name, states, regions, counties, cities, zip_codes, filters, created_at")
+      .single();
+    setSaving(false);
+    if (error || !data) { toast.error(error?.message ?? "Update failed"); return null; }
+    const updated = rowToMarket(data as Row);
+    setMarkets(prev => prev.map(m => m.id === id ? updated : m));
+    return updated;
+  };
+
   const deleteMarket = async (id: string) => {
     const prev = markets;
     setMarkets(prev.filter(m => m.id !== id));
@@ -178,7 +203,7 @@ export function MarketProvider({ children }: { children: ReactNode }) {
     <MarketContext.Provider value={{
       markets, loading, error, saving,
       activeMarketId, setActiveMarketId,
-      saveMarket, deleteMarket, refresh, activeMarket,
+      saveMarket, updateMarket, deleteMarket, refresh, activeMarket,
     }}>
       {children}
     </MarketContext.Provider>

@@ -13,9 +13,10 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export function MarketTargetingView() {
-  const { markets, loading, saving, activeMarketId, setActiveMarketId, saveMarket, deleteMarket } = useMarkets();
+  const { markets, loading, saving, activeMarketId, setActiveMarketId, saveMarket, updateMarket, deleteMarket } = useMarkets();
   const { leads } = useLeads();
 
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [states, setStates] = useState<string[]>([]);
   const [regions, setRegions] = useState<string[]>([]);
@@ -32,6 +33,24 @@ export function MarketTargetingView() {
   const [minHomeValue, setMinHomeValue] = useState([0]);
   const [minClaim, setMinClaim] = useState([0]);
   const [stormDateFrom, setStormDateFrom] = useState("");
+
+  const resetForm = () => {
+    setEditingId(null);
+    setName(""); setStates([]); setRegions([]); setCounties([]); setCities([]); setZips([]);
+    setMinHail([0]); setMinWind([0]); setMinConfidence([0]); setMinAffected([0]);
+    setMinRoofAge([0]); setMinHomeValue([0]); setMinClaim([0]); setStormDateFrom("");
+  };
+
+  const startEdit = (m: typeof markets[number]) => {
+    setEditingId(m.id);
+    setName(m.name);
+    setStates(m.states); setRegions(m.regions); setCounties(m.counties);
+    setCities(m.cities); setZips(m.zips);
+    setMinHail([m.filters.minHail ?? 0]); setMinWind([m.filters.minWind ?? 0]);
+    setMinConfidence([m.filters.minConfidence ?? 0]); setMinAffected([m.filters.minAffected ?? 0]);
+    setMinRoofAge([m.filters.minRoofAge ?? 0]); setMinHomeValue([m.filters.minHomeValue ?? 0]);
+    setMinClaim([m.filters.minClaimScore ?? 0]); setStormDateFrom(m.filters.stormDateFrom ?? "");
+  };
 
   const toggleIn = <T,>(arr: T[], v: T) => arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v];
 
@@ -90,12 +109,16 @@ export function MarketTargetingView() {
 
   const handleSave = async () => {
     if (!name.trim()) { toast.error("Give this market a name"); return; }
-    const m = await saveMarket(draft);
-    if (!m) return;
-    toast.success(`Saved "${m.name}"`);
-    setName(""); setStates([]); setRegions([]); setCounties([]); setCities([]); setZips([]);
-    setMinHail([0]); setMinWind([0]); setMinConfidence([0]); setMinAffected([0]);
-    setMinRoofAge([0]); setMinHomeValue([0]); setMinClaim([0]); setStormDateFrom("");
+    if (editingId) {
+      const m = await updateMarket(editingId, draft);
+      if (!m) return;
+      toast.success(`Updated "${m.name}"`);
+    } else {
+      const m = await saveMarket(draft);
+      if (!m) return;
+      toast.success(`Saved "${m.name}"`);
+    }
+    resetForm();
   };
 
   return (
@@ -176,8 +199,9 @@ export function MarketTargetingView() {
               <div className="bg-card rounded-xl p-5 shadow-card border border-border/60 space-y-3">
                 <Label>Market name</Label>
                 <Input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Sumner County Hail Zone" />
-                <Button onClick={handleSave} disabled={saving} className="w-full"><Save className="w-4 h-4 mr-2" />{saving ? "Saving…" : "Save market"}</Button>
-                <div className="text-xs text-muted-foreground">Mock leads available in scope: <span className="font-semibold text-foreground">{leads.length}</span></div>
+                <Button onClick={handleSave} disabled={saving} className="w-full"><Save className="w-4 h-4 mr-2" />{saving ? "Saving…" : editingId ? "Update market" : "Save market"}</Button>
+                {editingId && <Button variant="ghost" size="sm" className="w-full" onClick={resetForm}>Cancel edit</Button>}
+                <div className="text-xs text-muted-foreground">Leads available in scope: <span className="font-semibold text-foreground">{leads.length}</span></div>
               </div>
             </aside>
           </div>
@@ -196,6 +220,7 @@ export function MarketTargetingView() {
                   market={m}
                   active={m.id === activeMarketId}
                   onActivate={() => { setActiveMarketId(m.id === activeMarketId ? null : m.id); toast.success(m.id === activeMarketId ? "Cleared active market" : `Active: ${m.name}`); }}
+                  onEdit={() => { startEdit(m); toast.info(`Editing "${m.name}" — switch to Builder tab`); }}
                   onDelete={() => { deleteMarket(m.id); toast.success("Market removed"); }}
                 />
               ))}
@@ -258,7 +283,7 @@ function SliderRow({ label, value, onChange, max, step, format }: { label: strin
   );
 }
 
-function SavedMarketCard({ market, active, onActivate, onDelete }: { market: SavedMarket; active: boolean; onActivate: () => void; onDelete: () => void }) {
+function SavedMarketCard({ market, active, onActivate, onEdit, onDelete }: { market: SavedMarket; active: boolean; onActivate: () => void; onEdit?: () => void; onDelete: () => void }) {
   const score = scoreMarket(market, {
     stormCount: 3, avgHail: market.filters.minHail ?? 1.2, avgWind: market.filters.minWind ?? 60,
     affectedHomes: market.filters.minAffected ?? 1500, avgRoofAge: market.filters.minRoofAge ?? 14,
@@ -286,6 +311,7 @@ function SavedMarketCard({ market, active, onActivate, onDelete }: { market: Sav
         <Button size="sm" variant={active ? "default" : "outline"} className="flex-1" onClick={onActivate}>
           <Layers className="w-3.5 h-3.5 mr-1.5" />{active ? "Active" : "Activate"}
         </Button>
+        {onEdit && <Button size="sm" variant="outline" onClick={onEdit}>Edit</Button>}
         <Button size="sm" variant="ghost" onClick={onDelete}><Trash2 className="w-3.5 h-3.5" /></Button>
       </div>
     </div>
