@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export function MarketTargetingView() {
-  const { markets, activeMarketId, setActiveMarketId, saveMarket, deleteMarket } = useMarkets();
+  const { markets, loading, saving, activeMarketId, setActiveMarketId, saveMarket, deleteMarket } = useMarkets();
   const { leads } = useLeads();
 
   const [name, setName] = useState("");
