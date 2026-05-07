@@ -1,11 +1,11 @@
-import { LayoutDashboard, Users, Map, Send, ShieldCheck, Plug, CloudLightning, Target, Zap, CreditCard, Sparkles, BookOpen, Activity } from "lucide-react";
+import { LayoutDashboard, Users, Map, Send, ShieldCheck, Plug, CloudLightning, Target, Zap, CreditCard, Sparkles, BookOpen, Activity, UserCog, ShieldAlert } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Button } from "@/components/ui/button";
 
-export type View = "dashboard" | "storm-ops" | "leads" | "map" | "markets" | "campaigns" | "auto-campaigns" | "playbook" | "compliance" | "integrations" | "billing" | "readiness";
+export type View = "dashboard" | "storm-ops" | "leads" | "map" | "markets" | "campaigns" | "auto-campaigns" | "playbook" | "compliance" | "integrations" | "billing" | "team" | "admin-users" | "readiness";
 
 const items: { id: View; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean }[] = [
   { id: "dashboard", label: "Home", icon: LayoutDashboard },
@@ -19,6 +19,8 @@ const items: { id: View; label: string; icon: typeof LayoutDashboard; adminOnly?
   { id: "compliance", label: "Compliance", icon: ShieldCheck },
   { id: "integrations", label: "Integrations", icon: Plug },
   { id: "billing", label: "Billing & Subscription", icon: CreditCard },
+  { id: "team", label: "Team & Permissions", icon: UserCog },
+  { id: "admin-users", label: "Admin · Users", icon: ShieldAlert, adminOnly: true },
   { id: "readiness", label: "App Readiness", icon: Activity, adminOnly: true },
 ];
 

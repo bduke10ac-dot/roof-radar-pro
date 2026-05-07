@@ -11,6 +11,8 @@ import { IntegrationsView } from "@/views/IntegrationsView";
 import { AutoStormCampaignsView } from "@/views/AutoStormCampaignsView";
 import { StormPlaybookView } from "@/views/StormPlaybookView";
 import { BillingView } from "@/views/BillingView";
+import { TeamView } from "@/views/TeamView";
+import { AdminUsersView } from "@/views/AdminUsersView";
 import { AppReadinessView } from "@/views/AppReadinessView";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { TrialBanner } from "@/components/TrialBanner";
@@ -77,6 +79,7 @@ const Shell = () => {
                 <SelectItem value="compliance">Compliance</SelectItem>
                 <SelectItem value="integrations">Integrations</SelectItem>
                 <SelectItem value="billing">Billing & Subscription</SelectItem>
+                <SelectItem value="team">Team & Permissions</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -106,6 +109,8 @@ const Shell = () => {
           {view === "compliance" && <ComplianceView />}
           {view === "integrations" && <IntegrationsView />}
           {view === "billing" && <BillingView />}
+          {view === "team" && <TeamView />}
+          {view === "admin-users" && <AdminUsersView />}
           {view === "readiness" && <AppReadinessView />}
         </main>
       </div>
