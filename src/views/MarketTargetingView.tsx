@@ -111,6 +111,17 @@ export function MarketTargetingView() {
 
   const handleSave = async () => {
     if (!name.trim()) { toast.error("Give this market a name"); return; }
+    // Plan limit enforcement (only when creating a new market)
+    if (!editingId) {
+      const limit = plan.limits.maxMarkets;
+      if (limit !== -1 && markets.length >= limit) {
+        toast.error(`${plan.name} plan limit reached`, {
+          description: `You can save up to ${limit} market${limit === 1 ? "" : "s"} on the ${plan.name} plan. Upgrade to add more.`,
+          action: { label: "Upgrade", onClick: () => requestUpgrade(undefined, `Market limit reached (${limit})`) },
+        });
+        return;
+      }
+    }
     if (editingId) {
       const m = await updateMarket(editingId, draft);
       if (!m) return;
