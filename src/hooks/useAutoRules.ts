@@ -8,6 +8,8 @@ export interface AutoRule {
   name: string;
   enabled: boolean;
   marketId: string | null;
+  marketScopeType: string | null;
+  marketScopeValue: string | null;
   triggerHail: boolean;
   triggerWindGust: boolean;
   triggerSustainedWind: boolean;
