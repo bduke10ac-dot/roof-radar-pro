@@ -1,4 +1,7 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 export interface MarketFilters {
   minHail?: number;
@@ -49,108 +52,134 @@ export const COUNTIES = [
   "Rutherford County",
 ];
 
-const DEFAULT_MARKETS: SavedMarket[] = [
-  {
-    id: "m-1",
-    name: "Hendersonville Storm Zone",
-    states: ["TN"],
-    regions: ["Middle Tennessee"],
-    counties: ["Sumner County"],
-    cities: ["Hendersonville"],
-    zips: ["37075", "37077"],
-    filters: { minHail: 1.0, minWind: 60, minRoofAge: 12 },
-    createdAt: Date.now() - 86400000 * 5,
-  },
-  {
-    id: "m-2",
-    name: "Middle TN Hail Leads",
-    states: ["TN"],
-    regions: ["Middle Tennessee"],
-    counties: ["Davidson County", "Sumner County", "Wilson County"],
-    cities: [],
-    zips: [],
-    filters: { minHail: 1.25, minConfidence: 70 },
-    createdAt: Date.now() - 86400000 * 12,
-  },
-  {
-    id: "m-3",
-    name: "Gallatin High Roof Age",
-    states: ["TN"],
-    regions: ["Middle Tennessee"],
-    counties: ["Sumner County"],
-    cities: ["Gallatin"],
-    zips: ["37066"],
-    filters: { minRoofAge: 18, minHomeValue: 250000 },
-    createdAt: Date.now() - 86400000 * 20,
-  },
-  {
-    id: "m-4",
-    name: "Nashville Wind Corridor",
-    states: ["TN"],
-    regions: ["Middle Tennessee"],
-    counties: ["Davidson County"],
-    cities: ["Nashville"],
-    zips: [],
-    filters: { minWind: 70 },
-    createdAt: Date.now() - 86400000 * 30,
-  },
-  {
-    id: "m-5",
-    name: "Southern KY Expansion",
-    states: ["KY"],
-    regions: ["Southern Kentucky"],
-    counties: [],
-    cities: ["Bowling Green"],
-    zips: [],
-    filters: { minClaimScore: 50 },
-    createdAt: Date.now() - 86400000 * 45,
-  },
-];
-
 interface Ctx {
   markets: SavedMarket[];
+  loading: boolean;
+  error: string | null;
+  saving: boolean;
   activeMarketId: string | null;
   setActiveMarketId: (id: string | null) => void;
-  saveMarket: (m: Omit<SavedMarket, "id" | "createdAt">) => SavedMarket;
-  deleteMarket: (id: string) => void;
+  saveMarket: (m: Omit<SavedMarket, "id" | "createdAt">) => Promise<SavedMarket | null>;
+  deleteMarket: (id: string) => Promise<void>;
+  refresh: () => Promise<void>;
   activeMarket: SavedMarket | null;
 }
 
 const MarketContext = createContext<Ctx | null>(null);
-const KEY = "roofradar.markets.v1";
 const ACTIVE_KEY = "roofradar.activeMarket.v1";
 
+type Row = {
+  id: string;
+  market_name: string;
+  states: string[] | null;
+  regions: string[] | null;
+  counties: string[] | null;
+  cities: string[] | null;
+  zip_codes: string[] | null;
+  filters: MarketFilters | null;
+  created_at: string;
+};
+
+const rowToMarket = (r: Row): SavedMarket => ({
+  id: r.id,
+  name: r.market_name,
+  states: r.states ?? [],
+  regions: r.regions ?? [],
+  counties: r.counties ?? [],
+  cities: r.cities ?? [],
+  zips: r.zip_codes ?? [],
+  filters: (r.filters ?? {}) as MarketFilters,
+  createdAt: new Date(r.created_at).getTime(),
+});
+
 export function MarketProvider({ children }: { children: ReactNode }) {
-  const [markets, setMarkets] = useState<SavedMarket[]>(() => {
-    try {
-      const raw = localStorage.getItem(KEY);
-      return raw ? JSON.parse(raw) : DEFAULT_MARKETS;
-    } catch { return DEFAULT_MARKETS; }
-  });
-  const [activeMarketId, setActiveMarketId] = useState<string | null>(() =>
-    localStorage.getItem(ACTIVE_KEY)
+  const { user, loading: authLoading } = useAuth();
+  const [markets, setMarkets] = useState<SavedMarket[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [activeMarketId, setActiveMarketIdState] = useState<string | null>(
+    () => (typeof window !== "undefined" ? localStorage.getItem(ACTIVE_KEY) : null)
   );
 
-  useEffect(() => { localStorage.setItem(KEY, JSON.stringify(markets)); }, [markets]);
-  useEffect(() => {
-    if (activeMarketId) localStorage.setItem(ACTIVE_KEY, activeMarketId);
+  const setActiveMarketId = useCallback((id: string | null) => {
+    setActiveMarketIdState(id);
+    if (id) localStorage.setItem(ACTIVE_KEY, id);
     else localStorage.removeItem(ACTIVE_KEY);
-  }, [activeMarketId]);
+  }, []);
 
-  const saveMarket: Ctx["saveMarket"] = (m) => {
-    const created: SavedMarket = { ...m, id: crypto.randomUUID(), createdAt: Date.now() };
+  const refresh = useCallback(async () => {
+    if (!user) { setMarkets([]); setLoading(false); return; }
+    setLoading(true);
+    setError(null);
+    const { data, error } = await supabase
+      .from("markets")
+      .select("id, market_name, states, regions, counties, cities, zip_codes, filters, created_at")
+      .eq("owner_id", user.id)
+      .order("created_at", { ascending: false });
+    if (error) {
+      setError(error.message);
+      setMarkets([]);
+    } else {
+      setMarkets((data as Row[]).map(rowToMarket));
+    }
+    setLoading(false);
+  }, [user]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    refresh();
+  }, [authLoading, refresh]);
+
+  const saveMarket: Ctx["saveMarket"] = async (m) => {
+    if (!user) {
+      toast.error("Please log in to save a market");
+      return null;
+    }
+    setSaving(true);
+    const { data, error } = await supabase
+      .from("markets")
+      .insert({
+        owner_id: user.id,
+        market_name: m.name,
+        states: m.states,
+        regions: m.regions,
+        counties: m.counties,
+        cities: m.cities,
+        zip_codes: m.zips,
+        filters: m.filters as any,
+      })
+      .select("id, market_name, states, regions, counties, cities, zip_codes, filters, created_at")
+      .single();
+    setSaving(false);
+    if (error || !data) {
+      toast.error(error?.message ?? "Failed to save market");
+      return null;
+    }
+    const created = rowToMarket(data as Row);
     setMarkets(prev => [created, ...prev]);
     return created;
   };
-  const deleteMarket = (id: string) => {
-    setMarkets(prev => prev.filter(m => m.id !== id));
+
+  const deleteMarket = async (id: string) => {
+    const prev = markets;
+    setMarkets(prev.filter(m => m.id !== id));
     if (activeMarketId === id) setActiveMarketId(null);
+    const { error } = await supabase.from("markets").delete().eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      setMarkets(prev);
+    }
   };
 
   const activeMarket = markets.find(m => m.id === activeMarketId) ?? null;
 
   return (
-    <MarketContext.Provider value={{ markets, activeMarketId, setActiveMarketId, saveMarket, deleteMarket, activeMarket }}>
+    <MarketContext.Provider value={{
+      markets, loading, error, saving,
+      activeMarketId, setActiveMarketId,
+      saveMarket, deleteMarket, refresh, activeMarket,
+    }}>
       {children}
     </MarketContext.Provider>
   );
