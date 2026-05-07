@@ -38,6 +38,7 @@ export function MapView() {
   // Real NWS polygons in scope (only those with geometry). When present, override mock storm polygons.
   const nwsPolygons = useMemo(() => (nwsAlerts ?? []).filter(a => a.geometry), [nwsAlerts]);
   const [overlays, setOverlays] = useState<OverlayState>(DEFAULT_OVERLAYS);
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
   // Hydrate overlay toggles from saved map preferences once they load
   const hydrated = useRef(false);
