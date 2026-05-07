@@ -1008,7 +1008,7 @@ export function AutoStormCampaignsView() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditorOpen(false)}>Cancel</Button>
-            <Button onClick={saveRule}>Save rule</Button>
+            <Button onClick={saveRule} disabled={savingRule}>{savingRule ? "Saving…" : "Save rule"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
