@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, Download, Save, Trash2 } from "lucide-react";
+import { Search, Download, Save, Trash2, Phone, MessageSquare, Navigation, ClipboardCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -124,7 +124,67 @@ export function LeadsView() {
         </Select>
       </div>
 
-      <div className="bg-card rounded-xl shadow-card border border-border/60 overflow-hidden">
+      {/* Mobile: card list — easier to tap, less dense */}
+      <div className="md:hidden space-y-2">
+        {loading && filtered.length === 0 && Array.from({ length: 5 }).map((_, i) => (
+          <div key={`m-s-${i}`} className="bg-card rounded-xl border border-border/60 p-3 animate-pulse h-24" />
+        ))}
+        {!loading && filtered.length === 0 && (
+          <div className="bg-card rounded-xl border border-border/60 px-4 py-10 text-center text-sm text-muted-foreground">
+            {leads.length === 0
+              ? "No leads yet — import a CSV or add your first lead."
+              : "No leads match your filters."}
+          </div>
+        )}
+        {filtered.map(l => (
+          <button
+            key={l.id}
+            onClick={() => setSelected(l)}
+            className="w-full text-left bg-card rounded-xl border border-border/60 p-3 active:bg-accent/40 transition-colors min-h-[88px]"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <div className="font-semibold truncate">{l.ownerName}</div>
+                <div className="text-xs text-muted-foreground truncate mt-0.5">{l.propertyAddress}</div>
+              </div>
+              <StormScoreBadge score={l.stormScore} />
+            </div>
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
+              <StatusBadge status={l.status} />
+              <ConsentBadge consent={l.consent} />
+              <span className="text-[11px] text-muted-foreground tabular-nums ml-auto">Roof {l.roofAge}y · ${(l.homeValue / 1000).toFixed(0)}k</span>
+            </div>
+            <div className="grid grid-cols-3 gap-1.5 mt-2.5">
+              <a
+                href={l.phone ? `tel:${l.phone}` : undefined}
+                onClick={e => { e.stopPropagation(); if (!l.phone) e.preventDefault(); }}
+                className={`flex items-center justify-center gap-1.5 rounded-md border border-border/60 py-2 text-xs font-medium ${l.phone ? "active:bg-accent/50" : "opacity-40 pointer-events-none"}`}
+              >
+                <Phone className="w-3.5 h-3.5" /> Call
+              </a>
+              <a
+                href={l.phone ? `sms:${l.phone}` : undefined}
+                onClick={e => { e.stopPropagation(); if (!l.phone) e.preventDefault(); }}
+                className={`flex items-center justify-center gap-1.5 rounded-md border border-border/60 py-2 text-xs font-medium ${l.phone ? "active:bg-accent/50" : "opacity-40 pointer-events-none"}`}
+              >
+                <MessageSquare className="w-3.5 h-3.5" /> Text
+              </a>
+              <a
+                href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(l.propertyAddress)}`}
+                target="_blank"
+                rel="noreferrer"
+                onClick={e => e.stopPropagation()}
+                className="flex items-center justify-center gap-1.5 rounded-md border border-border/60 py-2 text-xs font-medium active:bg-accent/50"
+              >
+                <Navigation className="w-3.5 h-3.5" /> Route
+              </a>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block bg-card rounded-xl shadow-card border border-border/60 overflow-hidden">
         <div className="overflow-x-auto max-h-[70vh]">
           <table className="w-full text-sm">
             <thead className="bg-muted/80 backdrop-blur sticky top-0 z-10 text-muted-foreground">
@@ -184,6 +244,41 @@ export function LeadsView() {
                   {usingMock && (
                     <span className="text-[10px] uppercase tracking-wider text-muted-foreground">demo data — log in to persist</span>
                   )}
+                </div>
+
+                {/* Quick actions */}
+                <div className="grid grid-cols-4 gap-1.5">
+                  <a
+                    href={selected.phone ? `tel:${selected.phone}` : undefined}
+                    className={`flex flex-col items-center justify-center gap-1 rounded-lg border border-border/60 py-2.5 text-[11px] font-medium ${selected.phone ? "active:bg-accent/50" : "opacity-40 pointer-events-none"}`}
+                  >
+                    <Phone className="w-4 h-4 text-storm" /> Call
+                  </a>
+                  <a
+                    href={selected.phone ? `sms:${selected.phone}` : undefined}
+                    className={`flex flex-col items-center justify-center gap-1 rounded-lg border border-border/60 py-2.5 text-[11px] font-medium ${selected.phone ? "active:bg-accent/50" : "opacity-40 pointer-events-none"}`}
+                  >
+                    <MessageSquare className="w-4 h-4 text-storm" /> Text
+                  </a>
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(selected.propertyAddress)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex flex-col items-center justify-center gap-1 rounded-lg border border-border/60 py-2.5 text-[11px] font-medium active:bg-accent/50"
+                  >
+                    <Navigation className="w-4 h-4 text-storm" /> Route
+                  </a>
+                  <button
+                    onClick={async () => {
+                      if (usingMock) { toast.error("Log in to update lead status"); return; }
+                      setForm(f => ({ ...f, status: "inspection" }));
+                      const ok = await updateLead(selected.id, { status: "inspection" });
+                      if (ok) toast.success("Marked as inspection");
+                    }}
+                    className="flex flex-col items-center justify-center gap-1 rounded-lg border border-border/60 py-2.5 text-[11px] font-medium active:bg-accent/50"
+                  >
+                    <ClipboardCheck className="w-4 h-4 text-storm" /> Inspected
+                  </button>
                 </div>
 
                 <Field label="Owner name">
