@@ -393,15 +393,62 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_imports: {
+        Row: {
+          created_at: string
+          duplicate_count: number
+          field_mapping: Json | null
+          file_name: string
+          id: string
+          imported_count: number
+          invalid_count: number
+          notes: string | null
+          owner_id: string
+          source_tag: string | null
+          status: string
+          total_rows: number
+        }
+        Insert: {
+          created_at?: string
+          duplicate_count?: number
+          field_mapping?: Json | null
+          file_name: string
+          id?: string
+          imported_count?: number
+          invalid_count?: number
+          notes?: string | null
+          owner_id: string
+          source_tag?: string | null
+          status?: string
+          total_rows?: number
+        }
+        Update: {
+          created_at?: string
+          duplicate_count?: number
+          field_mapping?: Json | null
+          file_name?: string
+          id?: string
+          imported_count?: number
+          invalid_count?: number
+          notes?: string | null
+          owner_id?: string
+          source_tag?: string | null
+          status?: string
+          total_rows?: number
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           assigned_rep: string | null
           created_at: string
           id: string
+          import_id: string | null
           lead_status: string
           notes: string | null
           owner_id: string | null
           property_id: string | null
+          source: string | null
           storm_event_id: string | null
           storm_score: number | null
         }
@@ -409,10 +456,12 @@ export type Database = {
           assigned_rep?: string | null
           created_at?: string
           id?: string
+          import_id?: string | null
           lead_status?: string
           notes?: string | null
           owner_id?: string | null
           property_id?: string | null
+          source?: string | null
           storm_event_id?: string | null
           storm_score?: number | null
         }
@@ -420,10 +469,12 @@ export type Database = {
           assigned_rep?: string | null
           created_at?: string
           id?: string
+          import_id?: string | null
           lead_status?: string
           notes?: string | null
           owner_id?: string | null
           property_id?: string | null
+          source?: string | null
           storm_event_id?: string | null
           storm_score?: number | null
         }
