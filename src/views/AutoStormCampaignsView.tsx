@@ -993,7 +993,7 @@ export function AutoStormCampaignsView() {
               )}
               {editing.channels.aiCall && (
                 <p className="text-[11px] text-storm mt-1.5 flex items-center gap-1">
-                  <PhoneCall className="w-3 h-3" /> AI voice agent will cold-call non-DNC homeowners to book free roof & exterior inspections. TCPA-safe: skips DNC, respects calling hours, leaves voicemail with opt-out, logs every call.
+                  <PhoneCall className="w-3 h-3" /> AI-assisted follow-up for eligible contacts only, subject to consent, DNC, and calling-hour rules. (Coming Soon — not active yet.)
                 </p>
               )}
             </div>
