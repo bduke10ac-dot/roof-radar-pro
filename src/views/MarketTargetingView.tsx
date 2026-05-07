@@ -109,12 +109,16 @@ export function MarketTargetingView() {
 
   const handleSave = async () => {
     if (!name.trim()) { toast.error("Give this market a name"); return; }
-    const m = await saveMarket(draft);
-    if (!m) return;
-    toast.success(`Saved "${m.name}"`);
-    setName(""); setStates([]); setRegions([]); setCounties([]); setCities([]); setZips([]);
-    setMinHail([0]); setMinWind([0]); setMinConfidence([0]); setMinAffected([0]);
-    setMinRoofAge([0]); setMinHomeValue([0]); setMinClaim([0]); setStormDateFrom("");
+    if (editingId) {
+      const m = await updateMarket(editingId, draft);
+      if (!m) return;
+      toast.success(`Updated "${m.name}"`);
+    } else {
+      const m = await saveMarket(draft);
+      if (!m) return;
+      toast.success(`Saved "${m.name}"`);
+    }
+    resetForm();
   };
 
   return (
@@ -195,8 +199,9 @@ export function MarketTargetingView() {
               <div className="bg-card rounded-xl p-5 shadow-card border border-border/60 space-y-3">
                 <Label>Market name</Label>
                 <Input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Sumner County Hail Zone" />
-                <Button onClick={handleSave} disabled={saving} className="w-full"><Save className="w-4 h-4 mr-2" />{saving ? "Saving…" : "Save market"}</Button>
-                <div className="text-xs text-muted-foreground">Mock leads available in scope: <span className="font-semibold text-foreground">{leads.length}</span></div>
+                <Button onClick={handleSave} disabled={saving} className="w-full"><Save className="w-4 h-4 mr-2" />{saving ? "Saving…" : editingId ? "Update market" : "Save market"}</Button>
+                {editingId && <Button variant="ghost" size="sm" className="w-full" onClick={resetForm}>Cancel edit</Button>}
+                <div className="text-xs text-muted-foreground">Leads available in scope: <span className="font-semibold text-foreground">{leads.length}</span></div>
               </div>
             </aside>
           </div>
@@ -215,6 +220,7 @@ export function MarketTargetingView() {
                   market={m}
                   active={m.id === activeMarketId}
                   onActivate={() => { setActiveMarketId(m.id === activeMarketId ? null : m.id); toast.success(m.id === activeMarketId ? "Cleared active market" : `Active: ${m.name}`); }}
+                  onEdit={() => { startEdit(m); toast.info(`Editing "${m.name}" — switch to Builder tab`); }}
                   onDelete={() => { deleteMarket(m.id); toast.success("Market removed"); }}
                 />
               ))}
