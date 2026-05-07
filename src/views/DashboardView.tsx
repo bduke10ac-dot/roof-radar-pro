@@ -1,6 +1,8 @@
-import { Activity, Users, Map as MapIcon, Send, BookOpen, Target, Zap, ArrowRight, CloudLightning } from "lucide-react";
+import { Activity, Users, Map as MapIcon, Send, BookOpen, Target, Zap, ArrowRight, CloudLightning, CheckCircle2, Circle } from "lucide-react";
 import type { View } from "@/components/AppSidebar";
 import { useMarkets } from "@/contexts/MarketContext";
+import { useLeads } from "@/hooks/useLeads";
+import { useAutoRules } from "@/hooks/useAutoRules";
 
 const tiles: { id: View; label: string; desc: string; icon: typeof Activity }[] = [
   { id: "storm-ops", label: "Storm Operations", desc: "Live weather, lead boost, pipeline & opportunities", icon: Activity },
@@ -13,7 +15,16 @@ const tiles: { id: View; label: string; desc: string; icon: typeof Activity }[] 
 ];
 
 export function DashboardView({ onNavigate }: { onNavigate?: (v: View) => void }) {
-  const { activeMarket } = useMarkets();
+  const { activeMarket, markets } = useMarkets();
+  const { leads, usingMock } = useLeads();
+  const { rules } = useAutoRules();
+
+  const hasMarket = markets.length > 0;
+  const hasLeads = !usingMock && leads.length > 0;
+  const hasRule = (rules?.length ?? 0) > 0;
+  const completed = [hasMarket, hasLeads, hasRule].filter(Boolean).length;
+  const showSetup = completed < 3;
+
   return (
     <div className="space-y-6">
       <header className="rounded-xl bg-gradient-storm text-white p-5 md:p-7 shadow-elevated">
@@ -33,6 +44,38 @@ export function DashboardView({ onNavigate }: { onNavigate?: (v: View) => void }
         )}
       </header>
 
+      {showSetup && (
+        <section className="bg-card rounded-xl p-5 shadow-card border border-border/60">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-semibold">Get started</h2>
+            <span className="text-xs text-muted-foreground tabular-nums">{completed} of 3 complete</span>
+          </div>
+          <div className="grid sm:grid-cols-3 gap-3">
+            <SetupItem
+              done={hasMarket}
+              label="Create your first market"
+              desc="Define the geography you serve."
+              cta="Open Market Targeting"
+              onClick={() => onNavigate?.("markets")}
+            />
+            <SetupItem
+              done={hasLeads}
+              label="Import or add leads"
+              desc="Upload a CSV of homeowners."
+              cta="Open Leads"
+              onClick={() => onNavigate?.("leads")}
+            />
+            <SetupItem
+              done={hasRule}
+              label="Set up an auto storm campaign"
+              desc="Trigger outreach when storms hit."
+              cta="Open Auto Campaigns"
+              onClick={() => onNavigate?.("auto-campaigns")}
+            />
+          </div>
+        </section>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
         {tiles.map(t => {
           const Icon = t.icon;
@@ -40,7 +83,7 @@ export function DashboardView({ onNavigate }: { onNavigate?: (v: View) => void }
             <button
               key={t.id}
               onClick={() => onNavigate?.(t.id)}
-              className="group text-left bg-card rounded-xl p-4 md:p-5 shadow-card border border-border/60 hover:border-storm/50 hover:shadow-elevated transition-all"
+              className="group text-left bg-card rounded-xl p-4 md:p-5 shadow-card border border-border/60 hover:border-storm/50 hover:shadow-elevated transition-all active:scale-[0.99]"
             >
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-md bg-storm/10 text-storm flex items-center justify-center shrink-0">
@@ -57,6 +100,25 @@ export function DashboardView({ onNavigate }: { onNavigate?: (v: View) => void }
             </button>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+function SetupItem({ done, label, desc, cta, onClick }: { done: boolean; label: string; desc: string; cta: string; onClick: () => void }) {
+  return (
+    <div className={`rounded-lg border p-3 ${done ? "border-success/40 bg-success/5" : "border-border bg-background"}`}>
+      <div className="flex items-start gap-2">
+        {done ? <CheckCircle2 className="w-4 h-4 text-success mt-0.5 shrink-0" /> : <Circle className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />}
+        <div className="min-w-0 flex-1">
+          <div className={`text-sm font-medium ${done ? "line-through text-muted-foreground" : ""}`}>{label}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">{desc}</div>
+          {!done && (
+            <button onClick={onClick} className="mt-2 text-xs font-medium text-storm hover:underline inline-flex items-center gap-1">
+              {cta} <ArrowRight className="w-3 h-3" />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

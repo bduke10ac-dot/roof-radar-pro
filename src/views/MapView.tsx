@@ -82,19 +82,34 @@ export function MapView() {
   const resetView = () => { setZoom(1); setPan({ x: 0, y: 0 }); };
 
   const dragRef = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const rafRef = useRef<number | null>(null);
+  const pendingPanRef = useRef<{ x: number; y: number } | null>(null);
+  const flushPan = () => {
+    rafRef.current = null;
+    if (pendingPanRef.current) {
+      setPan(pendingPanRef.current);
+      pendingPanRef.current = null;
+    }
+  };
+  const queuePan = (next: { x: number; y: number }) => {
+    pendingPanRef.current = next;
+    if (rafRef.current == null) rafRef.current = requestAnimationFrame(flushPan);
+  };
   const onWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
     const delta = e.deltaY > 0 ? -0.15 : 0.15;
     setZoom(z => Math.max(0.5, Math.min(4, +(z + delta).toFixed(2))));
   };
   const onMouseDown = (e: React.MouseEvent) => {
     dragRef.current = { x: e.clientX, y: e.clientY, px: pan.x, py: pan.y };
+    setIsDragging(true);
   };
   const onMouseMove = (e: React.MouseEvent) => {
     if (!dragRef.current) return;
-    setPan({ x: dragRef.current.px + (e.clientX - dragRef.current.x), y: dragRef.current.py + (e.clientY - dragRef.current.y) });
+    queuePan({ x: dragRef.current.px + (e.clientX - dragRef.current.x), y: dragRef.current.py + (e.clientY - dragRef.current.y) });
   };
-  const endDrag = () => { dragRef.current = null; };
+  const endDrag = () => { dragRef.current = null; setIsDragging(false); };
+  useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
 
   // Touch: pinch-zoom + 1-finger pan
   const touchRef = useRef<{
@@ -114,13 +129,12 @@ export function MapView() {
   const onTouchMove = (e: React.TouchEvent) => {
     const ref = touchRef.current;
     if (ref.mode === "pinch" && e.touches.length >= 2) {
-      e.preventDefault();
       const d = distance(e.touches[0], e.touches[1]);
       const ratio = d / (ref.startDist || d);
       setZoom(Math.max(0.5, Math.min(4, +((ref.startZoom || 1) * ratio).toFixed(2))));
     } else if (ref.mode === "pan" && e.touches.length === 1) {
       const t = e.touches[0];
-      setPan({
+      queuePan({
         x: (ref.startPanX || 0) + (t.clientX - (ref.startX || 0)),
         y: (ref.startPanY || 0) + (t.clientY - (ref.startY || 0)),
       });
@@ -376,8 +390,8 @@ export function MapView() {
         >
           {/* Transformed scene (zoom + pan) */}
           <div
-            className="absolute inset-0 origin-center transition-transform duration-100 ease-out"
-            style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, cursor: dragRef.current ? "grabbing" : "grab" }}
+            className={cn("absolute inset-0 origin-center", isDragging ? "" : "transition-transform duration-150 ease-out")}
+            style={{ transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`, willChange: "transform", cursor: isDragging ? "grabbing" : "grab" }}
           >
           <div className="absolute inset-0" style={{
             backgroundImage: `linear-gradient(hsl(210 30% 85%) 1px, transparent 1px), linear-gradient(90deg, hsl(210 30% 85%) 1px, transparent 1px)`,
@@ -583,18 +597,25 @@ export function MapView() {
               style={{ left: `${l.pos.x}%`, top: `${l.pos.y}%`, width: 120, height: 120, background: "hsl(var(--warning) / 0.45)" }} />
           ))}
 
-          {/* Pins */}
-          {visible.map(l => {
+          {/* Pins (limit visible to first 200 for performance) */}
+          {visible.slice(0, 200).map(l => {
             const color = l.liveScore >= 85 ? "bg-warning" : l.liveScore >= 70 ? "bg-storm" : "bg-muted-foreground";
             return (
-              <div key={l.id} className="absolute -translate-x-1/2 -translate-y-full group" style={{ left: `${l.pos.x}%`, top: `${l.pos.y}%` }}>
-                <div className="relative">
+              <div key={l.id} className="absolute -translate-x-1/2 -translate-y-full group focus-within:z-10" style={{ left: `${l.pos.x}%`, top: `${l.pos.y}%` }}>
+                <button
+                  type="button"
+                  tabIndex={0}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  className="relative block focus:outline-none"
+                  aria-label={`${l.ownerName} · storm score ${l.liveScore}`}
+                >
                   {l.liveScore >= 85 && <div className={`absolute inset-0 rounded-full ${color} animate-pulse-ring`} />}
-                  <div className={`relative w-6 h-6 rounded-full ${color} ring-2 ring-white shadow-elevated flex items-center justify-center`}>
+                  <div className={`relative w-7 h-7 md:w-6 md:h-6 rounded-full ${color} ring-2 ring-white shadow-elevated flex items-center justify-center`}>
                     <MapPin className="w-3 h-3 text-white" />
                   </div>
-                </div>
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded bg-primary text-primary-foreground text-[11px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition shadow-elevated">
+                </button>
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded bg-primary text-primary-foreground text-[11px] whitespace-nowrap opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition shadow-elevated pointer-events-none">
                   {l.ownerName} · score {l.liveScore}
                   {(l.inHail || l.inWind || l.inTornado || l.inRain) && <> · {[l.inHail && "hail", l.inWind && "wind", l.inTornado && "tornado", l.inRain && "rain"].filter(Boolean).join("+")}</>}
                 </div>
