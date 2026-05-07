@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export function MarketTargetingView() {
-  const { markets, activeMarketId, setActiveMarketId, saveMarket, deleteMarket } = useMarkets();
+  const { markets, loading, saving, activeMarketId, setActiveMarketId, saveMarket, deleteMarket } = useMarkets();
   const { leads } = useLeads();
 
   const [name, setName] = useState("");
@@ -88,9 +88,10 @@ export function MarketTargetingView() {
     }
   ), [draft, minHail, minWind, minAffected, minRoofAge, minHomeValue, minClaim]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) { toast.error("Give this market a name"); return; }
-    const m = saveMarket(draft);
+    const m = await saveMarket(draft);
+    if (!m) return;
     toast.success(`Saved "${m.name}"`);
     setName(""); setStates([]); setRegions([]); setCounties([]); setCities([]); setZips([]);
     setMinHail([0]); setMinWind([0]); setMinConfidence([0]); setMinAffected([0]);
@@ -175,7 +176,7 @@ export function MarketTargetingView() {
               <div className="bg-card rounded-xl p-5 shadow-card border border-border/60 space-y-3">
                 <Label>Market name</Label>
                 <Input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Sumner County Hail Zone" />
-                <Button onClick={handleSave} className="w-full"><Save className="w-4 h-4 mr-2" />Save market</Button>
+                <Button onClick={handleSave} disabled={saving} className="w-full"><Save className="w-4 h-4 mr-2" />{saving ? "Saving…" : "Save market"}</Button>
                 <div className="text-xs text-muted-foreground">Mock leads available in scope: <span className="font-semibold text-foreground">{leads.length}</span></div>
               </div>
             </aside>
@@ -183,17 +184,23 @@ export function MarketTargetingView() {
         </TabsContent>
 
         <TabsContent value="saved" className="mt-5">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {markets.map(m => (
-              <SavedMarketCard
-                key={m.id}
-                market={m}
-                active={m.id === activeMarketId}
-                onActivate={() => { setActiveMarketId(m.id === activeMarketId ? null : m.id); toast.success(m.id === activeMarketId ? "Cleared active market" : `Active: ${m.name}`); }}
-                onDelete={() => { deleteMarket(m.id); toast.success("Market removed"); }}
-              />
-            ))}
-          </div>
+          {loading ? (
+            <div className="text-sm text-muted-foreground py-8 text-center">Loading saved markets…</div>
+          ) : markets.length === 0 ? (
+            <div className="text-sm text-muted-foreground py-8 text-center">No saved markets yet — build one in the Builder tab.</div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {markets.map(m => (
+                <SavedMarketCard
+                  key={m.id}
+                  market={m}
+                  active={m.id === activeMarketId}
+                  onActivate={() => { setActiveMarketId(m.id === activeMarketId ? null : m.id); toast.success(m.id === activeMarketId ? "Cleared active market" : `Active: ${m.name}`); }}
+                  onDelete={() => { deleteMarket(m.id); toast.success("Market removed"); }}
+                />
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>
