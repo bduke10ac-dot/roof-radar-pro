@@ -210,6 +210,7 @@ export function AutoStormCampaignsView() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<Rule>(DEFAULT_RULE());
   const [reviewing, setReviewing] = useState<TriggeredCampaign | null>(null);
+  const [confirmingSend, setConfirmingSend] = useState<TriggeredCampaign | null>(null);
   const [savingRule, setSavingRule] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<Rule | null>(null);
   const [simulating, setSimulating] = useState(false);
