@@ -37,7 +37,7 @@ export function AppSidebar({ active, onNavigate }: { active: View; onNavigate: (
         </div>
       </div>
       <nav className="flex-1 p-3 space-y-1">
-        {items.map((it) => {
+        {visible.map((it) => {
           const Icon = it.icon;
           const isActive = active === it.id;
           return (
