@@ -311,6 +311,7 @@ function SavedMarketCard({ market, active, onActivate, onEdit, onDelete }: { mar
         <Button size="sm" variant={active ? "default" : "outline"} className="flex-1" onClick={onActivate}>
           <Layers className="w-3.5 h-3.5 mr-1.5" />{active ? "Active" : "Activate"}
         </Button>
+        {onEdit && <Button size="sm" variant="outline" onClick={onEdit}>Edit</Button>}
         <Button size="sm" variant="ghost" onClick={onDelete}><Trash2 className="w-3.5 h-3.5" /></Button>
       </div>
     </div>
