@@ -4,7 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UploadCloud, FileSpreadsheet, AlertTriangle, CheckCircle2, Lock } from "lucide-react";
+import { UploadCloud, FileSpreadsheet, AlertTriangle, CheckCircle2, Lock, Download } from "lucide-react";
+import { downloadCsv } from "@/lib/csv";
+
+const SAMPLE_CSV = `homeowner_name,address,city,state,zip,phone,email,market,source,sms_consent,dnc_status,email_unsubscribed
+Jane Doe,123 Oak St,Hendersonville,TN,37075,+16155551234,jane@example.com,Hendersonville,manual,yes,no,no
+John Smith,456 Maple Ave,Nashville,TN,37201,+16155555678,john@example.com,Nashville,door-knock,no,no,no
+Acme Owner,789 Pine Ln,Bowling Green,KY,42101,+12705559876,owner@example.com,Southern Kentucky,csv-import,yes,no,no
+`;
 import { parseCsv, autoMapHeaders, TARGET_FIELDS, type CsvRow, type TargetField } from "@/lib/csv";
 import { useLeadImports } from "@/hooks/useLeadImports";
 import { useAuth } from "@/contexts/AuthContext";
@@ -101,6 +108,13 @@ export function LeadImportDialog({ trigger }: { trigger?: React.ReactNode }) {
                 <Lock className="w-3 h-3" /> Log in to actually save imported leads.
               </div>
             )}
+            <div className="flex items-center justify-between text-xs border-t border-border/60 pt-3">
+              <span className="text-muted-foreground">Need a starting template?</span>
+              <Button variant="ghost" size="sm" type="button"
+                onClick={() => downloadCsv("roofradar-sample-leads.csv", SAMPLE_CSV)}>
+                <Download className="w-3.5 h-3.5 mr-1.5" /> Download sample CSV
+              </Button>
+            </div>
           </div>
         )}
 

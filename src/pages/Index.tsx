@@ -108,15 +108,21 @@ const Shell = () => {
 };
 
 import { WeatherProvider } from "@/contexts/WeatherContext";
+import { DemoModeProvider } from "@/contexts/DemoModeContext";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const Index = () => (
-  <SubscriptionProvider>
-    <MarketProvider>
-      <WeatherProvider>
-        <Shell />
-      </WeatherProvider>
-    </MarketProvider>
-  </SubscriptionProvider>
+  <ErrorBoundary label="App">
+    <SubscriptionProvider>
+      <MarketProvider>
+        <WeatherProvider>
+          <DemoModeProvider>
+            <Shell />
+          </DemoModeProvider>
+        </WeatherProvider>
+      </MarketProvider>
+    </SubscriptionProvider>
+  </ErrorBoundary>
 );
 
 export default Index;
