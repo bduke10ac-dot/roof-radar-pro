@@ -209,10 +209,6 @@ export function MarketProvider({ children }: { children: ReactNode }) {
     </MarketContext.Provider>
   );
 }
-      {children}
-    </MarketContext.Provider>
-  );
-}
 
 export function useMarkets() {
   const ctx = useContext(MarketContext);
