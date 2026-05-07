@@ -355,16 +355,22 @@ export function AutoStormCampaignsView() {
     await dbToggleRule(id);
   };
 
-  const approve = (t: TriggeredCampaign) => {
+  const approve = async (t: TriggeredCampaign) => {
     setTriggered(ts => ts.map(x => x.id === t.id ? { ...x, status: "approved" } : x));
     setReviewing(null);
+    if (user) {
+      await supabase.from("triggered_campaigns").update({ campaign_status: "approved", approved_at: new Date().toISOString() }).eq("id", t.id);
+    }
     toast.info("Campaign approved · sending coming soon", {
       description: "Connect Twilio/Resend to enable real sends. Approval is recorded in the audit log.",
     });
   };
-  const reject = (t: TriggeredCampaign) => {
+  const reject = async (t: TriggeredCampaign) => {
     setTriggered(ts => ts.map(x => x.id === t.id ? { ...x, status: "rejected" } : x));
     setReviewing(null);
+    if (user) {
+      await supabase.from("triggered_campaigns").update({ campaign_status: "rejected" }).eq("id", t.id);
+    }
     toast(`Campaign rejected`);
   };
 
