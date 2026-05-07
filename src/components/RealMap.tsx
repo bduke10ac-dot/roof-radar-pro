@@ -143,6 +143,7 @@ export function RealMap({
           </Marker>
         ))}
         <FitBounds pins={renderedPins} center={center} />
+        <InvalidateSize />
         {children}
       </MapContainer>
       {showRadar && (
