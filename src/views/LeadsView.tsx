@@ -18,6 +18,7 @@ import { toast } from "sonner";
 export function LeadsView() {
   const { leads, allLeads, activeMarket } = useMarketLeads();
   const { updateLead, deleteLead, refresh, loading, usingMock } = useLeads();
+  const { plan } = useSubscription();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
   const [consent, setConsent] = useState("all");
