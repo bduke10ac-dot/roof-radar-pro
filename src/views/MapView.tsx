@@ -22,8 +22,11 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { NwsAlertsPanel } from "@/components/NwsAlertsPanel";
 import { useNwsAlerts } from "@/hooks/useNwsAlerts";
+import { RadarTileOverlay } from "@/components/RadarTileOverlay";
+import { useDemoMode } from "@/contexts/DemoModeContext";
 
 export function MapView() {
+  const { demoMode } = useDemoMode();
   const { leads, allLeads, activeMarket } = useMarketLeads();
   const { markets, activeMarketId, setActiveMarketId } = useMarkets();
   const [minScore, setMinScore] = useState([60]);
