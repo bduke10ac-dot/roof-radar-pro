@@ -173,28 +173,59 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const [usage] = useState<Usage>({ leads: 18, emails: 7, sms: 0, markets: 1 });
   const [upgradePrompt, setUpgradePrompt] = useState<Ctx["upgradePrompt"]>({ open: false });
 
+  // Authoritative plan state derived from server-side subscriptions table.
+  // Client cannot self-promote; plan is read-only here.
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        if (!cancelled) { setPlanId("free"); setStatus("free"); }
+        return;
+      }
+      const { data } = await supabase
+        .from("subscriptions")
+        .select("status, price_id, current_period_end")
+        .eq("user_id", user.id)
+        .eq("environment", getStripeEnvironment())
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (cancelled) return;
+      if (!data) { setPlanId("free"); setStatus("free"); return; }
+      const active = ["active", "trialing", "past_due"].includes(data.status)
+        && (!data.current_period_end || new Date(data.current_period_end) > new Date());
+      if (!active) { setPlanId("free"); setStatus("free"); return; }
+      const tier: PlanId = data.price_id?.startsWith("pro") ? "pro"
+        : data.price_id?.startsWith("starter") ? "starter"
+        : data.price_id?.startsWith("enterprise") ? "enterprise"
+        : "free";
+      setPlanId(tier);
+      setStatus(data.status === "trialing" ? "trialing" : data.status === "past_due" ? "past_due" : "active");
+      setRenewsAt(data.current_period_end ? new Date(data.current_period_end) : null);
+    };
+    load();
+    const { data: authSub } = supabase.auth.onAuthStateChange(() => load());
+    return () => { cancelled = true; authSub.subscription.unsubscribe(); };
+  }, []);
+
   const plan = findPlan(planId);
 
   const value: Ctx = useMemo(() => ({
     plan, cycle, status, trialEndsAt, renewsAt, usage, plans: PLANS,
-    startTrial: (id) => {
-      setPlanId(id);
-      setStatus("trialing");
-      const end = new Date(); end.setDate(end.getDate() + 14);
-      setTrialEndsAt(end);
-      setRenewsAt(end);
+    // Plan changes must go through Stripe checkout / billing portal.
+    // These are intentionally no-ops on the client; the BillingView routes the
+    // user to the embedded Stripe checkout, and the payments webhook is what
+    // ultimately writes the plan to the subscriptions table.
+    startTrial: () => {
+      console.warn("startTrial is server-enforced; route the user through Stripe checkout.");
     },
-    changePlan: (id, c) => {
-      setPlanId(id);
-      if (c) setCycle(c);
-      setStatus(id === "free" ? "free" : "active");
-      if (id !== "free") {
-        const r = new Date(); r.setMonth(r.getMonth() + (c === "yearly" || cycle === "yearly" ? 12 : 1));
-        setRenewsAt(r);
-      } else { setRenewsAt(null); }
-      setTrialEndsAt(null);
+    changePlan: () => {
+      console.warn("changePlan is server-enforced; route the user through Stripe checkout.");
     },
-    cancel: () => { setStatus("canceled"); },
+    cancel: () => {
+      console.warn("cancel is server-enforced; route the user through the Stripe billing portal.");
+    },
     setCycle,
     has: (f) => plan.features[f],
     withinLimit: (key, limitKey) => {
