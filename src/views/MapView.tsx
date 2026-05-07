@@ -38,6 +38,7 @@ export function MapView() {
   // Real NWS polygons in scope (only those with geometry). When present, override mock storm polygons.
   const nwsPolygons = useMemo(() => (nwsAlerts ?? []).filter(a => a.geometry), [nwsAlerts]);
   const [overlays, setOverlays] = useState<OverlayState>(DEFAULT_OVERLAYS);
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
   // Hydrate overlay toggles from saved map preferences once they load
   const hydrated = useRef(false);
@@ -607,18 +608,32 @@ export function MapView() {
                   tabIndex={0}
                   onMouseDown={(e) => e.stopPropagation()}
                   onTouchStart={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); setSelectedLeadId(l.id === selectedLeadId ? null : l.id); }}
                   className="relative block focus:outline-none"
                   aria-label={`${l.ownerName} · storm score ${l.liveScore}`}
                 >
                   {l.liveScore >= 85 && <div className={`absolute inset-0 rounded-full ${color} animate-pulse-ring`} />}
-                  <div className={`relative w-7 h-7 md:w-6 md:h-6 rounded-full ${color} ring-2 ring-white shadow-elevated flex items-center justify-center`}>
+                  <div className={`relative w-7 h-7 md:w-6 md:h-6 rounded-full ${color} ring-2 ring-white shadow-elevated flex items-center justify-center ${selectedLeadId === l.id ? "ring-storm scale-125" : ""}`}>
                     <MapPin className="w-3 h-3 text-white" />
                   </div>
                 </button>
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded bg-primary text-primary-foreground text-[11px] whitespace-nowrap opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition shadow-elevated pointer-events-none">
-                  {l.ownerName} · score {l.liveScore}
-                  {(l.inHail || l.inWind || l.inTornado || l.inRain) && <> · {[l.inHail && "hail", l.inWind && "wind", l.inTornado && "tornado", l.inRain && "rain"].filter(Boolean).join("+")}</>}
-                </div>
+                {selectedLeadId === l.id ? (
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-30 w-56 bg-card rounded-lg shadow-elevated border border-border p-2.5 text-left" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+                    <div className="text-sm font-semibold truncate">{l.ownerName}</div>
+                    <div className="text-[11px] text-muted-foreground truncate">{l.propertyAddress}</div>
+                    <div className="text-[11px] mt-1">Score <span className="font-semibold text-storm">{l.liveScore}</span></div>
+                    <div className="grid grid-cols-3 gap-1 mt-2">
+                      <a href={l.phone ? `tel:${l.phone}` : undefined} onClick={e => { if (!l.phone) e.preventDefault(); }} className={`text-center text-[11px] py-1.5 rounded border border-border ${l.phone ? "active:bg-accent" : "opacity-40 pointer-events-none"}`}>Call</a>
+                      <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(l.propertyAddress)}`} target="_blank" rel="noreferrer" className="text-center text-[11px] py-1.5 rounded border border-border active:bg-accent">Route</a>
+                      <button onClick={() => toast.info(`Opened ${l.ownerName} — switch to Leads to edit.`)} className="text-[11px] py-1.5 rounded border border-border active:bg-accent">Open</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded bg-primary text-primary-foreground text-[11px] whitespace-nowrap opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition shadow-elevated pointer-events-none">
+                    {l.ownerName} · score {l.liveScore}
+                    {(l.inHail || l.inWind || l.inTornado || l.inRain) && <> · {[l.inHail && "hail", l.inWind && "wind", l.inTornado && "tornado", l.inRain && "rain"].filter(Boolean).join("+")}</>}
+                  </div>
+                )}
               </div>
             );
           })}

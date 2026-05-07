@@ -72,25 +72,49 @@ export function LeadsView() {
         </div>
         <div className="flex items-center gap-2">
           <LeadImportDialog />
-          <Button variant="outline" size="sm" onClick={() => {
-            const exportCap = plan.id === "free" ? 25 : plan.id === "starter" ? 1000 : 100000;
-            const rows = filtered.slice(0, exportCap).map(l => ({
-              owner_name: l.ownerName, property_address: l.propertyAddress,
-              mailing_address: l.mailingAddress, zip: l.zip,
-              phone: l.phone, email: l.email,
-              sms_consent: l.smsConsent ? "yes" : "no",
-              dnc_status: l.dncStatus ? "yes" : "no",
-              status: l.status, storm_score: l.stormScore,
-              roof_age: l.roofAge, home_value: l.homeValue,
-              market: activeMarket?.name ?? "",
-            }));
-            downloadCsv(`leads-${new Date().toISOString().slice(0,10)}.csv`, toCsv(rows));
-            if (filtered.length > exportCap) {
-              toast.warning(`Exported ${exportCap} of ${filtered.length} (${plan.name} plan limit)`);
-            } else {
-              toast.success(`Exported ${rows.length} leads`);
-            }
-          }}>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={filtered.length === 0}
+            title={filtered.length === 0 ? "No eligible leads to export" : `Export ${filtered.length} leads`}
+            onClick={async () => {
+              const exportCap = plan.id === "free" ? 25 : plan.id === "starter" ? 1000 : 100000;
+              const rows = filtered.slice(0, exportCap).map(l => ({
+                owner_name: l.ownerName, property_address: l.propertyAddress,
+                mailing_address: l.mailingAddress, zip: l.zip,
+                phone: l.phone, email: l.email,
+                sms_consent: l.smsConsent ? "yes" : "no",
+                dnc_status: l.dncStatus ? "yes" : "no",
+                status: l.status, storm_score: l.stormScore,
+                roof_age: l.roofAge, home_value: l.homeValue,
+                market: activeMarket?.name ?? "",
+              }));
+              try {
+                downloadCsv(`leads-${new Date().toISOString().slice(0,10)}.csv`, toCsv(rows));
+                if (filtered.length > exportCap) {
+                  toast.warning(`Exported ${exportCap} of ${filtered.length} (${plan.name} plan limit)`);
+                } else {
+                  toast.success(`Exported ${rows.length} leads`);
+                }
+                // Best-effort compliance log (silently skip if not authenticated / table policies block)
+                if (!usingMock) {
+                  const { supabase } = await import("@/integrations/supabase/client");
+                  await supabase.from("campaign_compliance_logs").insert(
+                    filtered.slice(0, exportCap).map(l => ({
+                      lead_id: null,
+                      channel: "csv_export",
+                      eligible: true,
+                      consent_status: l.smsConsent ?? false,
+                      dnc_status: l.dncStatus ?? false,
+                      message_sent: false,
+                    }))
+                  );
+                }
+              } catch (err) {
+                toast.error("Export failed", { description: (err as Error)?.message });
+              }
+            }}
+          >
             <Download className="w-4 h-4 mr-2" />Export CSV
           </Button>
         </div>
@@ -162,13 +186,25 @@ export function LeadsView() {
               >
                 <Phone className="w-3.5 h-3.5" /> Call
               </a>
-              <a
-                href={l.phone ? `sms:${l.phone}` : undefined}
-                onClick={e => { e.stopPropagation(); if (!l.phone) e.preventDefault(); }}
-                className={`flex items-center justify-center gap-1.5 rounded-md border border-border/60 py-2 text-xs font-medium ${l.phone ? "active:bg-accent/50" : "opacity-40 pointer-events-none"}`}
-              >
-                <MessageSquare className="w-3.5 h-3.5" /> Text
-              </a>
+              {(() => {
+                const canText = !!l.phone && !!l.smsConsent && l.consent === "opted_in" && !l.dncStatus;
+                return (
+                  <a
+                    href={canText ? `sms:${l.phone}` : undefined}
+                    onClick={e => {
+                      e.stopPropagation();
+                      if (!canText) {
+                        e.preventDefault();
+                        toast.error("Cannot text this lead", { description: !l.phone ? "No phone on file." : l.dncStatus ? "Lead is on DNC list." : "No SMS consent on file." });
+                      }
+                    }}
+                    title={!l.phone ? "No phone" : l.dncStatus ? "DNC" : (!l.smsConsent || l.consent !== "opted_in") ? "No SMS consent" : "Send SMS"}
+                    className={`flex items-center justify-center gap-1.5 rounded-md border border-border/60 py-2 text-xs font-medium ${canText ? "active:bg-accent/50" : "opacity-40"}`}
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" /> Text
+                  </a>
+                );
+              })()}
               <a
                 href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(l.propertyAddress)}`}
                 target="_blank"
@@ -254,12 +290,23 @@ export function LeadsView() {
                   >
                     <Phone className="w-4 h-4 text-storm" /> Call
                   </a>
-                  <a
-                    href={selected.phone ? `sms:${selected.phone}` : undefined}
-                    className={`flex flex-col items-center justify-center gap-1 rounded-lg border border-border/60 py-2.5 text-[11px] font-medium ${selected.phone ? "active:bg-accent/50" : "opacity-40 pointer-events-none"}`}
-                  >
-                    <MessageSquare className="w-4 h-4 text-storm" /> Text
-                  </a>
+                  {(() => {
+                    const canText = !!selected.phone && !!selected.smsConsent && selected.consent === "opted_in" && !selected.dncStatus;
+                    return (
+                      <a
+                        href={canText ? `sms:${selected.phone}` : undefined}
+                        onClick={e => {
+                          if (!canText) {
+                            e.preventDefault();
+                            toast.error("Cannot text this lead", { description: !selected.phone ? "No phone on file." : selected.dncStatus ? "Lead is on DNC list." : "No SMS consent on file." });
+                          }
+                        }}
+                        className={`flex flex-col items-center justify-center gap-1 rounded-lg border border-border/60 py-2.5 text-[11px] font-medium ${canText ? "active:bg-accent/50" : "opacity-40"}`}
+                      >
+                        <MessageSquare className="w-4 h-4 text-storm" /> Text
+                      </a>
+                    );
+                  })()}
                   <a
                     href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(selected.propertyAddress)}`}
                     target="_blank"

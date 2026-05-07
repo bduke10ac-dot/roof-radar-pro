@@ -27,6 +27,8 @@ export function DashboardView({ onNavigate }: { onNavigate?: (v: View) => void }
     ? { label: "Create your first market", desc: "Define the area you serve.", view: "markets" as View }
     : !hasLeads
     ? { label: "Import leads", desc: "Upload a CSV of homeowners.", view: "leads" as View }
+    : !hasRule
+    ? { label: "Set up an auto storm campaign", desc: "Trigger outreach when storms hit.", view: "auto-campaigns" as View }
     : { label: "Find storm-impacted homes", desc: "Open the map and start working.", view: "map" as View };
 
   return (
