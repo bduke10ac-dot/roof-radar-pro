@@ -250,9 +250,11 @@ export function AutoStormCampaignsView() {
   };
 
   const approve = (t: TriggeredCampaign) => {
-    setTriggered(ts => ts.map(x => x.id === t.id ? { ...x, status: "sent" } : x));
+    setTriggered(ts => ts.map(x => x.id === t.id ? { ...x, status: "approved" } : x));
     setReviewing(null);
-    toast.success(`Approved & sent · ${t.eligible.toLocaleString()} eligible recipients`);
+    toast.info("Campaign approved · sending coming soon", {
+      description: "Connect Twilio/Resend to enable real sends. Approval is recorded in the audit log.",
+    });
   };
   const reject = (t: TriggeredCampaign) => {
     setTriggered(ts => ts.map(x => x.id === t.id ? { ...x, status: "rejected" } : x));
