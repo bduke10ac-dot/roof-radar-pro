@@ -19,7 +19,7 @@ function severityTone(sev: string): "destructive" | "warning" | "storm" | "muted
 
 export function NwsAlertsPanel() {
   const { activeMarket } = useMarkets();
-  const defaultState = activeMarket?.state ?? "TN";
+  const defaultState = activeMarket?.states?.[0] ?? "TN";
   const [state, setState] = useState<string>(defaultState);
   const { alerts, loading, error } = useNwsAlerts(state);
 
