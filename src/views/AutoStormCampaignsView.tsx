@@ -198,18 +198,105 @@ const SEED_TRIGGERED: TriggeredCampaign[] = [
 
 export function AutoStormCampaignsView() {
   const { markets } = useMarkets();
+  const { user } = useAuth();
   const { cells, marketImpacts } = useWeather();
+  const { rules: dbRules, createRule, updateRule, deleteRule: dbDeleteRule, toggleRule: dbToggleRule, loading: rulesLoading } = useAutoRules();
   const [rules, setRules] = useState<Rule[]>(SEED_RULES);
   const [triggered, setTriggered] = useState<TriggeredCampaign[]>(SEED_TRIGGERED);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<Rule>(DEFAULT_RULE());
   const [reviewing, setReviewing] = useState<TriggeredCampaign | null>(null);
+  const [savingRule, setSavingRule] = useState(false);
   // Per-market master switch — automation only watches markets that are turned on
   const [marketAutomation, setMarketAutomation] = useState<Record<string, boolean>>(
     () => Object.fromEntries(markets.map(m => [m.name, true]))
   );
 
   const isMarketArmed = (name: string) => marketAutomation[name] !== false;
+
+  // Map AutoRule (DB) -> local Rule shape so the existing UI works unchanged
+  const dbRuleToLocal = (a: AutoRule): Rule => {
+    const market = markets.find(m => m.id === a.marketId);
+    const channelKey: TemplateKey =
+      a.triggerHail ? "hail"
+      : a.triggerWindGust || a.triggerSustainedWind ? "wind"
+      : a.triggerHeavyRain ? "leak"
+      : "severe";
+    return {
+      id: a.id,
+      name: a.name,
+      enabled: a.enabled,
+      marketScope: { type: "saved", value: market?.name ?? "" },
+      triggers: {
+        hail: a.triggerHail, windGust: a.triggerWindGust, windSustained: a.triggerSustainedWind,
+        tornadoWarning: a.triggerTornado, tornadoWatch: false,
+        severeWarning: a.triggerSevereWeather, severeWatch: false,
+        heavyRain: a.triggerHeavyRain, lightning: a.triggerLightning,
+        powerOutage: false, treeDamage: false,
+      },
+      thresholds: {
+        hailIn: a.hailThreshold ?? 1.0,
+        gustMph: a.windGustThreshold ?? 58,
+        sustainedMph: a.sustainedWindThreshold ?? 40,
+        tornado: (a.tornadoAlertType as any) ?? "warning",
+        severe: (a.severeAlertType as any) ?? "warning",
+      },
+      timing: (a.sendTiming as Timing) ?? "manualApproval",
+      channels: {
+        email: a.allowEmail, sms: a.allowSms, aiCall: false,
+        directMail: a.allowDirectMail, doorKnock: a.allowDoorKnockRoute,
+        crmTask: a.allowCrmTask, repPush: a.allowRepPush,
+      },
+      template: channelKey,
+      manualApproval: a.requireManualApproval,
+      createdAt: a.createdAt,
+    };
+  };
+
+  const localRuleToDb = (r: Rule): Omit<AutoRule, "id" | "createdAt"> => {
+    const market = markets.find(m => m.name === r.marketScope.value);
+    return {
+      name: r.name,
+      enabled: r.enabled,
+      marketId: market?.id ?? null,
+      triggerHail: r.triggers.hail,
+      triggerWindGust: r.triggers.windGust,
+      triggerSustainedWind: r.triggers.windSustained,
+      triggerTornado: r.triggers.tornadoWarning || r.triggers.tornadoWatch,
+      triggerSevereWeather: r.triggers.severeWarning || r.triggers.severeWatch,
+      triggerHeavyRain: r.triggers.heavyRain,
+      triggerLightning: r.triggers.lightning,
+      hailThreshold: r.thresholds.hailIn,
+      windGustThreshold: r.thresholds.gustMph,
+      sustainedWindThreshold: r.thresholds.sustainedMph,
+      rainThreshold: null,
+      tornadoAlertType: r.thresholds.tornado,
+      severeAlertType: r.thresholds.severe,
+      allowEmail: r.channels.email,
+      allowSms: r.channels.sms,
+      allowDirectMail: r.channels.directMail,
+      allowDoorKnockRoute: r.channels.doorKnock,
+      allowCrmTask: r.channels.crmTask,
+      allowRepPush: r.channels.repPush,
+      requireManualApproval: r.manualApproval || r.channels.sms,
+      sendTiming: r.timing,
+      messageTemplate: r.template,
+    };
+  };
+
+  // Once DB rules load (logged in), replace seed rules with persisted ones
+  const mergedOnce = useRef(false);
+  useEffect(() => {
+    if (rulesLoading) return;
+    if (!user) return;
+    if (mergedOnce.current) {
+      setRules(dbRules.map(dbRuleToLocal));
+    } else {
+      setRules(dbRules.length > 0 ? dbRules.map(dbRuleToLocal) : []);
+      mergedOnce.current = true;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rulesLoading, dbRules, user]);
 
   const armed = rules.filter(r => r.enabled && isMarketArmed(r.marketScope.value)).length;
   const triggeredToday = triggered.filter(t => Date.now() - new Date(t.triggeredAt).getTime() < 86400000).length;
@@ -233,23 +320,39 @@ export function AutoStormCampaignsView() {
   const openNew = () => { setEditing(DEFAULT_RULE()); setEditorOpen(true); };
   const openEdit = (r: Rule) => { setEditing({ ...r }); setEditorOpen(true); };
 
-  const saveRule = () => {
+  const saveRule = async () => {
     if (!editing.name.trim()) { toast.error("Rule name is required"); return; }
-    setRules(rs => {
-      const exists = rs.find(r => r.id === editing.id);
-      return exists ? rs.map(r => r.id === editing.id ? editing : r) : [editing, ...rs];
-    });
-    setEditorOpen(false);
-    toast.success(`Rule "${editing.name}" saved`);
+    if (!user) {
+      // Demo / logged-out: keep behavior in local state only
+      setRules(rs => {
+        const exists = rs.find(r => r.id === editing.id);
+        return exists ? rs.map(r => r.id === editing.id ? editing : r) : [editing, ...rs];
+      });
+      setEditorOpen(false);
+      toast.success(`Rule "${editing.name}" saved (local only — log in to persist)`);
+      return;
+    }
+    setSavingRule(true);
+    const existsInDb = dbRules.some(r => r.id === editing.id);
+    const ok = existsInDb
+      ? await updateRule(editing.id, localRuleToDb(editing))
+      : !!(await createRule(localRuleToDb(editing)));
+    setSavingRule(false);
+    if (ok) {
+      setEditorOpen(false);
+      toast.success(`Rule "${editing.name}" saved`);
+    }
   };
 
-  const deleteRule = (id: string) => {
-    setRules(rs => rs.filter(r => r.id !== id));
-    toast.success("Rule deleted");
+  const deleteRule = async (id: string) => {
+    if (!user) { setRules(rs => rs.filter(r => r.id !== id)); toast.success("Rule deleted"); return; }
+    const ok = await dbDeleteRule(id);
+    if (ok) toast.success("Rule deleted");
   };
 
-  const toggleRule = (id: string) => {
-    setRules(rs => rs.map(r => r.id === id ? { ...r, enabled: !r.enabled } : r));
+  const toggleRule = async (id: string) => {
+    if (!user) { setRules(rs => rs.map(r => r.id === id ? { ...r, enabled: !r.enabled } : r)); return; }
+    await dbToggleRule(id);
   };
 
   const approve = (t: TriggeredCampaign) => {
