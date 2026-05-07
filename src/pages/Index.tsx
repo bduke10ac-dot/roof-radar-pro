@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MarketProvider, useMarkets } from "@/contexts/MarketContext";
 import { Badge } from "@/components/ui/badge";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { UserMenu } from "@/components/UserMenu";
 
 function ActiveMarketChip() {
   const { activeMarket, setActiveMarketId } = useMarkets();
