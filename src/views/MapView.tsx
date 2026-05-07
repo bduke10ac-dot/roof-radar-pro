@@ -30,6 +30,10 @@ export function MapView() {
   const [zip, setZip] = useState("all");
   const [radius, setRadius] = useState([35]);
   const { prefs, update: updatePrefs } = useMapPrefs();
+  const nwsState = activeMarket?.states?.[0] ?? "TN";
+  const { alerts: nwsAlerts } = useNwsAlerts(nwsState);
+  // Real NWS polygons in scope (only those with geometry). When present, override mock storm polygons.
+  const nwsPolygons = useMemo(() => (nwsAlerts ?? []).filter(a => a.geometry), [nwsAlerts]);
   const [overlays, setOverlays] = useState<OverlayState>(DEFAULT_OVERLAYS);
 
   // Hydrate overlay toggles from saved map preferences once they load
