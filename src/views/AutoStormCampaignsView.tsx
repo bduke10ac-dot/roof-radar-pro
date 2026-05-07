@@ -426,6 +426,97 @@ export function AutoStormCampaignsView() {
     toast(`Campaign rejected`);
   };
 
+  const [exporting, setExporting] = useState(false);
+  const exportApprovedCampaigns = async () => {
+    const approved = triggered.filter(t => t.status === "approved" || t.status === "sent");
+    if (approved.length === 0) { toast.error("No approved campaigns to export"); return; }
+    setExporting(true);
+    try {
+      const rows: Record<string, unknown>[] = [];
+      if (user) {
+        // Pull lead + contact data for each approved campaign's market and join compliance
+        const { data: leads } = await supabase
+          .from("leads")
+          .select("id, property_id, owner_id")
+          .eq("owner_id", user.id);
+        const leadIds = (leads ?? []).map(l => l.id);
+        const { data: contacts } = leadIds.length
+          ? await supabase.from("contact_methods").select("lead_id, phone, email, sms_consent, dnc_status, email_unsubscribed").in("lead_id", leadIds)
+          : { data: [] as any[] };
+        const propIds = Array.from(new Set((leads ?? []).map(l => l.property_id).filter(Boolean))) as string[];
+        const { data: props } = propIds.length
+          ? await supabase.from("properties").select("id, owner_name, property_address").in("id", propIds)
+          : { data: [] as any[] };
+        const propById = new Map((props ?? []).map(p => [p.id, p]));
+        const contactsByLead = new Map<string, any[]>();
+        for (const c of contacts ?? []) {
+          const arr = contactsByLead.get(c.lead_id) ?? [];
+          arr.push(c); contactsByLead.set(c.lead_id, arr);
+        }
+        for (const t of approved) {
+          for (const l of leads ?? []) {
+            const prop = l.property_id ? propById.get(l.property_id) : null;
+            const cs = contactsByLead.get(l.id) ?? [];
+            const c = cs[0] ?? {};
+            rows.push({
+              homeowner_name: prop?.owner_name ?? "",
+              address: prop?.property_address ?? "",
+              phone: c.phone ?? "",
+              email: c.email ?? "",
+              sms_consent: c.sms_consent ? "yes" : "no",
+              dnc_status: c.dnc_status ? "yes" : "no",
+              email_unsubscribed: c.email_unsubscribed ? "yes" : "no",
+              market: t.marketName,
+              storm_trigger: t.trigger,
+              trigger_reading: t.reading,
+              campaign_message: t.message,
+              campaign_status: t.status,
+              triggered_at: t.triggeredAt,
+            });
+          }
+        }
+        // Audit trail: one compliance log per export per channel per campaign
+        for (const t of approved) {
+          for (const ch of (t.channels ?? [])) {
+            await supabase.from("campaign_compliance_logs").insert({
+              triggered_campaign_id: t.id,
+              channel: `export:${ch}`,
+              eligible: true,
+              blocked_reason: null,
+              message_sent: false,
+              consent_status: null,
+              dnc_status: null,
+              opt_out_status: null,
+            });
+          }
+        }
+      } else {
+        for (const t of approved) {
+          rows.push({
+            homeowner_name: "", address: "", phone: "", email: "",
+            sms_consent: "", dnc_status: "", email_unsubscribed: "",
+            market: t.marketName, storm_trigger: t.trigger, trigger_reading: t.reading,
+            campaign_message: t.message, campaign_status: t.status, triggered_at: t.triggeredAt,
+          });
+        }
+      }
+      if (rows.length === 0) {
+        toast.error("No homeowner data available to export");
+      } else {
+        const csv = toCsv(rows, [
+          "homeowner_name","address","phone","email","sms_consent","dnc_status","email_unsubscribed",
+          "market","storm_trigger","trigger_reading","campaign_message","campaign_status","triggered_at",
+        ]);
+        downloadCsv(`approved-campaigns-${new Date().toISOString().slice(0,10)}.csv`, csv);
+        toast.success(`Exported ${rows.length} rows · ${approved.length} approved campaigns`);
+      }
+    } catch (e) {
+      toast.error("Export failed");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   // Real compliance partition using leads/contact_methods.
   // Returns null when there's no logged-in user (caller falls back to simulated math).
   const partitionForComplianceReal = async (rule: Rule) => {
