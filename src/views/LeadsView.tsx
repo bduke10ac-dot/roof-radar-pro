@@ -70,7 +70,30 @@ export function LeadsView() {
             {activeMarket && <> · scoped to <span className="text-storm font-medium">{activeMarket.name}</span> ({allLeads.length} total)</>}
           </p>
         </div>
-        <Button variant="outline" size="sm"><Download className="w-4 h-4 mr-2" />Export CSV</Button>
+        <div className="flex items-center gap-2">
+          <LeadImportDialog />
+          <Button variant="outline" size="sm" onClick={() => {
+            const exportCap = plan.id === "free" ? 25 : plan.id === "starter" ? 1000 : 100000;
+            const rows = filtered.slice(0, exportCap).map(l => ({
+              owner_name: l.ownerName, property_address: l.propertyAddress,
+              mailing_address: l.mailingAddress, zip: l.zip,
+              phone: l.phone, email: l.email,
+              sms_consent: l.smsConsent ? "yes" : "no",
+              dnc_status: l.dncStatus ? "yes" : "no",
+              status: l.status, storm_score: l.stormScore,
+              roof_age: l.roofAge, home_value: l.homeValue,
+              market: activeMarket?.name ?? "",
+            }));
+            downloadCsv(`leads-${new Date().toISOString().slice(0,10)}.csv`, toCsv(rows));
+            if (filtered.length > exportCap) {
+              toast.warning(`Exported ${exportCap} of ${filtered.length} (${plan.name} plan limit)`);
+            } else {
+              toast.success(`Exported ${rows.length} leads`);
+            }
+          }}>
+            <Download className="w-4 h-4 mr-2" />Export CSV
+          </Button>
+        </div>
       </header>
 
       <div className="bg-card rounded-xl p-4 shadow-card border border-border/60 flex flex-wrap gap-3">
