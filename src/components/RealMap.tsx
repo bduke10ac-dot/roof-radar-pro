@@ -109,6 +109,40 @@ export function RealMap({
   const renderedPins = useMemo(() => pins.slice(0, 500), [pins]);
   const containerRef = useRef<HTMLDivElement>(null);
   const [fitTrigger, setFitTrigger] = useState(1);
+  const [userLoc, setUserLoc] = useState<{ lat: number; lng: number; accuracy: number } | null>(null);
+  const [locating, setLocating] = useState(false);
+  const mapRef = useRef<L.Map | null>(null);
+
+  const handleLocate = () => {
+    if (!("geolocation" in navigator)) {
+      toast.error("Location not supported", { description: "Your device doesn't support geolocation." });
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords;
+        setUserLoc({ lat: latitude, lng: longitude, accuracy });
+        mapRef.current?.setView([latitude, longitude], 15);
+        setLocating(false);
+        toast.success("Centered on your location", {
+          description: "Your location is used only to center the map and is not saved.",
+        });
+      },
+      (err) => {
+        setLocating(false);
+        const msg = err.code === err.PERMISSION_DENIED
+          ? "Location permission denied"
+          : err.code === err.POSITION_UNAVAILABLE
+          ? "Location unavailable"
+          : "Location request timed out";
+        toast.error(msg, {
+          description: "Your location is used only to center the map and is not saved.",
+        });
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    );
+  };
 
   return (
     <div ref={containerRef} className={`relative w-full h-full min-h-[360px] max-w-full overflow-hidden ${className ?? ""}`}>
@@ -116,6 +150,7 @@ export function RealMap({
         center={center}
         zoom={zoom}
         scrollWheelZoom
+        ref={(m) => { mapRef.current = m as unknown as L.Map | null; }}
         className="w-full h-full rounded-xl overflow-hidden"
         style={{ background: "#0b1220" }}
       >
