@@ -1,12 +1,13 @@
-import { LayoutDashboard, Users, Map, Send, ShieldCheck, Plug, CloudLightning, Target, Zap, CreditCard, Sparkles, BookOpen } from "lucide-react";
+import { LayoutDashboard, Users, Map, Send, ShieldCheck, Plug, CloudLightning, Target, Zap, CreditCard, Sparkles, BookOpen, Activity } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import { Button } from "@/components/ui/button";
 
-export type View = "dashboard" | "storm-ops" | "leads" | "map" | "markets" | "campaigns" | "auto-campaigns" | "playbook" | "compliance" | "integrations" | "billing";
+export type View = "dashboard" | "storm-ops" | "leads" | "map" | "markets" | "campaigns" | "auto-campaigns" | "playbook" | "compliance" | "integrations" | "billing" | "readiness";
 
-const items: { id: View; label: string; icon: typeof LayoutDashboard }[] = [
+const items: { id: View; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean }[] = [
   { id: "dashboard", label: "Home", icon: LayoutDashboard },
   { id: "storm-ops", label: "Storm Operations", icon: CloudLightning },
   { id: "leads", label: "Leads", icon: Users },
@@ -18,9 +19,12 @@ const items: { id: View; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "compliance", label: "Compliance", icon: ShieldCheck },
   { id: "integrations", label: "Integrations", icon: Plug },
   { id: "billing", label: "Billing & Subscription", icon: CreditCard },
+  { id: "readiness", label: "App Readiness", icon: Activity, adminOnly: true },
 ];
 
 export function AppSidebar({ active, onNavigate }: { active: View; onNavigate: (v: View) => void }) {
+  const { isAdmin } = useUserRole();
+  const visible = items.filter(it => !it.adminOnly || isAdmin);
   return (
     <aside className="hidden md:flex w-60 shrink-0 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
       <div className="px-5 py-5 flex items-center gap-2.5 border-b border-sidebar-border">
@@ -33,7 +37,7 @@ export function AppSidebar({ active, onNavigate }: { active: View; onNavigate: (
         </div>
       </div>
       <nav className="flex-1 p-3 space-y-1">
-        {items.map((it) => {
+        {visible.map((it) => {
           const Icon = it.icon;
           const isActive = active === it.id;
           return (

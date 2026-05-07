@@ -11,6 +11,7 @@ import { IntegrationsView } from "@/views/IntegrationsView";
 import { AutoStormCampaignsView } from "@/views/AutoStormCampaignsView";
 import { StormPlaybookView } from "@/views/StormPlaybookView";
 import { BillingView } from "@/views/BillingView";
+import { AppReadinessView } from "@/views/AppReadinessView";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { TrialBanner } from "@/components/TrialBanner";
 import { UpgradeDialog } from "@/components/UpgradeDialog";
@@ -97,6 +98,7 @@ const Shell = () => {
           {view === "compliance" && <ComplianceView />}
           {view === "integrations" && <IntegrationsView />}
           {view === "billing" && <BillingView />}
+          {view === "readiness" && <AppReadinessView />}
         </main>
       </div>
       <UpgradeDialog />

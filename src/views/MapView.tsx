@@ -20,6 +20,8 @@ import {
 } from "@/lib/stormOverlays";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { NwsAlertsPanel } from "@/components/NwsAlertsPanel";
+import { useNwsAlerts } from "@/hooks/useNwsAlerts";
 
 export function MapView() {
   const { leads, allLeads, activeMarket } = useMarketLeads();
@@ -28,6 +30,10 @@ export function MapView() {
   const [zip, setZip] = useState("all");
   const [radius, setRadius] = useState([35]);
   const { prefs, update: updatePrefs } = useMapPrefs();
+  const nwsState = activeMarket?.states?.[0] ?? "TN";
+  const { alerts: nwsAlerts } = useNwsAlerts(nwsState);
+  // Real NWS polygons in scope (only those with geometry). When present, override mock storm polygons.
+  const nwsPolygons = useMemo(() => (nwsAlerts ?? []).filter(a => a.geometry), [nwsAlerts]);
   const [overlays, setOverlays] = useState<OverlayState>(DEFAULT_OVERLAYS);
 
   // Hydrate overlay toggles from saved map preferences once they load
@@ -237,6 +243,8 @@ export function MapView() {
         </Button>
       </header>
 
+      <NwsAlertsPanel />
+
       <div className="grid lg:grid-cols-[320px_1fr] gap-5">
         {/* Layer panel */}
         <div className="bg-card rounded-xl shadow-card border border-border/60 h-fit">
@@ -389,6 +397,37 @@ export function MapView() {
 
           {/* SVG overlays */}
           <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+            {/* Live NWS alert polygons (real NOAA data) */}
+            {nwsPolygons.map(a => {
+              const geom: any = a.geometry;
+              const coords: number[][][] | undefined =
+                geom?.type === "Polygon" ? geom.coordinates :
+                geom?.type === "MultiPolygon" ? geom.coordinates[0] : undefined;
+              if (!coords || !coords[0]) return null;
+              const ring = coords[0];
+              const lons = ring.map(c => c[0]); const lats = ring.map(c => c[1]);
+              const minL = Math.min(...lons), maxL = Math.max(...lons);
+              const minLa = Math.min(...lats), maxLa = Math.max(...lats);
+              // Project to viewBox using leads bounds when available, else local geom bounds
+              const useLeadsBounds = isFinite(minLng) && isFinite(maxLng) && (maxLng - minLng) > 0.01;
+              const proj = (lon: number, lat: number) => {
+                const x = useLeadsBounds
+                  ? ((lon - minLng) / (maxLng - minLng)) * 88 + 6
+                  : ((lon - minL) / (maxL - minL || 1)) * 80 + 10;
+                const y = useLeadsBounds
+                  ? (1 - (lat - minLat) / (maxLat - minLat)) * 80 + 10
+                  : (1 - (lat - minLa) / (maxLa - minLa || 1)) * 70 + 15;
+                return `${x},${y}`;
+              };
+              const points = ring.map((c: number[]) => proj(c[0], c[1])).join(" ");
+              const sev = (a.severity || "").toLowerCase();
+              const color = sev === "extreme" ? "hsl(0 85% 50%)" : sev === "severe" ? "hsl(28 90% 50%)" : "hsl(45 90% 50%)";
+              return (
+                <polygon key={a.id} points={points}
+                  fill={color} fillOpacity={0.18}
+                  stroke={color} strokeOpacity={0.9} strokeWidth={0.4} />
+              );
+            })}
             {/* Rain zones (under everything) */}
             {overlays.rain && RAIN_ZONES.map(r => (
               <g key={r.id}>
@@ -404,7 +443,7 @@ export function MapView() {
                 stroke="hsl(140 60% 35%)" strokeOpacity={0.7} strokeWidth={0.3} strokeDasharray="0.8 0.8" />
             ))}
             {/* Hail swaths */}
-            {overlays.hail && HAIL_SWATHS
+            {nwsPolygons.length === 0 && overlays.hail && HAIL_SWATHS
               .filter(s => s.hailSize >= overlays.minHail)
               .filter(s => !overlays.hailDateFrom || s.date >= overlays.hailDateFrom)
               .filter(s => !overlays.hailDateTo || s.date <= overlays.hailDateTo)
@@ -416,7 +455,7 @@ export function MapView() {
                 </g>
             ))}
             {/* Wind corridors */}
-            {overlays.wind && WIND_CORRIDORS.filter(w => w.windSpeed >= overlays.minWind).map(w => (
+            {nwsPolygons.length === 0 && overlays.wind && WIND_CORRIDORS.filter(w => w.windSpeed >= overlays.minWind).map(w => (
               <g key={w.id}>
                 <line x1={w.x1} y1={w.y1} x2={w.x2} y2={w.y2}
                   stroke={windColor(w.windSpeed)} strokeWidth={w.windSpeed / 18} strokeOpacity={0.55} strokeLinecap="round" />
@@ -429,7 +468,7 @@ export function MapView() {
               </g>
             ))}
             {/* Tornado tracks */}
-            {overlays.tornado && TORNADO_TRACKS.filter(t => t.ef >= overlays.efRating).map(t => (
+            {nwsPolygons.length === 0 && overlays.tornado && TORNADO_TRACKS.filter(t => t.ef >= overlays.efRating).map(t => (
               <g key={t.id}>
                 {overlays.showTornadoWidth && (
                   <line x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2}
@@ -442,7 +481,7 @@ export function MapView() {
           </svg>
 
           {/* Hail labels (HTML so tooltips look right) */}
-          {overlays.hail && HAIL_SWATHS
+          {nwsPolygons.length === 0 && overlays.hail && HAIL_SWATHS
             .filter(s => s.hailSize >= overlays.minHail)
             .map(s => (
               <div key={`hl-${s.id}`} className="absolute pointer-events-none" style={{ left: `${s.x + 1}%`, top: `${s.y + 1}%` }}>
@@ -465,7 +504,7 @@ export function MapView() {
               </div>
           ))}
           {/* Tornado labels */}
-          {overlays.tornado && TORNADO_TRACKS.filter(t => t.ef >= overlays.efRating).map(t => (
+          {nwsPolygons.length === 0 && overlays.tornado && TORNADO_TRACKS.filter(t => t.ef >= overlays.efRating).map(t => (
             <div key={`tl-${t.id}`} className="absolute pointer-events-none"
               style={{ left: `${(t.x1 + t.x2) / 2}%`, top: `${(t.y1 + t.y2) / 2}%` }}>
               <div className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-destructive text-destructive-foreground -translate-x-1/2 -translate-y-1/2">
