@@ -203,12 +203,39 @@ export function AutoStormCampaignsView() {
   const { user } = useAuth();
   const { cells, marketImpacts } = useWeather();
   const { rules: dbRules, createRule, updateRule, deleteRule: dbDeleteRule, toggleRule: dbToggleRule, loading: rulesLoading } = useAutoRules();
+  const { items: dbTriggered, create: createTriggered, setStatus: setTriggeredStatus } = useTriggeredCampaigns();
   const [rules, setRules] = useState<Rule[]>(SEED_RULES);
-  const [triggered, setTriggered] = useState<TriggeredCampaign[]>(SEED_TRIGGERED);
+  const [localTriggered, setLocalTriggered] = useState<TriggeredCampaign[]>(SEED_TRIGGERED);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<Rule>(DEFAULT_RULE());
   const [reviewing, setReviewing] = useState<TriggeredCampaign | null>(null);
   const [savingRule, setSavingRule] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<Rule | null>(null);
+  const [simulating, setSimulating] = useState(false);
+
+  // When logged in, the trigger log/approval queue come from Supabase.
+  const triggered: TriggeredCampaign[] = useMemo(() => {
+    if (!user) return localTriggered;
+    return dbTriggered.map(t => ({
+      id: t.id,
+      ruleName: t.ruleName,
+      marketName: t.marketName,
+      trigger: (t.triggerType as TriggerKey) ?? "hail",
+      reading: t.triggerReading,
+      eligible: t.eligibleCount,
+      blocked: t.blockedCount,
+      status: t.status,
+      channels: t.channels as ChannelKey[],
+      message: t.message,
+      triggeredAt: t.createdAt,
+      smsEligible: t.smsEligible,
+      smsBlockedNoConsent: t.smsBlockedNoConsent,
+      smsBlockedDnc: t.smsBlockedDnc,
+      reroutedToMail: t.reroutedToMail,
+      reroutedToDoorKnock: t.reroutedToDoorKnock,
+    }));
+  }, [user, dbTriggered, localTriggered]);
+
   // Per-market master switch — automation only watches markets that are turned on
   const [marketAutomation, setMarketAutomation] = useState<Record<string, boolean>>(
     () => Object.fromEntries(markets.map(m => [m.name, true]))
