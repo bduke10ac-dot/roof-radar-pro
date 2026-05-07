@@ -4,13 +4,13 @@
 
 @layer base {
   :root {
-    --background: 220 55% 16%;
+    --background: 200 70% 96%;
     --background-gradient:
-      radial-gradient(ellipse at 20% 0%, hsl(60 100% 60% / 0.18) 0%, transparent 45%),
-      radial-gradient(ellipse at 80% 10%, hsl(0 0% 100% / 0.22) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 100%, hsl(190 95% 55% / 0.35) 0%, transparent 60%),
-      linear-gradient(160deg, hsl(220 60% 14%) 0%, hsl(215 70% 28%) 45%, hsl(200 85% 40%) 100%);
-    --foreground: 210 40% 98%;
+      radial-gradient(ellipse at 15% 0%, hsl(60 100% 75% / 0.25) 0%, transparent 40%),
+      radial-gradient(ellipse at 85% 10%, hsl(0 0% 100% / 0.6) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 100%, hsl(190 95% 75% / 0.55) 0%, transparent 60%),
+      linear-gradient(160deg, hsl(215 90% 92%) 0%, hsl(195 85% 88%) 50%, hsl(180 75% 90%) 100%);
+    --foreground: 220 50% 12%;
 
     --card: 0 0% 100%;
     --card-foreground: 220 40% 12%;
