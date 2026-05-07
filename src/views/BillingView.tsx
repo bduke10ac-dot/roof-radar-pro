@@ -6,14 +6,16 @@ import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useSubscription, PLANS, PlanId, BillingCycle } from "@/contexts/SubscriptionContext";
-import { Check, Sparkles, CreditCard, Receipt, Users, Zap, AlertTriangle, ExternalLink } from "lucide-react";
+import { Check, Sparkles, CreditCard, Receipt, Users, Zap, AlertTriangle, ExternalLink, Trash2, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { BrandSettings } from "@/components/BrandSettings";
+import { DeleteAccountDialog } from "@/components/DeleteAccountDialog";
 
 export function BillingView() {
   const { plan, cycle, status, trialEndsAt, renewsAt, usage, startTrial, changePlan, cancel, setCycle } = useSubscription();
   const [previewCycle, setPreviewCycle] = useState<BillingCycle>(cycle);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const fmtLimit = (n: number) => (n === -1 ? "Unlimited" : n.toLocaleString());
   const pct = (used: number, limit: number) => (limit === -1 ? 5 : Math.min(100, (used / Math.max(limit, 1)) * 100));
