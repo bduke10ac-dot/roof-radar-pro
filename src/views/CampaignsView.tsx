@@ -309,7 +309,10 @@ export function CampaignsView() {
                   {canStartAiCalls ? <PhoneCall className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
                   {!aiCallEnabled ? "Enable to start" : !hasOptOut ? "Add opt-out language" : "Start AI calls"}
                 </Button>
-                <Button variant="outline" onClick={() => toast.success("Script template saved")}><Save className="w-4 h-4 mr-2" />Save script</Button>
+                <Button variant="outline" disabled={saving} onClick={async () => {
+                  const ok = await saveDraft({ name: "AI cold-call script", channel: "aicall", message: aiScript });
+                  if (ok) toast.success("Script template saved");
+                }}><Save className="w-4 h-4 mr-2" />{saving ? "Saving…" : "Save script"}</Button>
                 <Button variant="outline" onClick={() => toast.success(`Call list exported (${aiCallEligible.length} numbers)`)}><Download className="w-4 h-4 mr-2" />Export call list</Button>
               </div>
             </div>
