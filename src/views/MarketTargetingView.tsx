@@ -9,12 +9,14 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMarkets, STATES, REGIONS, COUNTIES, scoreMarket, type MarketFilters, type SavedMarket } from "@/contexts/MarketContext";
 import { useLeads } from "@/hooks/useLeads";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export function MarketTargetingView() {
   const { markets, loading, saving, activeMarketId, setActiveMarketId, saveMarket, updateMarket, deleteMarket } = useMarkets();
   const { leads } = useLeads();
+  const { plan, requestUpgrade } = useSubscription();
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
