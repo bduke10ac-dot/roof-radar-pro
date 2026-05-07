@@ -1091,6 +1091,48 @@ export function AutoStormCampaignsView() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Final send confirmation */}
+      <Dialog open={!!confirmingSend} onOpenChange={v => !v && setConfirmingSend(null)}>
+        <DialogContent className="max-w-md">
+          {confirmingSend && (() => {
+            const t = confirmingSend;
+            const smsCount = t.channels.includes("sms") ? (t.smsEligible ?? 0) : 0;
+            const emailCount = t.channels.includes("email") ? Math.max(0, t.eligible - smsCount) : 0;
+            return (
+              <>
+                <DialogHeader><DialogTitle>Confirm campaign send</DialogTitle></DialogHeader>
+                <div className="space-y-3 text-sm">
+                  <p className="text-muted-foreground">
+                    Review the estimated impact before approving <span className="font-semibold text-foreground">{t.ruleName}</span>.
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Field label="Estimated SMS" value={smsCount.toLocaleString()} />
+                    <Field label="Estimated Email" value={emailCount.toLocaleString()} />
+                    <Field label="Blocked by compliance" value={(t.blocked ?? 0).toLocaleString()} />
+                    <Field label="Channels" value={t.channels.join(", ") || "—"} />
+                  </div>
+                  <Card className="p-3 bg-warning/5 border-warning/30">
+                    <div className="flex items-start gap-2">
+                      <ShieldAlert className="w-4 h-4 text-warning shrink-0 mt-0.5" />
+                      <p className="text-[11px] text-muted-foreground">
+                        SMS sends only to contacts with consent and not on DNC; quiet hours and STOP language enforced server-side.
+                        Email skips unsubscribed addresses and includes an unsubscribe footer. Real delivery activates once Twilio/Resend are connected — until then, approval is recorded for audit only.
+                      </p>
+                    </div>
+                  </Card>
+                </div>
+                <DialogFooter className="gap-2">
+                  <Button variant="outline" onClick={() => setConfirmingSend(null)}>Cancel</Button>
+                  <Button onClick={() => finalApprove(t)}>
+                    <CheckCircle2 className="w-4 h-4 mr-2" /> Confirm & approve
+                  </Button>
+                </DialogFooter>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
