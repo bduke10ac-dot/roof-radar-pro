@@ -246,6 +246,41 @@ export function LeadsView() {
                   )}
                 </div>
 
+                {/* Quick actions */}
+                <div className="grid grid-cols-4 gap-1.5">
+                  <a
+                    href={selected.phone ? `tel:${selected.phone}` : undefined}
+                    className={`flex flex-col items-center justify-center gap-1 rounded-lg border border-border/60 py-2.5 text-[11px] font-medium ${selected.phone ? "active:bg-accent/50" : "opacity-40 pointer-events-none"}`}
+                  >
+                    <Phone className="w-4 h-4 text-storm" /> Call
+                  </a>
+                  <a
+                    href={selected.phone ? `sms:${selected.phone}` : undefined}
+                    className={`flex flex-col items-center justify-center gap-1 rounded-lg border border-border/60 py-2.5 text-[11px] font-medium ${selected.phone ? "active:bg-accent/50" : "opacity-40 pointer-events-none"}`}
+                  >
+                    <MessageSquare className="w-4 h-4 text-storm" /> Text
+                  </a>
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(selected.propertyAddress)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex flex-col items-center justify-center gap-1 rounded-lg border border-border/60 py-2.5 text-[11px] font-medium active:bg-accent/50"
+                  >
+                    <Navigation className="w-4 h-4 text-storm" /> Route
+                  </a>
+                  <button
+                    onClick={async () => {
+                      if (usingMock) { toast.error("Log in to update lead status"); return; }
+                      setForm(f => ({ ...f, status: "inspection" }));
+                      const ok = await updateLead(selected.id, { status: "inspection" });
+                      if (ok) toast.success("Marked as inspection");
+                    }}
+                    className="flex flex-col items-center justify-center gap-1 rounded-lg border border-border/60 py-2.5 text-[11px] font-medium active:bg-accent/50"
+                  >
+                    <ClipboardCheck className="w-4 h-4 text-storm" /> Inspected
+                  </button>
+                </div>
+
                 <Field label="Owner name">
                   <Input value={form.ownerName ?? ""} onChange={e => setForm(f => ({ ...f, ownerName: e.target.value }))} />
                 </Field>
