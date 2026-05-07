@@ -186,7 +186,7 @@ export function useLeads() {
     if (patch.stormScore !== undefined) leadPatch.storm_score = patch.stormScore;
     if (patch.notes !== undefined) leadPatch.notes = patch.notes;
     if (Object.keys(leadPatch).length > 0) {
-      const { error } = await supabase.from("leads").update(leadPatch).eq("id", id);
+      const { error } = await supabase.from("leads").update(leadPatch as any).eq("id", id);
       if (error) { toast.error(error.message); return false; }
     }
 
@@ -201,7 +201,7 @@ export function useLeads() {
       // Need property_id; fetch from joined data
       const { data: leadRow } = await supabase.from("leads").select("property_id").eq("id", id).maybeSingle();
       if (leadRow?.property_id) {
-        const { error } = await supabase.from("properties").update(propPatch).eq("id", leadRow.property_id);
+        const { error } = await supabase.from("properties").update(propPatch as any).eq("id", leadRow.property_id);
         if (error) { toast.error(error.message); return false; }
       }
     }
@@ -214,9 +214,9 @@ export function useLeads() {
       if (patch.smsConsent !== undefined) cmPatch.sms_consent = patch.smsConsent;
       if (patch.emailConsent !== undefined) cmPatch.email_consent = patch.emailConsent;
       if (existing && existing.length > 0) {
-        await supabase.from("contact_methods").update(cmPatch).eq("id", existing[0].id);
+        await supabase.from("contact_methods").update(cmPatch as any).eq("id", existing[0].id);
       } else {
-        await supabase.from("contact_methods").insert({ lead_id: id, dnc_status: false, ...cmPatch });
+        await supabase.from("contact_methods").insert({ lead_id: id, dnc_status: false, ...cmPatch } as any);
       }
     }
 

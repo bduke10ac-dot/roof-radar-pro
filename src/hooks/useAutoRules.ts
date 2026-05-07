@@ -142,7 +142,7 @@ export function useAutoRules() {
     setSaving(true);
     const { data, error } = await supabase
       .from("auto_campaign_rules")
-      .update(ruleToRow(patch))
+      .update(ruleToRow(patch) as any)
       .eq("id", id)
       .select(ROW_COLS)
       .single();
