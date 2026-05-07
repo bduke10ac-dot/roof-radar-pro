@@ -175,7 +175,17 @@ export function MapView() {
     }));
   }, [mapCtl.state.layers.stormHail, mapCtl.state.layers.stormWind, mapCtl.state.layers.stormRain, mapCtl.state.layers.stormTornado, mapCtl.state.layers.leadDensity]);
 
-  const update = (patch: Partial<OverlayState>) => setOverlays(o => ({ ...o, ...patch }));
+  const update = (patch: Partial<OverlayState>) => {
+    setOverlays(o => ({ ...o, ...patch }));
+    // Persist common layer toggles to user_map_preferences
+    const dbPatch: Record<string, unknown> = {};
+    if (patch.hail !== undefined) dbPatch.hail_layer_enabled = patch.hail;
+    if (patch.wind !== undefined) dbPatch.wind_layer_enabled = patch.wind;
+    if (patch.rain !== undefined) dbPatch.rain_layer_enabled = patch.rain;
+    if (patch.tornado !== undefined) dbPatch.tornado_layer_enabled = patch.tornado;
+    if (patch.leadHeatmap !== undefined) dbPatch.lead_heatmap_enabled = patch.leadHeatmap;
+    if (Object.keys(dbPatch).length > 0) updatePrefs(dbPatch as any);
+  };
   const preset = (p: LayerPreset) => setOverlays(o => applyPreset(o, p));
 
   const lats = leads.map(l => l.lat);
