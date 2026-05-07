@@ -395,8 +395,14 @@ export function AutoStormCampaignsView() {
     if (!ok) toast.error("Toggle failed — reverted");
   };
 
-  const approve = async (t: TriggeredCampaign) => {
+  // Step 1 — open confirmation modal
+  const approve = (t: TriggeredCampaign) => {
     setReviewing(null);
+    setConfirmingSend(t);
+  };
+  // Step 2 — actually mark approved (sending is gated until SMS/Email connectors are added)
+  const finalApprove = async (t: TriggeredCampaign) => {
+    setConfirmingSend(null);
     if (user) {
       const ok = await setTriggeredStatus(t.id, "approved");
       if (!ok) return;
@@ -404,11 +410,12 @@ export function AutoStormCampaignsView() {
       setLocalTriggered(ts => ts.map(x => x.id === t.id ? { ...x, status: "approved" } : x));
     }
     toast.info("Campaign approved · sending coming soon", {
-      description: "Connect Twilio/Resend to enable real sends. Approval is recorded in the audit log.",
+      description: "Approval is recorded. Real SMS/Email sending activates once Twilio/Resend are connected.",
     });
   };
   const reject = async (t: TriggeredCampaign) => {
     setReviewing(null);
+    setConfirmingSend(null);
     if (user) {
       const ok = await setTriggeredStatus(t.id, "rejected");
       if (!ok) return;
