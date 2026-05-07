@@ -7,6 +7,8 @@ import { useMarkets } from "@/contexts/MarketContext";
 import { WeatherCommandCenter } from "@/components/WeatherCommandCenter";
 import { useWeather } from "@/contexts/WeatherContext";
 import { Badge } from "@/components/ui/badge";
+import { NwsAlertsPanel } from "@/components/NwsAlertsPanel";
+import { ComingSoon } from "@/components/ComingSoon";
 
 const pipelineStages: LeadStatus[] = ["new", "contacted", "inspection", "quoted", "won"];
 
@@ -29,7 +31,12 @@ export function StormOpsView() {
 
   return (
     <div className="space-y-6">
-      <WeatherCommandCenter />
+      <div className="relative">
+        <ComingSoon variant="overlay" label="Demo radar" />
+        <WeatherCommandCenter />
+      </div>
+
+      <NwsAlertsPanel />
 
       <header className="flex items-end justify-between flex-wrap gap-3">
         <div>
