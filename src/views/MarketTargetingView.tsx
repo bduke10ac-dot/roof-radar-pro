@@ -176,7 +176,7 @@ export function MarketTargetingView() {
               <div className="bg-card rounded-xl p-5 shadow-card border border-border/60 space-y-3">
                 <Label>Market name</Label>
                 <Input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Sumner County Hail Zone" />
-                <Button onClick={handleSave} className="w-full"><Save className="w-4 h-4 mr-2" />Save market</Button>
+                <Button onClick={handleSave} disabled={saving} className="w-full"><Save className="w-4 h-4 mr-2" />{saving ? "Saving…" : "Save market"}</Button>
                 <div className="text-xs text-muted-foreground">Mock leads available in scope: <span className="font-semibold text-foreground">{leads.length}</span></div>
               </div>
             </aside>
