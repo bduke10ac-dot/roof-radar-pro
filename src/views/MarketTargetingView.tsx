@@ -184,17 +184,23 @@ export function MarketTargetingView() {
         </TabsContent>
 
         <TabsContent value="saved" className="mt-5">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {markets.map(m => (
-              <SavedMarketCard
-                key={m.id}
-                market={m}
-                active={m.id === activeMarketId}
-                onActivate={() => { setActiveMarketId(m.id === activeMarketId ? null : m.id); toast.success(m.id === activeMarketId ? "Cleared active market" : `Active: ${m.name}`); }}
-                onDelete={() => { deleteMarket(m.id); toast.success("Market removed"); }}
-              />
-            ))}
-          </div>
+          {loading ? (
+            <div className="text-sm text-muted-foreground py-8 text-center">Loading saved markets…</div>
+          ) : markets.length === 0 ? (
+            <div className="text-sm text-muted-foreground py-8 text-center">No saved markets yet — build one in the Builder tab.</div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {markets.map(m => (
+                <SavedMarketCard
+                  key={m.id}
+                  market={m}
+                  active={m.id === activeMarketId}
+                  onActivate={() => { setActiveMarketId(m.id === activeMarketId ? null : m.id); toast.success(m.id === activeMarketId ? "Cleared active market" : `Active: ${m.name}`); }}
+                  onDelete={() => { deleteMarket(m.id); toast.success("Market removed"); }}
+                />
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>
