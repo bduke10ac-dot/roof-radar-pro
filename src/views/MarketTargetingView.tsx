@@ -13,9 +13,10 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export function MarketTargetingView() {
-  const { markets, loading, saving, activeMarketId, setActiveMarketId, saveMarket, deleteMarket } = useMarkets();
+  const { markets, loading, saving, activeMarketId, setActiveMarketId, saveMarket, updateMarket, deleteMarket } = useMarkets();
   const { leads } = useLeads();
 
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [states, setStates] = useState<string[]>([]);
   const [regions, setRegions] = useState<string[]>([]);
@@ -32,6 +33,24 @@ export function MarketTargetingView() {
   const [minHomeValue, setMinHomeValue] = useState([0]);
   const [minClaim, setMinClaim] = useState([0]);
   const [stormDateFrom, setStormDateFrom] = useState("");
+
+  const resetForm = () => {
+    setEditingId(null);
+    setName(""); setStates([]); setRegions([]); setCounties([]); setCities([]); setZips([]);
+    setMinHail([0]); setMinWind([0]); setMinConfidence([0]); setMinAffected([0]);
+    setMinRoofAge([0]); setMinHomeValue([0]); setMinClaim([0]); setStormDateFrom("");
+  };
+
+  const startEdit = (m: typeof markets[number]) => {
+    setEditingId(m.id);
+    setName(m.name);
+    setStates(m.states); setRegions(m.regions); setCounties(m.counties);
+    setCities(m.cities); setZips(m.zips);
+    setMinHail([m.filters.minHail ?? 0]); setMinWind([m.filters.minWind ?? 0]);
+    setMinConfidence([m.filters.minConfidence ?? 0]); setMinAffected([m.filters.minAffected ?? 0]);
+    setMinRoofAge([m.filters.minRoofAge ?? 0]); setMinHomeValue([m.filters.minHomeValue ?? 0]);
+    setMinClaim([m.filters.minClaimScore ?? 0]); setStormDateFrom(m.filters.stormDateFrom ?? "");
+  };
 
   const toggleIn = <T,>(arr: T[], v: T) => arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v];
 
