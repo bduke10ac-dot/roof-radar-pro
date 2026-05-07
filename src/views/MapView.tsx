@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { StormScoreBadge } from "@/components/StormScoreBadge";
 import { useMarketLeads } from "@/hooks/useMarketFilter";
+import { useMapPrefs } from "@/hooks/useMapPrefs";
 import {
   DEFAULT_OVERLAYS, HAIL_THRESHOLDS, WIND_THRESHOLDS, EF_RATINGS, applyPreset, computeStormScore,
   HAIL_SWATHS, WIND_CORRIDORS, TORNADO_TRACKS, RAIN_ZONES, TREE_DAMAGE_ZONES,
@@ -26,7 +27,23 @@ export function MapView() {
   const [minScore, setMinScore] = useState([60]);
   const [zip, setZip] = useState("all");
   const [radius, setRadius] = useState([35]);
+  const { prefs, update: updatePrefs } = useMapPrefs();
   const [overlays, setOverlays] = useState<OverlayState>(DEFAULT_OVERLAYS);
+
+  // Hydrate overlay toggles from saved map preferences once they load
+  const hydrated = useRef(false);
+  useEffect(() => {
+    if (hydrated.current) return;
+    hydrated.current = true;
+    setOverlays(o => ({
+      ...o,
+      hail: prefs.hail_layer_enabled,
+      wind: prefs.wind_layer_enabled,
+      rain: prefs.rain_layer_enabled,
+      tornado: prefs.tornado_layer_enabled,
+      leadHeatmap: prefs.lead_heatmap_enabled,
+    }));
+  }, [prefs]);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -158,7 +175,17 @@ export function MapView() {
     }));
   }, [mapCtl.state.layers.stormHail, mapCtl.state.layers.stormWind, mapCtl.state.layers.stormRain, mapCtl.state.layers.stormTornado, mapCtl.state.layers.leadDensity]);
 
-  const update = (patch: Partial<OverlayState>) => setOverlays(o => ({ ...o, ...patch }));
+  const update = (patch: Partial<OverlayState>) => {
+    setOverlays(o => ({ ...o, ...patch }));
+    // Persist common layer toggles to user_map_preferences
+    const dbPatch: Record<string, unknown> = {};
+    if (patch.hail !== undefined) dbPatch.hail_layer_enabled = patch.hail;
+    if (patch.wind !== undefined) dbPatch.wind_layer_enabled = patch.wind;
+    if (patch.rain !== undefined) dbPatch.rain_layer_enabled = patch.rain;
+    if (patch.tornado !== undefined) dbPatch.tornado_layer_enabled = patch.tornado;
+    if (patch.leadHeatmap !== undefined) dbPatch.lead_heatmap_enabled = patch.leadHeatmap;
+    if (Object.keys(dbPatch).length > 0) updatePrefs(dbPatch as any);
+  };
   const preset = (p: LayerPreset) => setOverlays(o => applyPreset(o, p));
 
   const lats = leads.map(l => l.lat);
