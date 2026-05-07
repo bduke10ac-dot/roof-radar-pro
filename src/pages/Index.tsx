@@ -55,7 +55,7 @@ const Shell = () => {
           </div>
           <div className="md:hidden ml-auto">
             <Select value={view} onValueChange={(v) => setView(v as View)}>
-              <SelectTrigger className="w-40 h-9"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-40 h-9 bg-white text-foreground border-white"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="dashboard">Home</SelectItem>
                 <SelectItem value="storm-ops">Storm Operations</SelectItem>
