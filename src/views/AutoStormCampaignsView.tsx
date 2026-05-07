@@ -873,6 +873,11 @@ export function AutoStormCampaignsView() {
 
         {/* Trigger log */}
         <TabsContent value="log" className="mt-4">
+          <div className="flex justify-end mb-2">
+            <Button variant="outline" size="sm" onClick={exportApprovedCampaigns} disabled={exporting}>
+              <Download className="w-4 h-4 mr-2" /> {exporting ? "Exporting…" : "Export approved (CSV)"}
+            </Button>
+          </div>
           <Card className="overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
