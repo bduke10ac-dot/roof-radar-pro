@@ -23,6 +23,8 @@ const items: { id: View; label: string; icon: typeof LayoutDashboard; adminOnly?
 ];
 
 export function AppSidebar({ active, onNavigate }: { active: View; onNavigate: (v: View) => void }) {
+  const { isAdmin } = useUserRole();
+  const visible = items.filter(it => !it.adminOnly || isAdmin);
   return (
     <aside className="hidden md:flex w-60 shrink-0 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
       <div className="px-5 py-5 flex items-center gap-2.5 border-b border-sidebar-border">
