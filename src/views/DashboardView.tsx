@@ -49,9 +49,9 @@ export function DashboardView({ onNavigate }: { onNavigate?: (v: View) => void }
       </header>
 
       {/* Storm Workflow — Storms · Leads · Export */}
-      <section>
+      <section className="min-w-0">
         <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Storm workflow</div>
-        <div className="grid grid-cols-3 gap-2 md:gap-3">
+        <div className="grid grid-cols-1 min-[380px]:grid-cols-3 gap-2 md:gap-3 min-w-0">
           <WorkflowTile icon={CloudLightning} label="Storms" desc="Active areas" onClick={() => onNavigate?.("storm-ops")} />
           <WorkflowTile icon={Users} label="Leads" desc={`${leads.length} homes`} onClick={() => onNavigate?.("leads")} />
           <WorkflowTile icon={Download} label="Export" desc="Send & route" onClick={() => onNavigate?.("campaigns")} />
@@ -68,8 +68,8 @@ export function DashboardView({ onNavigate }: { onNavigate?: (v: View) => void }
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-[10px] uppercase tracking-wider opacity-80">Next step</div>
-          <div className="font-semibold truncate">{nextAction.label}</div>
-          <div className="text-xs opacity-80 truncate">{nextAction.desc}</div>
+          <div className="font-semibold break-words leading-snug">{nextAction.label}</div>
+          <div className="text-xs opacity-80 break-words leading-snug">{nextAction.desc}</div>
         </div>
       </button>
 
