@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Route, Layers, MapPin, Target, Flame, CloudHail, Wind, Tornado, CloudRain, TreeDeciduous, Plus, Minus, Maximize2, Minimize2, Locate, Ruler, Move } from "lucide-react";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
-import { MapControls, useMapControls, baseMapBackground } from "@/components/MapControls";
+import { MapControls, useMapControls } from "@/components/MapControls";
 import { useMarkets } from "@/contexts/MarketContext";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -22,7 +22,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { NwsAlertsPanel } from "@/components/NwsAlertsPanel";
 import { useNwsAlerts } from "@/hooks/useNwsAlerts";
-import { RadarTileOverlay } from "@/components/RadarTileOverlay";
+
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import { RealMap } from "@/components/RealMap";
 

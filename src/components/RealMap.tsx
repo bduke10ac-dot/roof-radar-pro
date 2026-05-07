@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, GeoJSON, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, GeoJSON, useMap, Circle, CircleMarker } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { CloudOff, Radio, Loader2, Crosshair } from "lucide-react";
+import { CloudOff, Radio, Loader2, Crosshair, LocateFixed } from "lucide-react";
+import { toast } from "sonner";
 
 // Fix default marker icons for bundlers (Vite)
 import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
@@ -108,6 +109,40 @@ export function RealMap({
   const renderedPins = useMemo(() => pins.slice(0, 500), [pins]);
   const containerRef = useRef<HTMLDivElement>(null);
   const [fitTrigger, setFitTrigger] = useState(1);
+  const [userLoc, setUserLoc] = useState<{ lat: number; lng: number; accuracy: number } | null>(null);
+  const [locating, setLocating] = useState(false);
+  const mapRef = useRef<L.Map | null>(null);
+
+  const handleLocate = () => {
+    if (!("geolocation" in navigator)) {
+      toast.error("Location not supported", { description: "Your device doesn't support geolocation." });
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords;
+        setUserLoc({ lat: latitude, lng: longitude, accuracy });
+        mapRef.current?.setView([latitude, longitude], 15);
+        setLocating(false);
+        toast.success("Centered on your location", {
+          description: "Your location is used only to center the map and is not saved.",
+        });
+      },
+      (err) => {
+        setLocating(false);
+        const msg = err.code === err.PERMISSION_DENIED
+          ? "Location permission denied"
+          : err.code === err.POSITION_UNAVAILABLE
+          ? "Location unavailable"
+          : "Location request timed out";
+        toast.error(msg, {
+          description: "Your location is used only to center the map and is not saved.",
+        });
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    );
+  };
 
   return (
     <div ref={containerRef} className={`relative w-full h-full min-h-[360px] max-w-full overflow-hidden ${className ?? ""}`}>
@@ -115,6 +150,7 @@ export function RealMap({
         center={center}
         zoom={zoom}
         scrollWheelZoom
+        ref={(m) => { mapRef.current = m as unknown as L.Map | null; }}
         className="w-full h-full rounded-xl overflow-hidden"
         style={{ background: "#0b1220" }}
       >
@@ -148,10 +184,29 @@ export function RealMap({
             </Popup>
           </Marker>
         ))}
+        {userLoc && (
+          <>
+            <Circle center={[userLoc.lat, userLoc.lng]} radius={userLoc.accuracy}
+              pathOptions={{ color: "#2563eb", weight: 1, fillColor: "#2563eb", fillOpacity: 0.12 }} />
+            <CircleMarker center={[userLoc.lat, userLoc.lng]} radius={7}
+              pathOptions={{ color: "#fff", weight: 2, fillColor: "#2563eb", fillOpacity: 1 }}>
+              <Popup>You are here</Popup>
+            </CircleMarker>
+          </>
+        )}
         <FitBoundsOnce pins={renderedPins} center={center} trigger={fitTrigger} />
         <InvalidateSize />
         {children}
       </MapContainer>
+
+      <button
+        onClick={handleLocate}
+        disabled={locating}
+        title="My location"
+        className="absolute bottom-3 right-3 z-[400] bg-card/95 backdrop-blur border border-border/60 rounded-full w-11 h-11 flex items-center justify-center shadow-elevated hover:bg-accent active:scale-95 disabled:opacity-60"
+      >
+        {locating ? <Loader2 className="w-5 h-5 animate-spin text-storm" /> : <LocateFixed className="w-5 h-5 text-storm" />}
+      </button>
 
       {renderedPins.length > 0 && (
         <button
