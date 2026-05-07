@@ -32,7 +32,10 @@ export function AppSidebar({ active, onNavigate }: { active: View; onNavigate: (
           <BrandLogo className="w-6 h-6" />
         </div>
         <div>
-          <div className="font-bold text-white tracking-tight">RoofRadar</div>
+          <div className="font-bold text-white tracking-tight flex items-center gap-1.5">
+            RoofRadar
+            <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-storm/20 text-storm border border-storm/40">Beta</span>
+          </div>
           <div className="text-[11px] text-sidebar-foreground/60">Storm intelligence</div>
         </div>
       </div>
