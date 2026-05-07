@@ -237,19 +237,3 @@ export function MapControls({
     </div>
   );
 }
-
-/** Visual base-map background helper (mock — for non-Google maps). */
-export function baseMapBackground(base: BaseMapMode): React.CSSProperties {
-  switch (base) {
-    case "satellite":
-      return { background: "radial-gradient(ellipse at 30% 30%, hsl(140 30% 22%), hsl(140 25% 12%) 70%)" };
-    case "hybrid":
-      return { background: "radial-gradient(ellipse at 30% 30%, hsl(140 20% 25%), hsl(220 25% 15%) 75%)" };
-    case "terrain":
-      return { background: "linear-gradient(135deg, hsl(80 35% 78%), hsl(35 40% 70%) 60%, hsl(20 30% 55%))" };
-    case "3d":
-      return { background: "linear-gradient(180deg, hsl(210 40% 88%), hsl(210 25% 75%))" };
-    default:
-      return { background: "hsl(210 40% 92%)" };
-  }
-}
