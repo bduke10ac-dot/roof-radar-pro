@@ -19,6 +19,8 @@ const items: { id: View; label: string; icon: typeof LayoutDashboard; adminOnly?
   { id: "compliance", label: "Compliance", icon: ShieldCheck },
   { id: "integrations", label: "Integrations", icon: Plug },
   { id: "billing", label: "Billing & Subscription", icon: CreditCard },
+  { id: "team", label: "Team & Permissions", icon: UserCog },
+  { id: "admin-users", label: "Admin · Users", icon: ShieldAlert, adminOnly: true },
   { id: "readiness", label: "App Readiness", icon: Activity, adminOnly: true },
 ];
 
