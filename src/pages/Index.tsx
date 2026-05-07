@@ -46,14 +46,21 @@ const Shell = () => {
     <div className="min-h-screen flex bg-background">
       <AppSidebar active={view} onNavigate={setView} />
       <div className="flex-1 flex flex-col min-w-0">
-        <TrialBanner onUpgrade={() => setView("billing")} />
-        <header className="sticky top-0 z-30 bg-background/85 backdrop-blur border-b border-border flex items-center gap-3 px-4 md:px-6 h-14">
-          <div className="md:hidden flex items-center gap-2">
-            <div className="w-7 h-7 rounded-md bg-gradient-storm flex items-center justify-center">
-              <BrandLogo className="w-5 h-5" />
-            </div>
-            <span className="font-bold">RoofRadar</span>
+      <TrialBanner onUpgrade={() => setView("billing")} />
+      <div className="bg-warning/10 border-b border-warning/30 text-[11px] text-warning-foreground/90 px-4 md:px-6 py-1.5 flex items-center gap-2">
+        <span className="font-bold uppercase tracking-wider text-warning">Beta</span>
+        <span className="text-muted-foreground">
+          Weather, storm, and property data are estimates from third-party sources. Verify before making business decisions.
+        </span>
+      </div>
+      <header className="sticky top-0 z-30 bg-background/85 backdrop-blur border-b border-border flex items-center gap-3 px-4 md:px-6 h-14">
+        <div className="md:hidden flex items-center gap-2">
+          <div className="w-7 h-7 rounded-md bg-gradient-storm flex items-center justify-center">
+            <BrandLogo className="w-5 h-5" />
           </div>
+          <span className="font-bold">RoofRadar</span>
+          <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-storm/15 text-storm border border-storm/30">Beta</span>
+        </div>
           <div className="md:hidden ml-auto">
             <Select value={view} onValueChange={(v) => setView(v as View)}>
               <SelectTrigger className="w-40 h-9 bg-white text-foreground border-white"><SelectValue /></SelectTrigger>
