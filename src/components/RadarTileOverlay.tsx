@@ -35,9 +35,9 @@ export function RadarTileOverlay({ opacity = 0.55, className }: { opacity?: numb
 
   if (status === "loading") {
     return (
-      <div className={cn("absolute inset-0 flex items-center justify-center pointer-events-none", className)}>
-        <div className="bg-card/80 backdrop-blur-sm border border-border/60 rounded-md px-3 py-1.5 text-xs flex items-center gap-2">
-          <Loader2 className="w-3 h-3 animate-spin" /> Loading live radar…
+      <div className={cn("absolute top-2 right-2 pointer-events-none", className)}>
+        <div className="bg-card/80 backdrop-blur-sm border border-border/60 rounded-md px-2 py-1 text-[11px] flex items-center gap-1.5">
+          <Loader2 className="w-3 h-3 animate-spin" /> Radar…
         </div>
       </div>
     );
