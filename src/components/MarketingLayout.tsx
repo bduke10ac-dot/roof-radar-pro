@@ -17,6 +17,7 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
             <Link to="/pricing" className="px-3 py-1.5 rounded-md hover:bg-accent">Pricing</Link>
             <Link to="/support" className="hidden sm:block px-3 py-1.5 rounded-md hover:bg-accent">Support</Link>
             <Link to="/login" className="px-3 py-1.5 rounded-md hover:bg-accent">Log in</Link>
+            <Link to="/signup" className="px-3 py-1.5 rounded-md hover:bg-accent">Sign up</Link>
             <Link to="/app" onClick={() => localStorage.setItem("rr_guest", "1")} className="ml-1 px-3 py-1.5 rounded-md bg-storm text-white text-sm font-medium hover:opacity-90">Use now</Link>
           </nav>
         </div>
