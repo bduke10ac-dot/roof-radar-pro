@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { downloadCsv } from "@/lib/csv";
 
 type CheckStatus = "ok" | "fail" | "skipped" | "pending";
-type Check = { name: string; status: CheckStatus; detail?: string; group: "core" | "data" | "integrations" | "beta" };
+type Check = { name: string; status: CheckStatus; detail?: string; group: "core" | "data" | "integrations" | "beta" | "submission" };
 
 function StatusIcon({ status }: { status: CheckStatus }) {
   if (status === "ok") return <CheckCircle2 className="w-4 h-4 text-success" />;
@@ -76,9 +76,39 @@ export function AppReadinessView() {
 
       out.push({ group: "integrations", name: "Twilio (SMS)", status: "skipped", detail: "Connector not added — sending disabled" });
       out.push({ group: "integrations", name: "Resend (Email)", status: "skipped", detail: "Connector not added — sending disabled" });
+      out.push({ group: "integrations", name: "Push notifications", status: "skipped", detail: "Not wired — Capacitor push not configured" });
+
+      // Account deletion edge function probe (OPTIONS handshake)
+      try {
+        const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`;
+        const res = await fetch(url, { method: "OPTIONS" });
+        out.push({ group: "core", name: "Account deletion endpoint", status: res.ok ? "ok" : "fail", detail: res.ok ? "delete-account edge function reachable" : `HTTP ${res.status}` });
+      } catch {
+        out.push({ group: "core", name: "Account deletion endpoint", status: "fail", detail: "Network error" });
+      }
+
+      // App store submission checklist (manual / external)
+      const manual: { name: string; status: CheckStatus; detail: string }[] = [
+        { name: "Apple Developer account", status: "pending", detail: "Required to submit to App Store ($99/year)." },
+        { name: "Google Play Developer account", status: "pending", detail: "Required to publish on Play Store ($25 one-time)." },
+        { name: "Privacy Policy URL", status: "ok", detail: "/privacy is published." },
+        { name: "Terms of Service URL", status: "ok", detail: "/terms is published." },
+        { name: "Consent & Communications policy", status: "ok", detail: "/consent is published." },
+        { name: "Weather data disclaimer", status: "ok", detail: "/weather-disclaimer is published." },
+        { name: "Data sources disclaimer", status: "ok", detail: "/data-sources is published." },
+        { name: "Account deletion in-app", status: "ok", detail: "Available in Billing & Subscription → Delete account." },
+        { name: "Test login credentials", status: "pending", detail: "Provide a reviewer test account in store listing." },
+        { name: "Stripe live mode", status: "pending", detail: "Switch from sandbox to live keys before launch." },
+        { name: "Production backend", status: "pending", detail: "Use the production Lovable Cloud project for live traffic." },
+        { name: "App screenshots", status: "pending", detail: "iPhone 6.7\", iPad 12.9\", Android phone + 7\" tablet." },
+        { name: "App description / keywords", status: "pending", detail: "Short + long description, keywords, support URL, marketing URL." },
+        { name: "App icon (1024×1024)", status: "pending", detail: "Drop into ios/.../AppIcon.appiconset and android/res/mipmap-*." },
+        { name: "Splash screen", status: "pending", detail: "iOS Splash.imageset; Android drawable*." },
+      ];
+      manual.forEach(m => out.push({ group: "submission", ...m }));
 
       // Beta launch checklist (cumulative)
-      const allOk = out.filter(c => c.group !== "beta").every(c => c.status === "ok" || c.status === "skipped");
+      const allOk = out.filter(c => c.group !== "beta" && c.group !== "submission").every(c => c.status === "ok" || c.status === "skipped");
       out.push({ group: "beta", name: "App store blockers", status: allOk ? "ok" : "fail",
         detail: allOk ? "Core + data + integrations healthy. SMS/Email sending intentionally skipped." : "One or more checks failed — see above." });
 
@@ -106,6 +136,7 @@ export function AppReadinessView() {
     { key: "core", title: "Core" },
     { key: "data", title: "Database" },
     { key: "integrations", title: "Integrations" },
+    { key: "submission", title: "App store submission checklist" },
     { key: "beta", title: "Beta launch" },
   ];
 
