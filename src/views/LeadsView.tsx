@@ -125,9 +125,9 @@ export function LeadsView() {
       </div>
 
       <div className="bg-card rounded-xl shadow-card border border-border/60 overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[70vh]">
           <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-muted-foreground">
+            <thead className="bg-muted/80 backdrop-blur sticky top-0 z-10 text-muted-foreground">
               <tr className="text-left">
                 <th className="px-4 py-3 font-medium">Owner</th>
                 <th className="px-4 py-3 font-medium">Address</th>
@@ -139,12 +139,26 @@ export function LeadsView() {
               </tr>
             </thead>
             <tbody>
+              {loading && filtered.length === 0 && Array.from({ length: 6 }).map((_, i) => (
+                <tr key={`s-${i}`} className="border-t border-border/60 animate-pulse">
+                  {Array.from({ length: 7 }).map((__, j) => (
+                    <td key={j} className="px-4 py-3"><div className="h-3 rounded bg-muted" /></td>
+                  ))}
+                </tr>
+              ))}
+              {!loading && filtered.length === 0 && (
+                <tr><td colSpan={7} className="px-4 py-12 text-center text-sm text-muted-foreground">
+                  {leads.length === 0
+                    ? "No leads yet — import a CSV or add your first lead."
+                    : "No leads match your filters. Try clearing search or status."}
+                </td></tr>
+              )}
               {filtered.map(l => (
                 <tr key={l.id} onClick={() => setSelected(l)} className="border-t border-border/60 hover:bg-accent/50 cursor-pointer">
                   <td className="px-4 py-3 font-medium">{l.ownerName}</td>
                   <td className="px-4 py-3 text-muted-foreground">{l.propertyAddress}</td>
-                  <td className="px-4 py-3">{l.roofAge}y</td>
-                  <td className="px-4 py-3">${(l.homeValue / 1000).toFixed(0)}k</td>
+                  <td className="px-4 py-3 tabular-nums">{l.roofAge}y</td>
+                  <td className="px-4 py-3 tabular-nums">${(l.homeValue / 1000).toFixed(0)}k</td>
                   <td className="px-4 py-3"><StormScoreBadge score={l.stormScore} /></td>
                   <td className="px-4 py-3"><StatusBadge status={l.status} /></td>
                   <td className="px-4 py-3"><ConsentBadge consent={l.consent} /></td>
