@@ -32,6 +32,7 @@ export function CampaignsView() {
   const { leads, allLeads } = useMarketLeads();
   const { markets, activeMarket } = useMarkets();
   const { brand } = useBrand();
+  const { saveDraft, saving } = useCampaignDrafts();
   const [segment, setSegment] = useState<Segment>(activeMarket ? "market" : "all");
   const [marketId, setMarketId] = useState<string>(activeMarket?.id ?? markets[0]?.id ?? "");
   const [emailSubj, setEmailSubj] = useState("Free roof inspection after the April 22 storm");
