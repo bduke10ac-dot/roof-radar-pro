@@ -90,11 +90,11 @@ export function WeatherCommandCenter() {
           />
         </div>
         {layers.radar && (
-          <div className="absolute inset-0 opacity-60"
-               style={{ backgroundImage: "radial-gradient(circle at 30% 40%, hsl(var(--storm)/0.55), transparent 35%), radial-gradient(circle at 70% 55%, hsl(var(--warning)/0.5), transparent 30%), radial-gradient(circle at 80% 70%, hsl(var(--destructive)/0.5), transparent 25%)" }} />
+          <div className="absolute inset-0"
+               style={{ backgroundImage: "radial-gradient(circle at 30% 40%, hsl(var(--storm)/0.95), hsl(var(--storm)/0.4) 20%, transparent 38%), radial-gradient(circle at 70% 55%, hsl(var(--warning)/0.9), hsl(var(--warning)/0.35) 18%, transparent 32%), radial-gradient(circle at 80% 70%, hsl(var(--destructive)/0.95), hsl(var(--destructive)/0.4) 15%, transparent 28%), radial-gradient(circle at 20% 75%, hsl(var(--success)/0.7), transparent 22%)" }} />
         )}
         {layers.satellite && (
-          <div className="absolute inset-0 opacity-40 mix-blend-screen"
+          <div className="absolute inset-0 opacity-60 mix-blend-screen"
                style={{ backgroundImage: "radial-gradient(ellipse at 50% 50%, white, transparent 60%)" }} />
         )}
         <svg className="absolute inset-0 w-full h-full opacity-20" preserveAspectRatio="none">
