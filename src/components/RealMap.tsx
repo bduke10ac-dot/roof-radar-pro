@@ -95,7 +95,7 @@ export function RealMap({
   const containerRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div ref={containerRef} className={`relative w-full h-full ${className ?? ""}`}>
+    <div ref={containerRef} className={`relative w-full h-full min-h-[360px] max-w-full overflow-hidden ${className ?? ""}`}>
       <MapContainer
         center={center}
         zoom={zoom}
