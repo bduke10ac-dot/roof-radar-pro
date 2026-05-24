@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useMarkets, STATES, REGIONS, COUNTIES, scoreMarket, type MarketFilters, type SavedMarket } from "@/contexts/MarketContext";
 import { useLeads } from "@/hooks/useLeads";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { GeofenceEditor } from "@/components/GeofenceEditor";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
