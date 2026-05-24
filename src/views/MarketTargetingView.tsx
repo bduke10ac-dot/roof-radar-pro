@@ -28,6 +28,7 @@ export function MarketTargetingView() {
   const [cities, setCities] = useState<string[]>([]);
   const [zipInput, setZipInput] = useState("");
   const [zips, setZips] = useState<string[]>([]);
+  const [geofence, setGeofence] = useState<GeoJSON.Polygon | GeoJSON.MultiPolygon | null>(null);
   const [minHail, setMinHail] = useState([0]);
   const [minWind, setMinWind] = useState([0]);
   const [minConfidence, setMinConfidence] = useState([0]);
