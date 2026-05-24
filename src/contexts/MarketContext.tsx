@@ -152,15 +152,16 @@ export function MarketProvider({ children }: { children: ReactNode }) {
         cities: m.cities,
         zip_codes: m.zips,
         filters: m.filters as any,
+        geofence_geojson: (m.geofence ?? null) as any,
       })
-      .select("id, market_name, states, regions, counties, cities, zip_codes, filters, created_at")
+      .select("id, market_name, states, regions, counties, cities, zip_codes, filters, geofence_geojson, created_at")
       .single();
     setSaving(false);
     if (error || !data) {
       toast.error(error?.message ?? "Failed to save market");
       return null;
     }
-    const created = rowToMarket(data as Row);
+    const created = rowToMarket(data as unknown as Row);
     setMarkets(prev => [created, ...prev]);
     return created;
   };
