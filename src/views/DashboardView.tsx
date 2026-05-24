@@ -14,7 +14,8 @@ const moreTiles: { id: View; label: string; icon: typeof Activity }[] = [
 
 export function DashboardView({ onNavigate }: { onNavigate?: (v: View) => void }) {
   const { activeMarket, markets } = useMarkets();
-  const { leads, usingMock } = useLeads();
+  const { leads, allLeads } = useMarketLeads();
+  const { usingMock } = useLeads();
   const { rules } = useAutoRules();
 
   const hasMarket = markets.length > 0;
