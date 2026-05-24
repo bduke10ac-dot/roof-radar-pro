@@ -41,6 +41,7 @@ export function MarketTargetingView() {
   const resetForm = () => {
     setEditingId(null);
     setName(""); setStates([]); setRegions([]); setCounties([]); setCities([]); setZips([]);
+    setGeofence(null);
     setMinHail([0]); setMinWind([0]); setMinConfidence([0]); setMinAffected([0]);
     setMinRoofAge([0]); setMinHomeValue([0]); setMinClaim([0]); setStormDateFrom("");
   };
@@ -50,6 +51,7 @@ export function MarketTargetingView() {
     setName(m.name);
     setStates(m.states); setRegions(m.regions); setCounties(m.counties);
     setCities(m.cities); setZips(m.zips);
+    setGeofence(m.geofence ?? null);
     setMinHail([m.filters.minHail ?? 0]); setMinWind([m.filters.minWind ?? 0]);
     setMinConfidence([m.filters.minConfidence ?? 0]); setMinAffected([m.filters.minAffected ?? 0]);
     setMinRoofAge([m.filters.minRoofAge ?? 0]); setMinHomeValue([m.filters.minHomeValue ?? 0]);
