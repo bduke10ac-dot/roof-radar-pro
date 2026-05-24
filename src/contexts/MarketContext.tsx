@@ -176,16 +176,17 @@ export function MarketProvider({ children }: { children: ReactNode }) {
     if (patch.cities !== undefined) row.cities = patch.cities;
     if (patch.zips !== undefined) row.zip_codes = patch.zips;
     if (patch.filters !== undefined) row.filters = patch.filters as any;
+    if (patch.geofence !== undefined) row.geofence_geojson = patch.geofence ?? null;
     setSaving(true);
     const { data, error } = await supabase
       .from("markets")
       .update(row as any)
       .eq("id", id)
-      .select("id, market_name, states, regions, counties, cities, zip_codes, filters, created_at")
+      .select("id, market_name, states, regions, counties, cities, zip_codes, filters, geofence_geojson, created_at")
       .single();
     setSaving(false);
     if (error || !data) { toast.error(error?.message ?? "Update failed"); return null; }
-    const updated = rowToMarket(data as Row);
+    const updated = rowToMarket(data as unknown as Row);
     setMarkets(prev => prev.map(m => m.id === id ? updated : m));
     return updated;
   };
