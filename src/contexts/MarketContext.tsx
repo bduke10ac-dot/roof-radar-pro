@@ -23,6 +23,7 @@ export interface SavedMarket {
   cities: string[];
   zips: string[];
   filters: MarketFilters;
+  geofence?: GeoJSON.Polygon | GeoJSON.MultiPolygon | null;
   createdAt: number;
 }
 
