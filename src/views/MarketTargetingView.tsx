@@ -316,6 +316,7 @@ function SavedMarketCard({ market, active, onActivate, onEdit, onDelete }: { mar
   const tags = [
     ...market.states, ...market.regions, ...market.counties, ...market.cities,
     ...(market.zips.length ? [`${market.zips.length} ZIPs`] : []),
+    ...(market.geofence ? ["Custom geofence"] : []),
   ];
   return (
     <div className={cn("bg-card rounded-xl p-4 shadow-card border transition", active ? "border-storm ring-2 ring-storm/30" : "border-border/60")}>
