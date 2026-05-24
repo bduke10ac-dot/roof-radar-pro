@@ -409,6 +409,7 @@ export function MapView() {
                   } as any)
                 : null
             }
+            marketBoundary={activeMarket?.geofence ?? null}
           />
           {demoMode && (overlays.hail || overlays.wind || overlays.tornado) && (
             <div className="absolute top-2 left-2 z-[500] bg-warning text-warning-foreground text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider shadow pointer-events-none">
