@@ -187,6 +187,12 @@ export function MarketTargetingView() {
                 </div>
               </Card>
 
+              <Card title="Custom geofence (optional)">
+                <GeofenceEditor value={geofence} onChange={setGeofence} />
+              </Card>
+
+
+
               <Card title="Storm & property filters">
                 <div className="grid sm:grid-cols-2 gap-x-6 gap-y-4">
                   <SliderRow label="Min hail size" value={minHail} onChange={setMinHail} max={3} step={0.25} format={v => `${v}"`} />
