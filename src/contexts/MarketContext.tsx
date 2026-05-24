@@ -79,6 +79,7 @@ type Row = {
   cities: string[] | null;
   zip_codes: string[] | null;
   filters: MarketFilters | null;
+  geofence_geojson: GeoJSON.Polygon | GeoJSON.MultiPolygon | null;
   created_at: string;
 };
 
@@ -91,6 +92,7 @@ const rowToMarket = (r: Row): SavedMarket => ({
   cities: r.cities ?? [],
   zips: r.zip_codes ?? [],
   filters: (r.filters ?? {}) as MarketFilters,
+  geofence: r.geofence_geojson ?? null,
   createdAt: new Date(r.created_at).getTime(),
 });
 
