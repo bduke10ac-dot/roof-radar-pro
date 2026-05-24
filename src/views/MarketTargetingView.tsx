@@ -97,7 +97,7 @@ export function MarketTargetingView() {
     minClaimScore: minClaim[0] || undefined,
   };
 
-  const draft = { name, states, regions, counties, cities, zips, filters };
+  const draft = { name, states, regions, counties, cities, zips, filters, geofence };
   const draftScore = useMemo(() => scoreMarket(
     { id: "draft", createdAt: Date.now(), ...draft },
     {
