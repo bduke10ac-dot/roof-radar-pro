@@ -1,11 +1,11 @@
-import { AlertTriangle, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ShieldCheck, Target } from "lucide-react";
 import { ConsentBadge } from "@/components/StormScoreBadge";
-import { useLeads } from "@/hooks/useLeads";
+import { useMarketLeads } from "@/hooks/useMarketFilter";
 
 const sources = ["Web form", "Door knock card", "Phone (recorded)", "Imported list"];
 
 export function ComplianceView() {
-  const { leads } = useLeads();
+  const { leads, allLeads, activeMarket } = useMarketLeads();
   const logs = leads.map((l, i) => ({
     ...l,
     source: l.consent === "opted_in" ? sources[i % sources.length] : l.consent === "opted_out" ? "Reply STOP" : "—",
@@ -19,7 +19,10 @@ export function ComplianceView() {
     <div className="space-y-5">
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Compliance center</h1>
-        <p className="text-sm text-muted-foreground">Consent, DNC, and channel eligibility.</p>
+        <p className="text-sm text-muted-foreground">
+          Consent, DNC, and channel eligibility
+          {activeMarket && <> · scoped to <span className="text-storm font-medium inline-flex items-center gap-1"><Target className="w-3 h-3" />{activeMarket.name}</span> ({leads.length} of {allLeads.length})</>}.
+        </p>
       </header>
 
       <div className="rounded-xl p-4 border border-warning/40 bg-warning/10 flex gap-3">

@@ -2,6 +2,7 @@ import { Activity, Users, Map as MapIcon, Send, BookOpen, Target, Zap, ArrowRigh
 import type { View } from "@/components/AppSidebar";
 import { useMarkets } from "@/contexts/MarketContext";
 import { useLeads } from "@/hooks/useLeads";
+import { useMarketLeads } from "@/hooks/useMarketFilter";
 import { useAutoRules } from "@/hooks/useAutoRules";
 
 const moreTiles: { id: View; label: string; icon: typeof Activity }[] = [
@@ -13,11 +14,12 @@ const moreTiles: { id: View; label: string; icon: typeof Activity }[] = [
 
 export function DashboardView({ onNavigate }: { onNavigate?: (v: View) => void }) {
   const { activeMarket, markets } = useMarkets();
-  const { leads, usingMock } = useLeads();
+  const { leads, allLeads } = useMarketLeads();
+  const { usingMock } = useLeads();
   const { rules } = useAutoRules();
 
   const hasMarket = markets.length > 0;
-  const hasLeads = !usingMock && leads.length > 0;
+  const hasLeads = !usingMock && allLeads.length > 0;
   const hasRule = (rules?.length ?? 0) > 0;
   const completed = [hasMarket, hasLeads, hasRule].filter(Boolean).length;
   const showSetup = completed < 3;

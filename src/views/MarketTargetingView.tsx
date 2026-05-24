@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useMarkets, STATES, REGIONS, COUNTIES, scoreMarket, type MarketFilters, type SavedMarket } from "@/contexts/MarketContext";
 import { useLeads } from "@/hooks/useLeads";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { GeofenceEditor } from "@/components/GeofenceEditor";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +28,7 @@ export function MarketTargetingView() {
   const [cities, setCities] = useState<string[]>([]);
   const [zipInput, setZipInput] = useState("");
   const [zips, setZips] = useState<string[]>([]);
+  const [geofence, setGeofence] = useState<GeoJSON.Polygon | GeoJSON.MultiPolygon | null>(null);
   const [minHail, setMinHail] = useState([0]);
   const [minWind, setMinWind] = useState([0]);
   const [minConfidence, setMinConfidence] = useState([0]);
@@ -39,6 +41,7 @@ export function MarketTargetingView() {
   const resetForm = () => {
     setEditingId(null);
     setName(""); setStates([]); setRegions([]); setCounties([]); setCities([]); setZips([]);
+    setGeofence(null);
     setMinHail([0]); setMinWind([0]); setMinConfidence([0]); setMinAffected([0]);
     setMinRoofAge([0]); setMinHomeValue([0]); setMinClaim([0]); setStormDateFrom("");
   };
@@ -48,6 +51,7 @@ export function MarketTargetingView() {
     setName(m.name);
     setStates(m.states); setRegions(m.regions); setCounties(m.counties);
     setCities(m.cities); setZips(m.zips);
+    setGeofence(m.geofence ?? null);
     setMinHail([m.filters.minHail ?? 0]); setMinWind([m.filters.minWind ?? 0]);
     setMinConfidence([m.filters.minConfidence ?? 0]); setMinAffected([m.filters.minAffected ?? 0]);
     setMinRoofAge([m.filters.minRoofAge ?? 0]); setMinHomeValue([m.filters.minHomeValue ?? 0]);
@@ -93,7 +97,7 @@ export function MarketTargetingView() {
     minClaimScore: minClaim[0] || undefined,
   };
 
-  const draft = { name, states, regions, counties, cities, zips, filters };
+  const draft = { name, states, regions, counties, cities, zips, filters, geofence };
   const draftScore = useMemo(() => scoreMarket(
     { id: "draft", createdAt: Date.now(), ...draft },
     {
@@ -182,6 +186,12 @@ export function MarketTargetingView() {
                   <ChipList items={zips} onRemove={v => setZips(p => p.filter(x => x !== v))} />
                 </div>
               </Card>
+
+              <Card title="Custom geofence (optional)">
+                <GeofenceEditor value={geofence} onChange={setGeofence} />
+              </Card>
+
+
 
               <Card title="Storm & property filters">
                 <div className="grid sm:grid-cols-2 gap-x-6 gap-y-4">
@@ -306,6 +316,7 @@ function SavedMarketCard({ market, active, onActivate, onEdit, onDelete }: { mar
   const tags = [
     ...market.states, ...market.regions, ...market.counties, ...market.cities,
     ...(market.zips.length ? [`${market.zips.length} ZIPs`] : []),
+    ...(market.geofence ? ["Custom geofence"] : []),
   ];
   return (
     <div className={cn("bg-card rounded-xl p-4 shadow-card border transition", active ? "border-storm ring-2 ring-storm/30" : "border-border/60")}>
