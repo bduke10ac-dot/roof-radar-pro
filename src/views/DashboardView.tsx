@@ -19,7 +19,7 @@ export function DashboardView({ onNavigate }: { onNavigate?: (v: View) => void }
   const { rules } = useAutoRules();
 
   const hasMarket = markets.length > 0;
-  const hasLeads = !usingMock && leads.length > 0;
+  const hasLeads = !usingMock && allLeads.length > 0;
   const hasRule = (rules?.length ?? 0) > 0;
   const completed = [hasMarket, hasLeads, hasRule].filter(Boolean).length;
   const showSetup = completed < 3;
