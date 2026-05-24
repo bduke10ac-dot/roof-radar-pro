@@ -2,6 +2,7 @@ import { Activity, Users, Map as MapIcon, Send, BookOpen, Target, Zap, ArrowRigh
 import type { View } from "@/components/AppSidebar";
 import { useMarkets } from "@/contexts/MarketContext";
 import { useLeads } from "@/hooks/useLeads";
+import { useMarketLeads } from "@/hooks/useMarketFilter";
 import { useAutoRules } from "@/hooks/useAutoRules";
 
 const moreTiles: { id: View; label: string; icon: typeof Activity }[] = [
