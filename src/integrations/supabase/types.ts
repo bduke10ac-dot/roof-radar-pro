@@ -644,6 +644,7 @@ export type Database = {
           counties: string[] | null
           created_at: string
           filters: Json
+          geofence_geojson: Json | null
           id: string
           market_name: string
           market_type: string | null
@@ -662,6 +663,7 @@ export type Database = {
           counties?: string[] | null
           created_at?: string
           filters?: Json
+          geofence_geojson?: Json | null
           id?: string
           market_name: string
           market_type?: string | null
@@ -680,6 +682,7 @@ export type Database = {
           counties?: string[] | null
           created_at?: string
           filters?: Json
+          geofence_geojson?: Json | null
           id?: string
           market_name?: string
           market_type?: string | null
