@@ -19,7 +19,10 @@ export function ComplianceView() {
     <div className="space-y-5">
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Compliance center</h1>
-        <p className="text-sm text-muted-foreground">Consent, DNC, and channel eligibility.</p>
+        <p className="text-sm text-muted-foreground">
+          Consent, DNC, and channel eligibility
+          {activeMarket && <> · scoped to <span className="text-storm font-medium inline-flex items-center gap-1"><Target className="w-3 h-3" />{activeMarket.name}</span> ({leads.length} of {allLeads.length})</>}.
+        </p>
       </header>
 
       <div className="rounded-xl p-4 border border-warning/40 bg-warning/10 flex gap-3">
