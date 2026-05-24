@@ -118,14 +118,14 @@ export function MarketProvider({ children }: { children: ReactNode }) {
     setError(null);
     const { data, error } = await supabase
       .from("markets")
-      .select("id, market_name, states, regions, counties, cities, zip_codes, filters, created_at")
+      .select("id, market_name, states, regions, counties, cities, zip_codes, filters, geofence_geojson, created_at")
       .eq("owner_id", user.id)
       .order("created_at", { ascending: false });
     if (error) {
       setError(error.message);
       setMarkets([]);
     } else {
-      setMarkets((data as Row[]).map(rowToMarket));
+      setMarkets((data as unknown as Row[]).map(rowToMarket));
     }
     setLoading(false);
   }, [user]);
