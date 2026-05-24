@@ -37,20 +37,27 @@ export function leadMatchesMarket(l: Lead, m: SavedMarket | null): boolean {
   if (!m) return true;
   const addr = (l.propertyAddress || "").toLowerCase();
 
-  if (m.zips.length > 0 && !m.zips.includes(l.zip)) return false;
+  // Geofence: if present, it takes precedence over coarse geo filters.
+  if (m.geofence && typeof l.lng === "number" && typeof l.lat === "number") {
+    if (!pointInGeofence(l.lng, l.lat, m.geofence)) return false;
+  } else {
+    if (m.zips.length > 0 && !m.zips.includes(l.zip)) return false;
 
-  if (m.states.length > 0) {
-    const ok = m.states.some(s => new RegExp(`,\\s*${s}\\b`, "i").test(l.propertyAddress));
-    if (!ok) return false;
-  }
+    if (m.states.length > 0) {
+      const ok = m.states.some(s => new RegExp(`,\\s*${s}\\b`, "i").test(l.propertyAddress));
+      if (!ok) return false;
+    }
 
-  if (m.cities.length > 0) {
-    const ok = m.cities.some(c => addr.includes(c.toLowerCase()));
-    if (!ok) return false;
-  }
+    if (m.cities.length > 0) {
+      const ok = m.cities.some(c => addr.includes(c.toLowerCase()));
+      if (!ok) return false;
+    }
 
-  if (m.counties.length > 0 && m.zips.length === 0 && m.cities.length === 0) {
-    // counties not in lead address — only enforce if no other geo narrows it
+    if (m.counties.length > 0) {
+      const ok = m.counties.some(c => addr.includes(c.toLowerCase()));
+      // Only enforce if address has any county hint; otherwise skip (county isn't always in formatted address).
+      if (!ok && /county/i.test(addr)) return false;
+    }
   }
 
   const f = m.filters;
