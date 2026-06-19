@@ -229,7 +229,7 @@ export function useLeads() {
     if (!user) return false;
     const prev = leads;
     setLeads(prev.filter(l => l.id !== id));
-    const { error } = await supabase.from("leads").delete().eq("id", id);
+    const { error } = await trackSync(supabase.from("leads").delete().eq("id", id));
     if (error) {
       toast.error(error.message);
       setLeads(prev);
