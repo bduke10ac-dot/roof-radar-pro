@@ -199,7 +199,7 @@ export function useLeads() {
       // Need property_id; fetch from joined data
       const { data: leadRow } = await supabase.from("leads").select("property_id").eq("id", id).maybeSingle();
       if (leadRow?.property_id) {
-        const { error } = await supabase.from("properties").update(propPatch as any).eq("id", leadRow.property_id);
+        const { error } = await trackSync(supabase.from("properties").update(propPatch as any).eq("id", leadRow.property_id));
         if (error) { toast.error(error.message); return false; }
       }
     }
