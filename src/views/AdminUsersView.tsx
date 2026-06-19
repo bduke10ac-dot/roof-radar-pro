@@ -3,11 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ShieldCheck, ShieldOff, Search } from "lucide-react";
+import { Search } from "lucide-react";
 
 type RoleRow = { id: string; user_id: string; role: "admin" | "user"; created_at: string };
 
