@@ -11,12 +11,10 @@ import { Search } from "lucide-react";
 type RoleRow = { id: string; user_id: string; role: "admin" | "user"; created_at: string };
 
 export function AdminUsersView() {
-  const { user } = useAuth();
   const { isAdmin, loading: roleLoading } = useUserRole();
   const [rows, setRows] = useState<RoleRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
-  const [newId, setNewId] = useState("");
 
   const refresh = async () => {
     setLoading(true);
