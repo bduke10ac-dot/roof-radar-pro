@@ -231,6 +231,22 @@ export function TeamView() {
           </div>
         </div>
       </Card>
+
+      <Card className="p-4 border-destructive/40">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+          <div className="flex gap-3">
+            <Trash2 className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+            <div className="text-sm text-muted-foreground">
+              <div className="font-medium text-foreground">Reset my data</div>
+              Permanently delete all your leads, properties and contacts. This only affects your account and cannot be undone.
+            </div>
+          </div>
+          <Button variant="destructive" onClick={resetData} disabled={resetting} className="shrink-0">
+            <Trash2 className="w-4 h-4" /> {resetting ? "Resetting…" : "Reset data"}
+          </Button>
+        </div>
+      </Card>
     </div>
+
   );
 }
