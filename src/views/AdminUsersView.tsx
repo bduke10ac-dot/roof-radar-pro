@@ -71,12 +71,12 @@ export function AdminUsersView() {
       </div>
 
       <Card className="p-4">
-        <div className="text-sm font-semibold mb-2">Grant admin</div>
-        <div className="flex gap-2">
-          <Input value={newId} onChange={(e) => setNewId(e.target.value)} placeholder="User ID (UUID)" className="font-mono text-xs" />
-          <Button onClick={promote}><ShieldCheck className="w-4 h-4" /> Grant admin</Button>
-        </div>
-        <p className="text-xs text-muted-foreground mt-2">Find a user's ID from the Lovable Cloud Users panel, then paste it here.</p>
+        <div className="text-sm font-semibold mb-2">Role management</div>
+        <p className="text-xs text-muted-foreground">
+          For security, admin roles can no longer be granted or revoked from the client. Role changes are
+          restricted to trusted backend processes (service role) to prevent privilege‑escalation attacks.
+          Manage roles through a secured backend function or directly in the Cloud database.
+        </p>
       </Card>
 
       <Card className="p-0 overflow-hidden">
