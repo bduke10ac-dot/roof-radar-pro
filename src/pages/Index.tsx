@@ -90,6 +90,7 @@ const Shell = () => {
           </div>
           <ActiveMarketChip />
           <div className="flex items-center gap-3 ml-auto md:ml-0">
+            <SyncIndicator />
             <button className="hidden md:inline-flex relative p-2 rounded-md hover:bg-accent">
               <Bell className="w-4 h-4" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-warning" />
