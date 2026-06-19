@@ -25,6 +25,7 @@ import { MarketProvider, useMarkets } from "@/contexts/MarketContext";
 import { Badge } from "@/components/ui/badge";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { UserMenu } from "@/components/UserMenu";
+import { SyncIndicator } from "@/components/SyncIndicator";
 
 function ActiveMarketChip() {
   const { activeMarket, setActiveMarketId } = useMarkets();
