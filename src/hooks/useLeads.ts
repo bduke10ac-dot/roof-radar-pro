@@ -184,7 +184,7 @@ export function useLeads() {
     if (patch.stormScore !== undefined) leadPatch.storm_score = patch.stormScore;
     if (patch.notes !== undefined) leadPatch.notes = patch.notes;
     if (Object.keys(leadPatch).length > 0) {
-      const { error } = await supabase.from("leads").update(leadPatch as any).eq("id", id);
+      const { error } = await trackSync(supabase.from("leads").update(leadPatch as any).eq("id", id));
       if (error) { toast.error(error.message); return false; }
     }
 
