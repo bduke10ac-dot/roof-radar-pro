@@ -161,14 +161,14 @@ export function useLeads() {
     if (lErr || !lead) { toast.error(lErr?.message ?? "Failed to create lead"); return null; }
 
     if (input.phone || input.email) {
-      await supabase.from("contact_methods").insert({
+      await trackSync(supabase.from("contact_methods").insert({
         lead_id: lead.id,
         phone: input.phone ?? null,
         email: input.email ?? null,
         sms_consent: !!input.smsConsent,
         email_consent: !!input.emailConsent,
         dnc_status: false,
-      });
+      }));
     }
     await refresh();
     return leads.find(l => l.id === lead.id) ?? null;
