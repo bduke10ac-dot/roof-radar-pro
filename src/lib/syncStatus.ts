@@ -22,7 +22,7 @@ function setState(next: SyncState) {
  * Wrap any persistence promise so the global sync indicator reflects
  * real database write state (saving -> saved / error).
  */
-export async function trackSync<T>(promise: Promise<T>): Promise<T> {
+export async function trackSync<T>(promise: PromiseLike<T>): Promise<T> {
   pending += 1;
   if (savedTimer) {
     clearTimeout(savedTimer);
