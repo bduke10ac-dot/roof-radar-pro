@@ -101,9 +101,6 @@ export function AdminUsersView() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="text-storm border-storm/40 bg-storm/10">admin</Badge>
-                  <Button variant="ghost" size="sm" onClick={() => removeAdmin(row)}>
-                    <ShieldOff className="w-3.5 h-3.5" /> Revoke
-                  </Button>
                 </div>
               </div>
             ))}
