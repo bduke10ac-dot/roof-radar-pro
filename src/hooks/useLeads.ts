@@ -97,7 +97,8 @@ export function useLeads() {
 
   const refresh = useCallback(async () => {
     if (!user) {
-      setLeads(mockLeads);
+      // No fake/mock leads for signed-out users — show a real empty/locked state.
+      setLeads([]);
       setUsingMock(true);
       setLoading(false);
       return;
