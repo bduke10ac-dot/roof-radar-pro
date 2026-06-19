@@ -212,9 +212,9 @@ export function useLeads() {
       if (patch.smsConsent !== undefined) cmPatch.sms_consent = patch.smsConsent;
       if (patch.emailConsent !== undefined) cmPatch.email_consent = patch.emailConsent;
       if (existing && existing.length > 0) {
-        await supabase.from("contact_methods").update(cmPatch as any).eq("id", existing[0].id);
+        await trackSync(supabase.from("contact_methods").update(cmPatch as any).eq("id", existing[0].id));
       } else {
-        await supabase.from("contact_methods").insert({ lead_id: id, dnc_status: false, ...cmPatch } as any);
+        await trackSync(supabase.from("contact_methods").insert({ lead_id: id, dnc_status: false, ...cmPatch } as any));
       }
     }
 
