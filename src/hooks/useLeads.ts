@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { mockLeads, type Lead } from "@/lib/mockData";
+import { type Lead } from "@/lib/mockData";
 import { toast } from "sonner";
 import { trackSync } from "@/lib/syncStatus";
 
@@ -97,7 +97,8 @@ export function useLeads() {
 
   const refresh = useCallback(async () => {
     if (!user) {
-      setLeads(mockLeads);
+      // No fake/mock leads for signed-out users — show a real empty/locked state.
+      setLeads([]);
       setUsingMock(true);
       setLoading(false);
       return;

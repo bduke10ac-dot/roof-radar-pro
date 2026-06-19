@@ -105,6 +105,31 @@ export function TeamView() {
     setRows((rs) => rs.filter((r) => r.id !== row.id));
   };
 
+  const [resetting, setResetting] = useState(false);
+  const resetData = async () => {
+    if (!user) return;
+    if (!confirm("Delete ALL your leads, properties and contacts? This cannot be undone.")) return;
+    setResetting(true);
+    try {
+      // Find this user's leads first so we can clear their contact methods.
+      const { data: leadRows } = await supabase.from("leads").select("id").eq("owner_id", user.id);
+      const leadIds = (leadRows ?? []).map((l) => l.id);
+      if (leadIds.length > 0) {
+        await supabase.from("contact_methods").delete().in("lead_id", leadIds);
+      }
+      const { error: lErr } = await supabase.from("leads").delete().eq("owner_id", user.id);
+      if (lErr) throw lErr;
+      const { error: pErr } = await supabase.from("properties").delete().eq("owner_id", user.id);
+      if (pErr) throw pErr;
+      toast.success("Your test data was reset");
+    } catch (err) {
+      toast.error("Reset failed", { description: (err as Error)?.message });
+    } finally {
+      setResetting(false);
+    }
+  };
+
+
   return (
     <div className="space-y-5 max-w-4xl">
       <div>
@@ -206,6 +231,22 @@ export function TeamView() {
           </div>
         </div>
       </Card>
+
+      <Card className="p-4 border-destructive/40">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+          <div className="flex gap-3">
+            <Trash2 className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+            <div className="text-sm text-muted-foreground">
+              <div className="font-medium text-foreground">Reset my data</div>
+              Permanently delete all your leads, properties and contacts. This only affects your account and cannot be undone.
+            </div>
+          </div>
+          <Button variant="destructive" onClick={resetData} disabled={resetting} className="shrink-0">
+            <Trash2 className="w-4 h-4" /> {resetting ? "Resetting…" : "Reset data"}
+          </Button>
+        </div>
+      </Card>
     </div>
+
   );
 }
