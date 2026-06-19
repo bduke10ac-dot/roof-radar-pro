@@ -155,11 +155,14 @@ export function LeadsView() {
         ))}
         {!loading && filtered.length === 0 && (
           <div className="bg-card rounded-xl border border-border/60 px-4 py-10 text-center text-sm text-muted-foreground">
-            {leads.length === 0
+            {usingMock
+              ? "Log in to add and save real leads — no demo data is shown."
+              : leads.length === 0
               ? "No leads yet — import a CSV or add your first lead."
               : "No leads match your filters."}
           </div>
         )}
+
         {filtered.map(l => (
           <button
             key={l.id}
