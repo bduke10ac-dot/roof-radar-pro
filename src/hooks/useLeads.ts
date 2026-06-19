@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { mockLeads, type Lead } from "@/lib/mockData";
 import { toast } from "sonner";
+import { trackSync } from "@/lib/syncStatus";
 
 interface Row {
   id: string;
