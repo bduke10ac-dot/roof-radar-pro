@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { mockLeads, type Lead } from "@/lib/mockData";
 import { toast } from "sonner";
+import { trackSync } from "@/lib/syncStatus";
 
 interface Row {
   id: string;
@@ -131,7 +132,7 @@ export function useLeads() {
 
   const createLead = async (input: NewLeadInput): Promise<Lead | null> => {
     if (!user) { toast.error("Log in to add leads"); return null; }
-    const { data: prop, error: pErr } = await supabase
+    const { data: prop, error: pErr } = await trackSync(supabase
       .from("properties")
       .insert({
         owner_id: user.id,
@@ -143,10 +144,10 @@ export function useLeads() {
         home_value: input.homeValue ?? null,
       })
       .select("id")
-      .single();
+      .single());
     if (pErr || !prop) { toast.error(pErr?.message ?? "Failed to create property"); return null; }
 
-    const { data: lead, error: lErr } = await supabase
+    const { data: lead, error: lErr } = await trackSync(supabase
       .from("leads")
       .insert({
         owner_id: user.id,
@@ -156,18 +157,18 @@ export function useLeads() {
         notes: input.notes ?? null,
       })
       .select("id")
-      .single();
+      .single());
     if (lErr || !lead) { toast.error(lErr?.message ?? "Failed to create lead"); return null; }
 
     if (input.phone || input.email) {
-      await supabase.from("contact_methods").insert({
+      await trackSync(supabase.from("contact_methods").insert({
         lead_id: lead.id,
         phone: input.phone ?? null,
         email: input.email ?? null,
         sms_consent: !!input.smsConsent,
         email_consent: !!input.emailConsent,
         dnc_status: false,
-      });
+      }));
     }
     await refresh();
     return leads.find(l => l.id === lead.id) ?? null;
@@ -183,7 +184,7 @@ export function useLeads() {
     if (patch.stormScore !== undefined) leadPatch.storm_score = patch.stormScore;
     if (patch.notes !== undefined) leadPatch.notes = patch.notes;
     if (Object.keys(leadPatch).length > 0) {
-      const { error } = await supabase.from("leads").update(leadPatch as any).eq("id", id);
+      const { error } = await trackSync(supabase.from("leads").update(leadPatch as any).eq("id", id));
       if (error) { toast.error(error.message); return false; }
     }
 
@@ -198,7 +199,7 @@ export function useLeads() {
       // Need property_id; fetch from joined data
       const { data: leadRow } = await supabase.from("leads").select("property_id").eq("id", id).maybeSingle();
       if (leadRow?.property_id) {
-        const { error } = await supabase.from("properties").update(propPatch as any).eq("id", leadRow.property_id);
+        const { error } = await trackSync(supabase.from("properties").update(propPatch as any).eq("id", leadRow.property_id));
         if (error) { toast.error(error.message); return false; }
       }
     }
@@ -211,9 +212,9 @@ export function useLeads() {
       if (patch.smsConsent !== undefined) cmPatch.sms_consent = patch.smsConsent;
       if (patch.emailConsent !== undefined) cmPatch.email_consent = patch.emailConsent;
       if (existing && existing.length > 0) {
-        await supabase.from("contact_methods").update(cmPatch as any).eq("id", existing[0].id);
+        await trackSync(supabase.from("contact_methods").update(cmPatch as any).eq("id", existing[0].id));
       } else {
-        await supabase.from("contact_methods").insert({ lead_id: id, dnc_status: false, ...cmPatch } as any);
+        await trackSync(supabase.from("contact_methods").insert({ lead_id: id, dnc_status: false, ...cmPatch } as any));
       }
     }
 
@@ -228,7 +229,7 @@ export function useLeads() {
     if (!user) return false;
     const prev = leads;
     setLeads(prev.filter(l => l.id !== id));
-    const { error } = await supabase.from("leads").delete().eq("id", id);
+    const { error } = await trackSync(supabase.from("leads").delete().eq("id", id));
     if (error) {
       toast.error(error.message);
       setLeads(prev);
