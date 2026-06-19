@@ -1,23 +1,20 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
-import { useAuth } from "@/contexts/AuthContext";
+
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ShieldCheck, ShieldOff, Search } from "lucide-react";
+import { Search } from "lucide-react";
 
 type RoleRow = { id: string; user_id: string; role: "admin" | "user"; created_at: string };
 
 export function AdminUsersView() {
-  const { user } = useAuth();
   const { isAdmin, loading: roleLoading } = useUserRole();
   const [rows, setRows] = useState<RoleRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
-  const [newId, setNewId] = useState("");
 
   const refresh = async () => {
     setLoading(true);
@@ -42,23 +39,7 @@ export function AdminUsersView() {
     );
   }
 
-  const promote = async () => {
-    if (!newId.trim()) return;
-    const { error } = await supabase.from("user_roles").insert({ user_id: newId.trim(), role: "admin" });
-    if (error) return toast.error(error.message);
-    toast.success("Admin granted");
-    setNewId("");
-    refresh();
-  };
 
-  const removeAdmin = async (row: RoleRow) => {
-    if (row.user_id === user?.id) {
-      if (!confirm("Remove your own admin access? You won't be able to undo this from the app.")) return;
-    }
-    const { error } = await supabase.from("user_roles").delete().eq("id", row.id).eq("role", "admin");
-    if (error) return toast.error(error.message);
-    setRows((rs) => rs.filter((r) => r.id !== row.id));
-  };
 
   const filtered = rows.filter((r) => !q || r.user_id.includes(q));
   const admins = filtered.filter((r) => r.role === "admin");
@@ -71,12 +52,12 @@ export function AdminUsersView() {
       </div>
 
       <Card className="p-4">
-        <div className="text-sm font-semibold mb-2">Grant admin</div>
-        <div className="flex gap-2">
-          <Input value={newId} onChange={(e) => setNewId(e.target.value)} placeholder="User ID (UUID)" className="font-mono text-xs" />
-          <Button onClick={promote}><ShieldCheck className="w-4 h-4" /> Grant admin</Button>
-        </div>
-        <p className="text-xs text-muted-foreground mt-2">Find a user's ID from the Lovable Cloud Users panel, then paste it here.</p>
+        <div className="text-sm font-semibold mb-2">Role management</div>
+        <p className="text-xs text-muted-foreground">
+          For security, admin roles can no longer be granted or revoked from the client. Role changes are
+          restricted to trusted backend processes (service role) to prevent privilege‑escalation attacks.
+          Manage roles through a secured backend function or directly in the Cloud database.
+        </p>
       </Card>
 
       <Card className="p-0 overflow-hidden">
@@ -101,9 +82,6 @@ export function AdminUsersView() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="text-storm border-storm/40 bg-storm/10">admin</Badge>
-                  <Button variant="ghost" size="sm" onClick={() => removeAdmin(row)}>
-                    <ShieldOff className="w-3.5 h-3.5" /> Revoke
-                  </Button>
                 </div>
               </div>
             ))}
