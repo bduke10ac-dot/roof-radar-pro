@@ -39,23 +39,7 @@ export function AdminUsersView() {
     );
   }
 
-  const promote = async () => {
-    if (!newId.trim()) return;
-    const { error } = await supabase.from("user_roles").insert({ user_id: newId.trim(), role: "admin" });
-    if (error) return toast.error(error.message);
-    toast.success("Admin granted");
-    setNewId("");
-    refresh();
-  };
 
-  const removeAdmin = async (row: RoleRow) => {
-    if (row.user_id === user?.id) {
-      if (!confirm("Remove your own admin access? You won't be able to undo this from the app.")) return;
-    }
-    const { error } = await supabase.from("user_roles").delete().eq("id", row.id).eq("role", "admin");
-    if (error) return toast.error(error.message);
-    setRows((rs) => rs.filter((r) => r.id !== row.id));
-  };
 
   const filtered = rows.filter((r) => !q || r.user_id.includes(q));
   const admins = filtered.filter((r) => r.role === "admin");
