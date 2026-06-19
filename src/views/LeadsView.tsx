@@ -247,11 +247,14 @@ export function LeadsView() {
               ))}
               {!loading && filtered.length === 0 && (
                 <tr><td colSpan={7} className="px-4 py-12 text-center text-sm text-muted-foreground">
-                  {leads.length === 0
+                  {usingMock
+                    ? "Log in to add and save real leads — no demo data is shown."
+                    : leads.length === 0
                     ? "No leads yet — import a CSV or add your first lead."
                     : "No leads match your filters. Try clearing search or status."}
                 </td></tr>
               )}
+
               {filtered.map(l => (
                 <tr key={l.id} onClick={() => setSelected(l)} className="border-t border-border/60 hover:bg-accent/50 cursor-pointer">
                   <td className="px-4 py-3 font-medium">{l.ownerName}</td>
