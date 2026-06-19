@@ -132,7 +132,7 @@ export function useLeads() {
 
   const createLead = async (input: NewLeadInput): Promise<Lead | null> => {
     if (!user) { toast.error("Log in to add leads"); return null; }
-    const { data: prop, error: pErr } = await supabase
+    const { data: prop, error: pErr } = await trackSync(supabase
       .from("properties")
       .insert({
         owner_id: user.id,
@@ -144,7 +144,7 @@ export function useLeads() {
         home_value: input.homeValue ?? null,
       })
       .select("id")
-      .single();
+      .single());
     if (pErr || !prop) { toast.error(pErr?.message ?? "Failed to create property"); return null; }
 
     const { data: lead, error: lErr } = await supabase
