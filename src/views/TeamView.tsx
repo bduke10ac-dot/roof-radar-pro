@@ -105,6 +105,31 @@ export function TeamView() {
     setRows((rs) => rs.filter((r) => r.id !== row.id));
   };
 
+  const [resetting, setResetting] = useState(false);
+  const resetData = async () => {
+    if (!user) return;
+    if (!confirm("Delete ALL your leads, properties and contacts? This cannot be undone.")) return;
+    setResetting(true);
+    try {
+      // Find this user's leads first so we can clear their contact methods.
+      const { data: leadRows } = await supabase.from("leads").select("id").eq("owner_id", user.id);
+      const leadIds = (leadRows ?? []).map((l) => l.id);
+      if (leadIds.length > 0) {
+        await supabase.from("contact_methods").delete().in("lead_id", leadIds);
+      }
+      const { error: lErr } = await supabase.from("leads").delete().eq("owner_id", user.id);
+      if (lErr) throw lErr;
+      const { error: pErr } = await supabase.from("properties").delete().eq("owner_id", user.id);
+      if (pErr) throw pErr;
+      toast.success("Your test data was reset");
+    } catch (err) {
+      toast.error("Reset failed", { description: (err as Error)?.message });
+    } finally {
+      setResetting(false);
+    }
+  };
+
+
   return (
     <div className="space-y-5 max-w-4xl">
       <div>
