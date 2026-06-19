@@ -147,7 +147,7 @@ export function useLeads() {
       .single());
     if (pErr || !prop) { toast.error(pErr?.message ?? "Failed to create property"); return null; }
 
-    const { data: lead, error: lErr } = await supabase
+    const { data: lead, error: lErr } = await trackSync(supabase
       .from("leads")
       .insert({
         owner_id: user.id,
@@ -157,7 +157,7 @@ export function useLeads() {
         notes: input.notes ?? null,
       })
       .select("id")
-      .single();
+      .single());
     if (lErr || !lead) { toast.error(lErr?.message ?? "Failed to create lead"); return null; }
 
     if (input.phone || input.email) {
